@@ -1,0 +1,534 @@
+Gen:
+  Events:
+    ClusteredPionsMaxPvsDR:
+      type: "2D"
+      name: hGenClusteredPionsMaxPvsDR
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 0.55]
+      y_bins: 50
+    ClusteredPionsMinPvsDR:
+      type: "2D"
+      name: hGenClusteredPionsMinPvsDR
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 0.55]
+      y_bins: 50
+    AllPionsP:
+      type: "1D"
+      name: hGenAllPionsP
+      range: [0, 50]
+      bins: 100
+    AllPionsTheta:
+      type: "1D"
+      name: hGenAllPionsTheta
+      range: [0, 3.15]
+      bins: 100
+    IsolatedPionP:
+      type: "1D"
+      name: hGenIsolatedPionsP
+      range: [0, 50]
+      bins: 100
+    IsolatedPionTheta:
+      type: "1D"
+      name: hGenIsolatedPionsTheta
+      range: [0, 3.15]
+      bins: 100
+    ClusterPionP:
+      type: "1D"
+      name: hGenClusterPionP
+      range: [0, 50]
+      bins: 100
+    ClusterPionTheta:
+      type: "1D"
+      name: hGenClusterPionTheta
+      range: [0, 3.15]
+      bins: 100
+    GenPionClusterDr:
+      type: "1D"
+      name: hGenPionClusterDr
+      range: [0, 0.5]
+      bins: 60
+  Effi:
+  Resolution:
+
+Matched:
+  Events:
+    ClusteredMatchedPionsPvsDR:
+      type: "2D"
+      name: hMatchedClusteredPionsPvsDR
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 0.55]
+      y_bins: 50
+    ClusteredUnmatchedPionsPvsDR:
+      type: "2D"
+      name: hUnmatchedClusteredPionsPvsDR
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 0.55]
+      y_bins: 50
+    ClusteredMatchedPionsThetavsDR:
+      type: "2D"
+      name: hMatchedClusteredPionsThetavsDR
+      x_range: [0, 3.15]
+      x_bins: 100
+      y_range: [0, 0.55]
+      y_bins: 50
+    ClusteredUnmatchedPionsThetavsDR:
+      type: "2D"
+      name: hUnmatchedClusteredPionsThetavsDR
+      x_range: [0, 3.15]
+      x_bins: 100
+      y_range: [0, 0.55]
+      y_bins: 50
+  # Gen values
+  # Cluster matched depending on DR
+    GenPionClusterDr:
+      type: "1D"
+      name: hMatchedGenPionClusterDr
+      range: [0, 0.5]
+      bins: 60
+    ClusterUnmatchedGenPionDr:
+      type: "1D"
+      name: hMatchedClusterUnmatchedGenPionDr
+      range: [0, 0.5]
+      bins: 60
+    TrackPionClusterDr:
+      type: "1D"
+      name: hMatchedTrackPionClusterDr
+      range: [0, 0.5]
+      bins: 60
+  # General Unmatched
+    GenPionsUnmatchedGenP: # general
+      type: "1D"
+      name: hGenPionsUnmatchedGenP
+      range: [0, 50]
+      bins: 100
+    GenPionsUnmatchedGenTheta:
+      type: "1D"
+      name: hGenPionsUnmatchedGenTheta
+      range: [0, 3.15]
+      bins: 100
+  # Isolated Unmatched
+    IsolatedPionsUnmatchedGenP: # aislados
+      type: "1D"
+      name: hIsolatedPionsUnmatchedGenP
+      range: [0, 50]
+      bins: 100
+    IsolatedPionsUnmatchedGenTheta:
+      type: "1D"
+      name: hIsolatedPionsUnmatchedGenTheta
+      range: [0, 3.15]
+      bins: 100
+  # Clustered Unmatched
+    ClusterPionsUnmatchedGenP: # en racimo
+      type: "1D"
+      name: hClusterPionsUnmatchedGenP
+      range: [0, 50]
+      bins: 100
+    ClusterPionsUnmatchedGenTheta:
+      type: "1D"
+      name: hClusterPionsUnmatchedGenTheta
+      range: [0, 3.15]
+      bins: 100
+  # General Missmatched
+    MissmatchedGenPionsGenP: # general
+      type: "1D"
+      name: hMissmatchedGenPionsGenP
+      range: [0, 50]
+      bins: 100
+    MissmatchedGenPionsGenTheta:
+      type: "1D"
+      name: hMMissmatchedGenPionsGenTheta
+      range: [0, 3.15]
+      bins: 100
+  # Isolated Missmatched
+    MissmatchedIsolatedPionsGenP: # aislados
+      type: "1D"
+      name: hMissmatchedIsolatedGenPionsGenP
+      range: [0, 50]
+      bins: 100
+    MissmatchedIsolatedPionsGenTheta:
+      type: "1D"
+      name: hMissmatchedIsolatedGenPionsGenTheta
+      range: [0, 3.15]
+      bins: 100
+  # Clustered Missmatched
+    MissmatchedClusterPionsGenP: # en racimo
+      type: "1D"
+      name: hMissmatchedClusterGenPionsGenP
+      range: [0, 50]
+      bins: 100
+    MissmatchedClusterPionsGenTheta:
+      type: "1D"
+      name: hMissmatchedClusterGenPionsGenTheta
+      range: [0, 3.15]
+      bins: 100
+  # WO Track
+    GenPionsWOTrackGenP: # sin traza, general
+      type: "1D"
+      name: hGenPionsWOTrackGenP
+      range: [0, 50]
+      bins: 100
+    GenPionsWOTrackGenTheta:
+      type: "1D"
+      name: hGenPionsWOTrackGenTheta
+      range: [0, 3.15]
+      bins: 100
+    GenPionsWOTrackWRecoPionGenP: # sin traza, con pion reco
+      type: "1D"
+      name: hGenPionsWOTrackWRecoPionGenP
+      range: [0, 50]
+      bins: 100
+    GenPionsWOTrackWRecoPionGenTheta:
+      type: "1D"
+      name: hGenPionsWOTrackWRecoPionGenTheta
+      range: [0, 3.15]
+      bins: 100
+    GenPionsWOTrackWORecoPionGenP: # sin traza, sin pion reco
+      type: "1D"
+      name: hGenPionsWOTrackWORecoPionGenP
+      range: [0, 50]
+      bins: 100
+    GenPionsWOTrackWORecoPionGenTheta:
+      type: "1D"
+      name: hGenPionsWOTrackWORecoPionGenTheta
+      range: [0, 3.15]
+      bins: 100
+    
+  # W Track
+    GenPionsWTrackGenP: # con traza, general
+      type: "1D"
+      name: hGenPionsWTrackGenP
+      range: [0, 50]
+      bins: 100
+    GenPionsWTrackGenTheta:
+      type: "1D"
+      name: hGenPionsWTrackGenTheta
+      range: [0, 3.15]
+      bins: 100
+    GenPionsWTrackWRecoGenP: # con traza, con pion reco
+      type: "1D"
+      name: hGenPionsWTrackWRecoGenP
+      range: [0, 50]
+      bins: 100
+    GenPionsWTrackWRecoGenTheta:
+      type: "1D"
+      name: hGenPionsWTrackWRecoGenTheta
+      range: [0, 3.15]
+      bins: 100
+    GenPionsWTrackWORecoGenP: # con traza, sin pion reco
+      type: "1D"
+      name: hGenPionsWTrackWORecoGenP
+      range: [0, 50]
+      bins: 100
+    GenPionsWTrackWORecoGenTheta:
+      type: "1D"
+      name: hGenPionsWTrackWORecoGenTheta
+      range: [0, 3.15]
+      bins: 100
+  # Reco values
+  # WO Track
+    GenPionsWOTrackWRecoPionRecoP: # sin traza, con pion reco
+      type: "1D"
+      name: hGenPionsWOTrackWRecoPionRecoP
+      range: [0, 50]
+      bins: 100
+    GenPionsWOTrackWRecoPionRecoTheta:
+      type: "1D"
+      name: hGenPionsWOTrackWRecoPionRecoTheta
+      range: [0, 3.15]
+      bins: 100
+  # W Track
+    GenPionsWTrackWRecoPionRecoP: # con traza, con pion reco
+      type: "1D"
+      name: hGenPionsWTrackWRecoPionRecoP
+      range: [0, 50]
+      bins: 100
+    GenPionsWTrackWRecoPionRecoTheta:
+      type: "1D"
+      name: hGenPionsWTrackWRecoPionRecoTheta
+      range: [0, 3.15]
+      bins: 100
+  # Track values
+  # W Track
+    GenPionsWTrackTrackP: # con traza, general
+      type: "1D"
+      name: hGenPionsWTrackTrackP
+      range: [0, 50]
+      bins: 100
+    GenPionsWTrackTrackTheta:
+      type: "1D"
+      name: hGenPionsWTrackTrackTheta
+      range: [0, 3.15]
+      bins: 100
+    GenPionsWTrackWRecoPionTrackP: # con traza, con pion reco
+      type: "1D"
+      name: hGenPionsWTrackWRecoPionTrackP
+      range: [0, 50]
+      bins: 100
+    GenPionsWTrackWRecoPionTrackTheta:
+      type: "1D"
+      name: hGenPionsWTrackWRecoPionTrackTheta
+      range: [0, 3.15]
+      bins: 100
+    GenPionsWTrackWORecoTrackP: # con traza, sin pion reco
+      type: "1D"
+      name: hGenPionsWTrackWORecoTrackP
+      range: [0, 50]
+      bins: 100
+    GenPionsWTrackWORecoTrackTheta:
+      type: "1D"
+      name: hGenPionsWTrackWORecoTrackTheta
+      range: [0, 3.15]
+      bins: 100
+    
+    # Matched pions gen values
+    AllPionsGenP:
+      type: "1D"
+      name: hMatchedAllGenPionsP
+      range: [0, 50]
+      bins: 100
+    AllPionsGenTheta:
+      type: "1D"
+      name: hMatchedAllGenPionsTheta
+      range: [0, 3.15]
+      bins: 100
+    AllPionsRecoP:
+      type: "1D"
+      name: hMatchedAllRecoPionsP
+      range: [0, 50]
+      bins: 100
+    AllPionsRecoTheta:
+      type: "1D"
+      name: hMatchedAllRecoPionsTheta
+      range: [0, 3.15]
+      bins: 100
+    # Matched specific pion gen values
+    IsolatedPionGenP:
+      type: "1D"
+      name: hMatchedIsolatedPionsGenP
+      range: [0, 50]
+      bins: 100
+    IsolatedPionGenTheta:
+      type: "1D"
+      name: hMatchedIsolatedPionsGenTheta
+      range: [0, 3.15]
+      bins: 100
+    IsolatedPionRecoP:
+      type: "1D"
+      name: hMatchedIsolatedPionsRecoP
+      range: [0, 50]
+      bins: 100
+    IsolatedPionRecoTheta:
+      type: "1D"
+      name: hMatchedIsolatedPionsRecoTheta
+      range: [0, 3.15]
+      bins: 100
+    ClusterPionGenP:
+      type: "1D"
+      name: hMatchedClusterPionGenP
+      range: [0, 50]
+      bins: 100
+    ClusterPionGenTheta:
+      type: "1D"
+      name: hMatchedClusterPionGenTheta
+      range: [0, 3.15]
+      bins: 100
+    ClusterPionRecoP:
+      type: "1D"
+      name: hMatchedClusterPionRecoP
+      range: [0, 50]
+      bins: 100
+    ClusterPionRecoTheta:
+      type: "1D"
+      name: hMatchedClusterPionRecoTheta
+      range: [0, 3.15]
+      bins: 100
+    # Unmatched reco pions
+    UnmatchedRecoPionsP:
+      type: "1D"
+      name: hMatchedUnmatchedRecoPionsP
+      range: [0, 50]
+      bins: 100
+    UnmatchedRecoPionsTheta:
+      type: "1D"
+      name: hMatchedUnmatchedRecoPionsTheta
+      range: [0, 3.15]
+      bins: 100
+      
+  Effi:
+    TrackPionPEfficiency:
+      name: effGenPionsWTrackEfficiency
+      numerator: Matched/GenPionsWTrackGenP
+      denominator: Gen/AllPionsP
+    TrackPionThetaEfficiency:
+      name: effGenPionsWTrackThetaEfficiency
+      numerator: Matched/GenPionsWTrackGenTheta
+      denominator: Gen/AllPionsTheta
+    GeneralPionPEfficiency:
+      name: effGenGeneralPionPEfficiency
+      numerator: Matched/AllPionsGenP
+      denominator: Gen/AllPionsP
+    GeneralPionThetaEfficiency:
+      name: effGenGeneralPionThetaEfficiency
+      numerator: Matched/AllPionsGenTheta
+      denominator: Gen/AllPionsTheta
+    IsolatedPionPEfficiency:
+      name: effGenIsolatedPionPEfficiency
+      numerator: Matched/IsolatedPionGenP
+      denominator: Gen/IsolatedPionP
+    IsolatedPionThetaEfficiency:
+      name: effGenIsolatedPionThetaEfficiency
+      numerator: Matched/IsolatedPionGenTheta
+      denominator: Gen/IsolatedPionTheta
+    ClusterPionPEfficiency:
+      name: effGenClusterPionPEfficiency
+      numerator: Matched/ClusterPionGenP
+      denominator: Gen/ClusterPionP
+    ClusterPionThetaEfficiency:
+      name: effGenClusterPionThetaEfficiency
+      numerator: Matched/ClusterPionGenTheta
+      denominator: Gen/ClusterPionTheta
+    MissMatchGeneral11PEfficiency:
+      name: effGenMissMatch11Efficiency
+      numerator: Matched/General_11P
+      denominator: Gen/AllPionsP
+    MissMatchGeneral13PEfficiency:
+      name: effGenMissMatch13Efficiency
+      numerator: Matched/General_13P
+      denominator: Gen/AllPionsP
+    MissMatchGeneral2112PEfficiency:
+      name: effGenMissMatch2112Efficiency
+      numerator: Matched/General_2112P
+      denominator: Gen/AllPionsP
+    MissMatchedGeneral11ThetaEfficiency:
+      name: effGenMissMatch11ThetaEfficiency
+      numerator: Matched/General_11Theta
+      denominator: Gen/AllPionsTheta
+    MissMatchedGeneral13ThetaEfficiency:
+      name: effGenMissMatch13ThetaEfficiency
+      numerator: Matched/General_13Theta
+      denominator: Gen/AllPionsTheta
+    MissMatchedGeneral2112ThetaEfficiency:
+      name: effGenMissMatch2112ThetaEfficiency
+      numerator: Matched/General_2112Theta
+      denominator: Gen/AllPionsTheta
+    MissMatchedIsolated11PEfficiency:
+      name: effGenMissMatchIsolated11Efficiency
+      numerator: Matched/Isolated_11P
+      denominator: Gen/IsolatedPionP
+    MissMatchedIsolated13PEfficiency:
+      name: effGenMissMatchIsolated13Efficiency
+      numerator: Matched/Isolated_13P
+      denominator: Gen/IsolatedPionP
+    MissMatchedIsolated2112PEfficiency:
+      name: effGenMissMatchIsolated2112Efficiency
+      numerator: Matched/Isolated_2112P
+      denominator: Gen/IsolatedPionP
+    MissMatchedIsolated11ThetaEfficiency:
+      name: effGenMissMatchIsolated11ThetaEfficiency
+      numerator: Matched/Isolated_11Theta
+      denominator: Gen/IsolatedPionTheta
+    MissMatchedIsolated13ThetaEfficiency:
+      name: effGenMissMatchIsolated13ThetaEfficiency
+      numerator: Matched/Isolated_13Theta
+      denominator: Gen/IsolatedPionTheta
+    MissMatchedIsolated2112ThetaEfficiency:
+      name: effGenMissMatchIsolated2112ThetaEfficiency
+      numerator: Matched/Isolated_2112Theta
+      denominator: Gen/IsolatedPionTheta
+    MissMatchedCluster11PEfficiency:
+      name: effGenMissMatchCluster11Efficiency
+      numerator: Matched/Cluster_11P
+      denominator: Gen/ClusterPionP
+    MissMatchedCluster13PEfficiency:
+      name: effGenMissMatchCluster13Efficiency
+      numerator: Matched/Cluster_13P
+      denominator: Gen/ClusterPionP
+    MissMatchedCluster2112PEfficiency:
+      name: effGenMissMatchCluster2112Efficiency
+      numerator: Matched/Cluster_2112P
+      denominator: Gen/ClusterPionP
+    MissMatchedCluster11ThetaEfficiency:
+      name: effGenMissMatchCluster11ThetaEfficiency
+      numerator: Matched/Cluster_11Theta
+      denominator: Gen/ClusterPionTheta
+    MissMatchedCluster13ThetaEfficiency:
+      name: effGenMissMatchCluster13ThetaEfficiency
+      numerator: Matched/Cluster_13Theta
+      denominator: Gen/ClusterPionTheta
+    MissMatchedCluster2112ThetaEfficiency:
+      name: effGenMissMatchCluster2112ThetaEfficiency
+      numerator: Matched/Cluster_2112Theta
+      denominator: Gen/ClusterPionTheta
+    UnmatchedGeneralPionPEfficiency:
+      name: effGenUnmatchedGeneralPionPEfficiency
+      numerator: Matched/GenPionsUnmatchedGenP
+      denominator: Gen/AllPionsP
+    UnmatchedGeneralPionThetaEfficiency:
+      name: effGenUnmatchedGeneralPionThetaEfficiency
+      numerator: Matched/GenPionsUnmatchedGenTheta
+      denominator: Gen/AllPionsTheta
+    UnmatchedIsolatedPionPEfficiency:
+      name: effGenUnmatchedIsolatedPionPEfficiency
+      numerator: Matched/IsolatedPionsUnmatchedGenP
+      denominator: Gen/IsolatedPionP
+    UnmatchedIsolatedPionThetaEfficiency:
+      name: effGenUnmatchedIsolatedPionThetaEfficiency
+      numerator: Matched/IsolatedPionsUnmatchedGenTheta
+      denominator: Gen/IsolatedPionTheta
+    UnmatchedClusterPionPEfficiency:
+      name: effGenUnmatchedClusterPionPEfficiency
+      numerator: Matched/ClusterPionsUnmatchedGenP
+      denominator: Gen/ClusterPionP
+    UnmatchedClusterPionThetaEfficiency:
+      name: effGenUnmatchedClusterPionThetaEfficiency
+      numerator: Matched/ClusterPionsUnmatchedGenTheta
+      denominator: Gen/ClusterPionTheta
+    ClusterPionDREfficiency:
+      name: effGenClusterPionDREfficiency
+      numerator: Matched/GenPionClusterDr
+      denominator: Gen/GenPionClusterDr
+    MissMatchedCluster11DREfficiency:
+      name: effGenMissMatchCluster11DREfficiency
+      numerator: Matched/Cluster_11DR
+      denominator: Gen/GenPionClusterDr
+    MissMatchedCluster13DREfficiency:
+      name: effGenMissMatchCluster13DREfficiency
+      numerator: Matched/Cluster_13DR
+      denominator: Gen/GenPionClusterDr
+    MissMatchedCluster2112DREfficiency:
+      name: effGenMissMatchCluster2112DREfficiency
+      numerator: Matched/Cluster_2112DR
+      denominator: Gen/GenPionClusterDr
+    UnmatchedClusterDREfficiency:
+      name: effGenUnmatchedClusterDREfficiency
+      numerator: Matched/ClusterUnmatchedGenPionDr
+      denominator: Gen/GenPionClusterDr
+    TrackClusterPionDREfficiency:
+      name: effGenTrackPionClusterDREfficiency
+      numerator: Matched/TrackPionClusterDr
+      denominator: Gen/GenPionClusterDr
+  Resolution:
+
+Reco:
+  Events:
+    nRecoPionsInCluster:
+      type: "1D"
+      name: hNRecoPionsInCluster
+      range: [0, 10]
+      bins: 10
+    AllPionsP:
+      type: "1D"
+      name: hRecoAllPionsP
+      range: [0, 50]
+      bins: 100
+    AllPionsTheta:
+      type: "1D"
+      name: hRecoAllPionsTheta
+      range: [0, 3.15]
+      bins: 100
+  Effi:
+  Resolution:

@@ -1,0 +1,353 @@
+# compare.yaml
+datasets:
+  - path: GATr_Results/TauReco/PFO_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+    label: Pandora
+    color: 2          # kRed
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+
+  - path: GATr_Results/TauReco/tau_trained0.4_tph0.35_tpi0.6_n0.0_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0.6_n0.0_g0.0.root
+    label: MLPF
+    color: 4          # kBlue
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+plots:
+  unmatched_pion_p:
+    name: "hUnmatchedRecoPionsP"       # TH1 o TGraphAsymmErrors
+    # title: \text{Reco }\pi^\pm \text{ no emparejados vs P}
+    title: \text{Reco }\pi^\pm \text{ unmatched vs P}
+    x: "P [GeV/c]"
+    # y: "Eventos"
+    y: "Events"
+    normalize: "none"
+    logy: true
+    legend: [0.65, 0.8, 0.9, 0.9]
+    rebin: 2
+  unmatched_pion_theta:
+    name: "hUnmatchedRecoPionsTheta"       # TH1 o TGraphAsymmErrors
+    # title: \text{Reco }\pi^\pm \text{ no emparejados vs } \theta
+    title: \text{Reco }\pi^\pm \text{ unmatched vs } \theta
+    x: \theta\text{[rad]}
+    # y: "Eventos"
+    y: "Events"
+    normalize: "none"
+    legend: [0.65, 0.8, 0.9, 0.9]
+    rebin: 2
+
+  unmatched_photon_p:
+    name: "hUnmatchedRecoPhotonsP"       # TH1 o TGraphAsymmErrors
+    # title: \text{Reco }\gamma \text{ no emparejados vs P}
+    title: \text{Reco }\gamma \text{ unmatched vs P}
+    x: "P [GeV/c]"
+    # y: "Eventos"
+    y: "Events"
+    normalize: "none"
+    logy: true
+    legend: [0.65, 0.8, 0.9, 0.9]
+    rebin: 2
+
+  unmatched_photon_theta:
+    name: "hUnmatchedRecoPhotonsTheta"       # TH1 o TGraphAsymmErrors
+    # title: \text{Reco } \gamma \text{ no emparejados vs } \theta
+    title: \text{Reco } \gamma \text{ unmatched vs } \theta
+    x: \theta\text{[rad]}
+    # y: "Eventos"
+    y: "Events"
+    normalize: "none"
+    legend: [0.65, 0.8, 0.9, 0.9]
+    rebin: 2
+
+  
+  # caso simple: mismo nombre en todos los ROOT
+  pion_eff_vs_p:
+    name: "hEffiGenAllPionsP"       # TH1 o TGraphAsymmErrors
+    # title: \text{Eficiencia Reco }\pi^\pm \text{ vs P}
+    title: \pi^\pm \text{ P Efficiency}
+    x: "P [GeV/c]"
+    # y: "Eficiencia"
+    y: "Efficiency"
+    normalize: "none"
+    legend: [0.65, 0.12, 0.9, 0.22]
+    gridy: true
+    diff_line:
+      label: "Pandora - MLPF"
+      "y_range": [-0.5, 0.5]
+
+
+
+  #   # al contener 'effi' en el nombre, forzará Y=[0,1.1] y sin expo
+  photon_eff_vs_p:
+    name: "hEffiGenAllPhotonsP"       # TH1 o TGraphAsymmErrors
+    # title: \text{Eficiencia Reco }\gamma \text{ vs P}
+    title: \gamma \text{ P Efficiency}
+    x: "P [GeV/c]"
+    # y: "Eficiencia"
+    y: "Efficiency"
+    normalize: "none"
+    legend: [0.65, 0.12, 0.9, 0.22]
+    gridy: true
+    diff_line:
+      label: "Pandora - MLPF"
+      "y_range": [-0.5, 0.5]
+
+
+  pion_eff_vs_theta:
+    name: "hEffiGenAllPionsTheta"       # TH1 o TGraphAsymmErrors
+    # title: \text{Eficiencia Reco }\pi^\pm \text{ vs }\theta
+    title: \pi^\pm \text{ Efficiency vs }\theta
+    x: \theta\text{[rad]}
+    # y: "Eficiencia"
+    y: "Efficiency"
+    normalize: "none"
+    legend: [0.65, 0.12, 0.9, 0.22]
+    gridy: true
+    diff_line:
+      label: "Pandora - MLPF"
+      "y_range": [-0.5, 0.5]
+
+
+    # al contener 'effi' en el nombre, forzará Y=[0,1.1] y sin expo
+  photon_eff_vs_theta:
+    name: "hEffiGenAllPhotonsTheta"       # TH1 o TGraphAsymmErrors
+    # title: \text{Eficiencia Reco }\gamma \text{ vs }\theta
+    title: \gamma \text{ Efficiency vs }\theta
+    x: \theta\text{[rad]}
+    # y: "Eficiencia"
+    y: "Efficiency"
+    normalize: "none"
+    legend: [0.65, 0.12, 0.9, 0.22]
+    gridy: true
+    diff_line:
+      label: "Pandora - MLPF"
+      "y_range": [-0.5, 0.5]
+
+  pion_p_res:
+    name: "hMatchedPionsPRes"       # TH1 o TGraphAsymmErrors
+    # title: \text{Resolución Reco } \pi^\pm \text{ P}
+    title: \pi^\pm \text{P Resolution}
+    x: (P_{reco}-P_{gen})/P_{gen}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+    # logy: true
+    # al contener 'effi' en el nombre, forzará Y=[0,1.1] y sin expo
+  # photon_p_res:
+  #   name: "hMatchedPhotonPRes"       # TH1 o TGraphAsymmErrors
+  #   title: \text{Resolución Reco } \gamma \text{ P}
+  #   x: (P_{reco}-P_{gen})/P_{gen}
+  #   y: "Eventos Normalizados"
+  #   normalize: "max"
+  #   legend: [0.65, 0.8, 0.9, 0.9]
+  #   # logy: true
+  pion_theta_res:
+    name: "hMatchedPionsThetaRes"       # TH1 o TGraphAsymmErrors
+    # title: \text{Resolución Reco } \pi^\pm \text{ }\theta
+    title: \pi^\pm \text{ } \theta \text{ Resolution}
+    x: (\theta_{reco}-\theta_{gen})/\theta_{gen}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+
+  #   # al contener 'effi' en el nombre, forzará Y=[0,1.1] y sin expo
+  # photon_theta_res:
+  #   name: "hMatchedPhotonThetaRes"       # TH1 o TGraphAsymmErrors
+  #   title:  \text{Resolución Reco } \gamma \text{ }\theta
+  #   x: (\theta_{reco}-\theta_{gen})/\theta_{gen}
+  #   y: "Eventos Normalizados"
+  #   normalize: "max"
+  #   legend: [0.65, 0.8, 0.9, 0.9]
+
+  hadron_p_eff:
+    name: hEffiGenHadronTauP
+    # title: \text{Eficiencia desintegraciones hadrónicas vs P}
+    title: \text{Hadronic decay Efficiency vs P}
+    x: "P [GeV/c]"
+    # y: "Eficiencia"
+    y: "Efficiency"
+    legend: [0.65, 0.12, 0.9, 0.22]
+    gridy: true
+
+  pion_decay_p_eff:
+    name: hEffiGenTauP0
+    title: \tau \rightarrow \pi\nu \text{ Efficiency vs P}
+    # title: \text{Eficiencia desintegración } \tau \rightarrow \pi\nu \text{ vs P}
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    # y: "Eficiencia"
+    legend: [0.65, 0.12, 0.9, 0.22]
+    gridy: true
+
+  rho_dec_p_eff:  
+    name: hEffiGenTauP1
+    title: \rho \rightarrow \pi \pi^0 \text{ Efficiency vs P}
+    # title: \text{Eficiencia desintegración } \rho \rightarrow \pi \pi^0 \text{ vs P}
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    # y: "Eficiencia"
+    legend: [0.65, 0.12, 0.9, 0.22]
+    gridy: true
+
+  a1_onepion_p_eff:
+    name: hEffiGenTauP2
+    title: a_1 \rightarrow \pi \pi^0 \pi^0 \text{ Efficiency vs P}
+    # title: \text{Eficiencia desintegración } a_1 \rightarrow \pi \pi^0 \pi^0 \text{ vs P}
+    x: "P [GeV/c]"
+    # y: "Eficiencia"
+    y: "Efficiency"
+    legend: [0.65, 0.12, 0.9, 0.22]
+    gridy: true
+
+  a1_threepion_p_eff:
+    name: hEffiGenTauP10
+    # title: \text{Eficiencia desintegración } a_1 \rightarrow \pi\pi\pi \pi^0 \text{ vs P}
+    title:  a_1 \rightarrow \pi\pi\pi \text{ Efficiency vs P}
+    x: "P [GeV/c]"
+    # y: "Eficiencia"
+    y: "Efficiency"
+    legend: [0.65, 0.12, 0.9, 0.22]
+    gridy: true
+  
+  tau_dec0_p_res:
+    name: histoTauPRes0
+    # title: \text{Resolución P de desintegración }\tau \rightarrow \pi\nu
+    title: \text{P Resolution for decay } \tau \rightarrow \pi\nu
+    x: \frac{P_{reco}-P_{gen}}{P_{gen}}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    x: "P [GeV/c]"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+  
+  tau_dec1_p_res:
+    name: histoTauPRes1
+    # title: \text{Resolución P de desintegración }\rho \rightarrow \pi \pi^0
+    title: \text{P Resolution for decay } \rho \rightarrow \pi \pi^0
+    x: \frac{P_{reco}-P_{gen}}{P_{gen}}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+  
+  tau_dec2_p_res:
+    name: histoTauPRes2
+    # title: \text{Resolución P de desintegración }a_1 \rightarrow \pi \pi^0 \pi^0
+    title: \text{P Resolution for decay } a_1 \rightarrow \pi \pi^0 \pi^0
+    x: \frac{P_{reco}-P_{gen}}{P_{gen}}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+  
+  tau_dec10_p_res:
+    name: histoTauPRes10
+    # title: \text{Resolución P de desintegración }a_1 \rightarrow \pi\pi\pi
+    title: \text{P Resolution for decay } a_1 \rightarrow \pi\pi\pi
+    x: \frac{P_{reco}-P_{gen}}{P_{gen}}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+  
+  matched_tau_dec0_p_res:
+    name: histoMatchedTauPRes0
+    # title: \text{Resolución P de desintegración }\tau \rightarrow \pi\nu
+    title: \text{P Resolution for decay } \tau \rightarrow \pi\nu
+    x: \frac{P_{reco}-P_{gen}}{P_{gen}}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    x: "P [GeV/c]"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+  
+  matched_tau_dec1_p_res:
+    name: histoMatchedTauPRes1
+    # title: \text{Resolución P de desintegración }\rho \rightarrow \pi \pi^0
+    title: \text{P Resolution for decay } \rho \rightarrow \pi \pi^0
+    x: \frac{P_{reco}-P_{gen}}{P_{gen}}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+  
+  matched_tau_dec2_p_res:
+    name: histoMatchedTauPRes2
+    # title: \text{Resolución P de desintegración }a_1 \rightarrow \pi \pi^0 \pi^0
+    title: \text{P Resolution for decay } a_1 \rightarrow \pi \pi^0 \pi^0
+    x: \frac{P_{reco}-P_{gen}}{P_{gen}}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+  
+  matched_tau_dec10_p_res:
+    name: histoMatchedTauPRes10
+    # title: \text{Resolución P de desintegración }a_1 \rightarrow \pi\pi\pi
+    title: \text{P Resolution for decay } a_1 \rightarrow \pi\pi\pi
+    x: \frac{P_{reco}-P_{gen}}{P_{gen}}
+    # y: "Eventos Normalizados"
+    y: "Normalized Events"
+    normalize: "max"
+    legend: [0.65, 0.8, 0.9, 0.9]
+
+  # reco_z_mass:
+  #   name: "histoRecoZMass"
+  #   title: m_Z \text{ from reconstructed taus} 
+  #   x: \text{m_Z [}GeV/c^2\text{]}
+  #   y: "Eventos"
+  #   normalize: "none"
+  #   legend: [0.45, 0.8, 0.9, 0.9]
+  #   common:
+  #     name: "histoGenZVisMass"       # histo común presente en los ROOT
+  #     from: "Pandora"     # lo tomamos de un solo archivo
+  #     label: \text{Visible }m_Z \text{ from simulation}
+  #     color: 1
+  #     linestyle: 1
+  #     markerstyle: 24
+  #     normalize: "none"
+  #     draw: "HIST"        # o "P" si quieres puntos
+    
+  # reco_tau_p:
+  #   name: "histoRecoTauP"
+  #   title: Tau reconstructed P
+  #   x: "P [GeV/c]"
+  #   y: "Eventos"
+  #   normalize: "none"
+  #   legend: [0.45, 0.8, 0.9, 0.9]
+  #   common:
+  #     name: "histoGenTauVisP"       # histo común presente en los ROOT
+  #     from: "Pandora"     # lo tomamos de un solo archivo
+  #     label: "Visible P from simulation"
+  #     color: 1
+  #     linestyle: 1
+  #     markerstyle: 24
+  #     normalize: "none"
+  #     draw: "HIST"        # o "P" si quieres puntos
+
+  # # si el histo se llama distinto según dataset:
+  # purity_photon_vs_eta:
+  #   per_dataset:
+  #     Pandora: "purity_photon_eta"
+  #     MLPF:    "pur_photon_eta"
+  #   title: "Photon Purity vs η"
+  #   x: "η"
+  #   y: "Purity"
+  #   normalize: "none"
+  #   y_range: [0.0, 1.1]
+  #   no_exponent_y: true
+
+  # ejemplo normalizado por máximo y logY
+  # nclusters:
+  #   name: "h_nclusters"
+  #   title: "N. clusters"
+  #   x: "N"
+  #   y: "Norm. counts"
+  #   normalize: "integral"
+  #   logy: false

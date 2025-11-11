@@ -1,0 +1,15 @@
+variabs_hist:
+- hRecoConstPi0Mass
+
+variabs_2d:
+
+plot_titles_config_2d:
+
+
+plot_titles_config_hist:
+  hRecoConstPi0Mass:
+    title: "Pi0 Mass"
+    x: "Pi0 Mass [GeV/c]"
+    y: "Events"
+    fit: True
+  

@@ -1,0 +1,13 @@
+migrations:
+  0->-20: [0,-20]
+  0->0: [0,0]
+  0->10: [0,10]
+  10->-20: [10,-20]
+  10->10: [10,10]  
+  10->0: [10,0]
+axis:
+  xlabel: "P mínimo (GeV/c)"
+  # xlabel: "R [rad]"
+  # title: "Migrations regarding R"
+  title: "Pureza vs corte en hadrones neutros P"
+metric: "purity"

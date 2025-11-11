@@ -1,0 +1,34 @@
+variabs_hist:
+  - hGenTauType
+  - hRecotauType
+plot_together:
+  TauType:
+    variabs:
+      - hGenTauType
+      - hRecotauType
+    labels:
+      - "Gen Tau Type"
+      - "Reco Tau Type"
+    title: "Histogram of Gen and Reco Tau Type"
+    x: "Type"
+    y: "Events"
+
+plot_titles_config_hist:
+  hGenTauType:
+    x: "Type"
+    title: "Histogram of Gen Tau Type"
+  hRecotauType:
+    x: "Type"
+    title: "Histogram of Reco Tau Type"
+
+
+variabs_2d:
+  - hRecoGenTypeMatched
+ 
+
+plot_titles_config_2d:
+  hRecoGenTypeMatched:
+    x: "Gen Tau Type"
+    y: "Reco Tau Type"
+    title: "2D Histogram of Reco and Gen Tau Type"
+  

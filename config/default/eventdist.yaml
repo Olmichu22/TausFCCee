@@ -1,0 +1,19 @@
+cuts:
+  ElectPCut: 1
+  MuonPCut: 0.1
+  NeutronCut: 1
+  TauPhotonPCut: 0.1
+  TauPionPCut: 0.1
+  dRMax: 0.4
+general:
+  decay:
+  - -777
+  outfile: Event_dist_
+  sample: ZTauTau_SMPol_25Sept_MuonFix
+  test: 'True'
+output:
+  event_cases:
+  nLeptons_keys:
+  outputfile:
+  outputpath:
+  pair_cases_charge:

@@ -1,0 +1,1554 @@
+variabs_hist:
+- hEffiGenMissidPionP_Miss2112
+- hEffiGenMissidPionP_Miss11
+- hEffiGenMissidPionP_Miss13
+- hEffiGenMissidPionTheta_Miss2112
+- hEffiGenMissidPionTheta_Miss11
+- hEffiGenMissidPionTheta_Miss13
+- histoRecoRhoMass
+- histoRecoa1OnePionMass
+- histoRecoa1ThreePionMass
+- histoRecoZMass
+- histoGenZMass
+- histoGenZVisMass
+- hEffiGenAllPionsP
+- hGenUnmatchedPionsPNorm
+- hGenMissmatchedPionsPNorm
+- hEffiGenAllPionsTheta
+- hGenUnmatchedPionsThetaNorm
+- hGenMissmatchedPionsThetaNorm
+- hEffiGenAllPhotonsP
+- hGenUnmatchedPhotonsPNorm
+- hGenMissmatchedPhotonsPNorm
+- hEffiGenAllPhotonsTheta
+- hGenUnmatchedPhotonsThetaNorm
+- hGenMissmatchedPhotonsThetaNorm
+- hMatchedPionsPRes
+- hMatchedPionsThetaRes
+- hMatchedPhotonPRes
+- hMatchedPhotonThetaRes
+- hGenAllPhotonsP
+- hGenAllPhotonsTheta
+- hMatchedAllPhotonsP
+- hMatchedAllPhotonsTheta
+- hRecoAllPhotonsTheta
+- hRecoAllPhotonsP
+- hGenAllPionsP
+- hGenAllPionsTheta
+- hMatchedAllPionsP
+- hMatchedAllPionsTheta
+- hRecoAllPionsTheta
+- hRecoAllPionsP
+- histoGenTauDR
+- hEffiGenTauP1Correct
+- histoRecoNeutralHadronTauP
+- hEffiGenAllPionsPionThetaCut
+- hEffiGenAllPionsPCut
+- histoRecoNeutralHadronP
+- hEffiGenHadronTauP
+- histoMatchedGenHadronTauP
+- histoGenHadronP
+# - hEffiGenAllPionsP
+- hEffiGenAllPionsTheta
+- hUnmatchedGenPionsP
+- hUnmatchedGenPionsTheta
+- hUnmatchedRecoPionsP
+- h111RecoPionsP
+# - h16RecoPionsP
+- h11RecoPionsP
+- h321RecoPionsP
+- h13RecoPionsP
+- h311RecoPionsP
+- h12RecoPionsP
+- h14RecoPionsP
+# - h221RecoPionsP
+# - h130RecoPionsP
+# - h310RecoPionsP
+# - h223RecoPionsP
+# - h22RecoPionsP
+# - h323RecoPionsP
+- hUnmatchedPionsTheta
+- hUnmatchedRecoPionsTheta
+- histoGenPionCumP0
+- histoGenPionP0 # Momento pion gen decay 0
+- histoGenPionP1 # Momento pion gen decay 1
+- histoGenPionP2 # Momento pion gen decay 2
+- histoGenPionP10 # Momento pion gen decay 10
+- hEffiGenPhotonP # Eficienca momento foton
+- histoMatchedGenPhotonP # Momento foton gen emparejado
+- histoMatchedGenPhotonTheta # Theta foton gen emparejado
+- histoGenPhotonP # Momento foton gen
+- histoGenPhotonTheta # Theta foton gen
+- histoRecoPhotonP # Momento foton reco
+- histoRecoPhotonTheta # Theta foton reco 
+- hEffiGenPhotonTheta # Eficiencia theta foton
+- hEffiGenTauPionP # Eficiencia momento pion
+- histoMatchedGenPionP # Momento pion gen emparejado
+- histoMatchedGenPionTheta # Theta pion gen emparejado
+- histoGenPionP # Momento pion gen
+- histoGenPionTheta # Theta pion gen
+- histoRecoPionP # Momento pion reco
+- histoRecoPionTheta # Theta pion reco
+- hEffiGenTauPionTheta # Eficiencia theta pion
+- hRecoConstPi0MassFromPhotonMass
+- hRecoConstPi0MassFromPhotonDist
+- hRecoConstlessPhotonPa1strMass
+- hRecoConstxtraPhotonPrhostrMass
+- hRecoConstlessPhotonPa1strDist
+- hRecoConstxtraPhotonPrhostrDist
+- hRecoConstlessPhotonPrho
+- hRecoConstxtraPhotonPi
+- hRecoConstPi0MassRhoReco
+- hRecoConstlessPhotonPa1strMassZoom
+- hRecoConstxtraPhotonPrhostrMassZoom
+- hRecoConstlessPhotonPrhoZoom
+- hRecoConstxtraPhotonPiZoom
+- hRecoThreePhotonMatchOnestrMassP
+- hRecoThreePhotonMatchTwostrMassP
+- hRecoThreePhotonNoMatchstrMassP
+- hRecoConstTwoPhotonAngDist
+- hRecoRhoPiDecayP 
+- hGenRhoPiDecayP
+- hRecoRhoTwoPhotonDecayP
+- hGenRhoTwoPhotonDecayP
+- hRecoRhoTwoPhotonDecaySumP
+- hGenRhoTwoPhotonDecaySumP
+- hRecoRhoOnePhotonDecayPiP
+- hGenRhoOnePhotonDecayPiP
+- hRecoRhoOnePhotonDecayPhotonP
+- hGenRhoOnePhotonDecayPhotonP
+- hGenRhoOnePhotonDecayPhotonSumP
+- hGenRhoOnePhotonDecayPhotonAng
+- histoGenTauTheta0
+- histoGenTauTheta1
+- histoGenTauTheta2
+- histoGenTauTheta10
+- histoMatchedGenTauTheta0
+- histoMatchedGenTauTheta1
+- histoMatchedGenTauTheta2
+- histoMatchedGenTauTheta10
+- histoRecoTauTheta0
+- histoRecoTauTheta1
+- histoRecoTauTheta2
+- histoRecoTauTheta10
+- histoTauThetaRes0
+- histoTauThetaRes1
+- histoTauThetaRes2
+- histoTauThetaRes10
+- histoMatchedTauThetaRes0
+- histoMatchedTauThetaRes1
+- histoMatchedTauThetaRes2
+- histoMatchedTauThetaRes10
+- histoGenTauP
+- histoGenTauVisP
+- histoGenTauP0 
+- histoGenTauP1 
+- histoGenTauP2 
+- histoGenTauP10 
+- histoGenTauVisP0 
+- histoGenTauVisP1 
+- histoGenTauVisP2 
+- histoGenTauVisP10 
+- histoMatchedGenTauP0 
+- histoMatchedGenTauP1 
+- histoMatchedGenTauP2 
+- histoMatchedGenTauP10 
+- histoMatchedGenTauVisP0 
+- histoMatchedGenTauVisP1 
+- histoMatchedGenTauVisP2 
+- histoMatchedGenTauVisP10
+- histoRecoTauP
+- histoRecoTauP0
+- histoRecoTauP1
+- histoRecoTauP2
+- histoRecoTauP10
+- histoTauPRes0
+- histoTauPRes1 
+- histoTauPRes2
+- histoTauPRes10
+- histoMatchedTauPRes0
+- histoMatchedTauPRes1
+- histoMatchedTauPRes2
+- histoMatchedTauPRes10
+- hEffiGenTauTheta0
+- hEffiGenTauTheta1
+- hEffiGenTauTheta2
+- hEffiGenTauTheta10
+- hEffiGenTauP0
+- hEffiGenTauP1
+- hEffiGenTauP2
+- hEffiGenTauP10
+- hEffiGenTauVisP0
+- hEffiGenTauVisP1
+- hEffiGenTauVisP2
+- hEffiGenTauVisP10
+plot_together:
+
+  PionRecognitionPEfficiency:
+    variabs:
+      - hEffiGenAllPionsP
+      - hGenUnmatchedPionsPNorm
+      - hGenMissmatchedPionsPNorm
+    labels:
+      - Efficiency All Pions
+      - Unmatched Pions
+      - Missmatched Pions
+    title: "Pion Efficiency vs P"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    position: [0.65, 0.4, 0.9, 0.6]
+    gridy: true
+  
+  PionRecognitionPEfficiencyPerMissid:
+    variabs:
+      - hEffiGenAllPionsP
+      - hGenUnmatchedPionsPNorm
+      - hEffiGenMissidPionP_Miss2112
+      - hEffiGenMissidPionP_Miss11
+      - hEffiGenMissidPionP_Miss13
+    labels:
+      - Efficiency All Pions
+      - Unmatched Pions
+      - Misid Pions (neutral hadrons)
+      - Misid Pions (electrons)
+      - Misid Pions (muons)
+    title: "Pion Efficiency vs P"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    position: [0.65, 0.4, 0.9, 0.6]
+    gridy: true
+  
+  PionRecognitionThetaEfficiency:
+    variabs:
+      - hEffiGenAllPionsTheta
+      - hGenUnmatchedPionsThetaNorm
+      - hGenMissmatchedPionsThetaNorm
+    labels:
+      - Efficiency All Pions
+      - Unmatched Pions
+      - Missmatched Pions
+    title: "Pion Efficiency vs Theta"
+    x: \theta \text{ [rad]}
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.65, 0.6]
+    gridy: true
+
+  PionRecognitionThetaEfficiencyPerMissid:
+    variabs:
+      - hEffiGenAllPionsTheta
+      - hGenUnmatchedPionsThetaNorm
+      - hEffiGenMissidPionTheta_Miss2112
+      - hEffiGenMissidPionTheta_Miss11
+      - hEffiGenMissidPionTheta_Miss13
+    labels:
+      - Efficiency All Pions
+      - Unmatched Pions
+      - Misid Pions (neutral hadrons)
+      - Misid Pions (electrons)
+      - Misid Pions (muons)
+    title: "Pion Efficiency vs Theta"
+    x: \theta \text{ [rad]}
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.65, 0.6]
+    gridy: true
+
+
+  PhotonRecognitionPEfficiency:
+    variabs:
+      - hEffiGenAllPhotonsP
+      - hGenUnmatchedPhotonsPNorm
+      - hGenMissmatchedPhotonsPNorm
+    labels:
+      - Efficiency All Photons
+      - Unmatched Photons
+      - Missmatched Photons
+    title: "Photon Efficiency vs P"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    position: [0.65, 0.4, 0.9, 0.6]
+    gridy: true
+
+
+  PhotonRecognitionThetaEfficiency:
+    variabs:
+      - hEffiGenAllPhotonsTheta
+      - hGenUnmatchedPhotonsThetaNorm
+      - hGenMissmatchedPhotonsThetaNorm
+    labels:
+      - Efficiency All Photons
+      - Unmatched Photons
+      - Missmatched Photons
+    title: "Photon Efficiency vs Theta"
+    x: \theta \text{ [rad]}
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.65, 0.6]
+    gridy: true
+
+
+  TauP:
+    variabs:
+      - histoGenTauVisP
+      - histoRecoTauP
+    labels:
+      - Gen Tau Visible P
+      - Reco Tau P
+    title: "Histogram of Tau P"
+    x: "P [GeV/c]"
+    y: "Events"
+    position: [0.35, 0.1, 0.65, 0.3]
+    # norm: True
+  TauGenP:
+    variabs:
+      - histoGenTauP
+      - histoGenTauVisP
+    labels:
+      - P del Tau simulado
+      - P visible del Tau simulado
+    title: \text{Distribución de P del Tau simulado}
+    x: "P [GeV/c]"
+    y: "Eventos Normalizados"
+    position: [0.35, 0.1, 0.65, 0.3]
+    norm: True
+
+  ZMass:
+    variabs:
+      - histoGenZVisMass
+      - histoRecoZMass
+    labels:
+      # - Gen Z Mass
+      - Gen Z Visible Mass
+      - Reco Z Mass
+    title: "Z Mass Distribution"
+    x: \text{Mass [GeV/c}^2\text{]}
+    y: "Events"
+    # norm: True
+    position: [0.35, 0.1, 0.65, 0.3]
+  ZGenMass:
+    variabs:
+      - histoGenZMass
+      - histoGenZVisMass
+    labels:
+      - Masa Z simulado
+      - Masa visible Z simulado
+    title: \text{Distribución de la masa del Z simulado}
+    x: \text{Masa [GeV/c}^2\text{]}
+    y: "Eventos Normalizados"
+    position: [0.35, 0.1, 0.65, 0.3]
+    norm: True
+
+  TauDecayMass:
+    variabs:
+      - histoRecoRhoMass
+      - histoRecoa1OnePionMass
+      - histoRecoa1ThreePionMass
+    labels:
+      - \rho
+      - a_1 \text{ (1 }\pi^\pm\text{)}
+      - a_1 \text{ (3 }\pi^\pm\text{)}
+    title: \text{Reco } m_\rho\text{ and }m_{a_1} \text{ distributions}
+    x: \text{Mass [GeV/c}^2\text{]}
+    y: "Events"
+    fill: True
+
+  # TauDecayMass:
+  #   variabs:
+  #     - histoRecoRhoMass
+  #     - histoRecoa1OnePionMass
+  #     - histoRecoa1ThreePionMass
+  #   labels:
+  #     - \rho
+  #     - a_1 \text{ (1 }\pi^\pm\text{)}
+  #     - a_1 \text{ (3 }\pi^\pm\text{)}
+  #   title: \text{Distribuciones de } m_\rho\text{ y }m_{a_1} \text{ reconstruidas}
+  #   x: \text{Masa [GeV/c}^2\text{]}
+  #   y: "Eventos"
+  #   fill: True
+
+  TauPEfficiency:
+    variabs:
+      - hEffiGenHadronTauP
+      - hEffiGenTauP0
+      - hEffiGenTauP1
+      - hEffiGenTauP2
+      - hEffiGenTauP10
+    labels:
+      - "Hadronic decays"
+      - (\tau \rightarrow \pi)
+      - (\rho \rightarrow \pi \pi ^0)
+      - (a_1 \rightarrow \pi 2\pi ^0)
+      - (a_1 \rightarrow 3\pi)
+    title: "Tau P Efficiency"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    position: [0.65, 0.3, 0.9, 0.5]
+
+  PionMissClassP:
+    variabs:
+      # - hUnmatchedRecoPionsP
+      # - h16RecoPionsP
+      - h11RecoPionsP
+      - h321RecoPionsP
+      - h13RecoPionsP
+      - h130RecoPionsP
+      - h311RecoPionsP
+      - h12RecoPionsP
+      - h14RecoPionsP
+      - h111RecoPionsP
+      # - h221RecoPionsP
+      # - h130RecoPionsP
+      # - h310RecoPionsP
+      # - h223RecoPionsP
+      # - h22RecoPionsP
+      # - h323RecoPionsP
+    labels:
+      # - Unmached Pions
+      - Pion -> 11
+      - Pion -> 321
+      - Pion -> 13
+      - Pion -> 130
+      - Pion -> 311
+      - Pion -> 12
+      - Pion -> 14
+      - Pion -> 111
+    title: \text{Reco } \pi^\pm \text{ matched with other particles}
+    x: Pion P [GeV/c]
+    y: Events
+    logy: True
+    position: [0.8, 0.75, 0.95, 0.9]
+  # PhotonP:
+  #   linewidth: 4
+  #   fill: True
+  #   variabs:
+  #     - hGenAllPhotonsP
+  #     - hMatchedAllPhotonsP
+  #     - hRecoAllPhotonsP
+  #   labels:
+  #     - \text{Gen } \gamma
+  #     - \text{Gen } \gamma \text{ emparejado}
+  #     - \text{Reco } \gamma \text{ emparejado}
+  #   title: \text{Distribución } \gamma \text{ P}
+  #   x: "P [GeV/c]"
+  #   y: "Eventos"
+  #   position: [0.6, 0.6, 0.9, 0.9]
+  PhotonP:
+    linewidth: 4
+    fill: True
+    variabs:
+      - hGenAllPhotonsP
+      - hMatchedAllPhotonsP
+      - hRecoAllPhotonsP
+    labels:
+      - \text{Gen } \gamma
+      - \text{Gen matched } \gamma 
+      - \text{Reco matched } \gamma
+    title: \gamma \text{ P Distribution}
+    x: "P [GeV/c]"
+    y: "Events"
+    position: [0.6, 0.6, 0.9, 0.9]
+  # PhotonTheta:
+  #   variabs:
+  #     - hMatchedAllPhotonsTheta
+  #     - hGenAllPhotonsTheta
+  #     - hRecoAllPhotonsTheta
+  #   labels:
+  #     - \text{Gen } \gamma \text{ emparejado}
+  #     - \text{Gen } \gamma
+  #     - \text{Reco } \gamma \text{ emparejado}
+  #   title: \text{Distribución } \gamma \text{ }\theta
+  #   x: \theta \text{[rad]}
+  #   y: "Eventos"
+  #   position: [0.3, 0.3, 0.6, 0.5]
+  PhotonTheta:
+    variabs:
+      - hGenAllPhotonsTheta
+      - hMatchedAllPhotonsTheta
+      - hRecoAllPhotonsTheta
+    labels:
+      - \text{Gen } \gamma
+      - \text{Gen matched } \gamma
+      - \text{Reco matched } \gamma
+    title: \gamma \text{ }\theta\text{ Distribution}
+    x: \theta \text{[rad]}
+    y: "Events"
+    position: [0.3, 0.3, 0.6, 0.5]
+  # PionP:
+  #   linewidth: 4
+  #   fill: True
+  #   variabs:
+  #     - hGenAllPionsP
+  #     - hMatchedAllPionsP
+  #     - hRecoAllPionsP
+  #   labels:
+  #     - \text{Gen } \pi^\pm
+  #     - \text{Gen } \pi^\pm \text{ emparejado}
+  #     - \text{Reco } \pi^\pm \text{ emparejado}
+  #   title: \text{Distribución }\pi^\pm\text{ P}
+  #   x: "P [GeV/c]"
+  #   y: "Eventos"
+  #   position: [0.6, 0.6, 0.9, 0.9]
+  
+  PionP:
+    linewidth: 4
+    fill: True
+    variabs:
+      - hGenAllPionsP
+      - hMatchedAllPionsP
+      - hRecoAllPionsP
+    labels:
+      - \text{Gen } \pi^\pm
+      - \text{Gen matched } \pi^\pm
+      - \text{Reco matched } \pi^\pm
+    title: \pi^\pm\text{ P Distribution}
+    x: "P [GeV/c]"
+    y: "Events"
+    position: [0.6, 0.6, 0.9, 0.9]
+
+  # PionTheta:
+  #   variabs:
+  #     - hMatchedAllPionsTheta
+  #     - hGenAllPionsTheta
+  #     - hRecoAllPionsTheta
+  #   labels:
+  #     - \text{Gen } \pi^\pm \text{ emparejado}
+  #     - \text{Gen } \pi^\pm
+  #     - \text{Reco } \pi^\pm \text{ emparejado}
+  #   title: \text{Distribución } \pi^\pm \theta
+  #   x: \theta \text{[rad]}
+  #   y: "Eventos"
+  #   position: [0.3, 0.3, 0.6, 0.5]
+
+  PionTheta:
+    variabs:
+      - hGenAllPionsTheta
+      - hMatchedAllPionsTheta
+      - hRecoAllPionsTheta
+    labels:
+      - \text{Gen } \pi^\pm
+      - \text{Gen matched } \pi^\pm
+      - \text{Reco matched } \pi^\pm
+    title: \pi^\pm \theta \text{ Distribution}
+    x: \theta \text{[rad]}
+    y: "Events"
+    position: [0.3, 0.3, 0.6, 0.5]
+
+  Pi0Mass:
+    variabs:
+      - hRecoConstPi0MassRhoReco
+      - hRecoConstPi0MassFromPhotonMass
+      - hRecoConstPi0MassFromPhotonDist
+    labels:
+      - m_{\pi^0} \text{ en sucesos de 2 }\gamma
+      - m_{\pi^0} \text{ en sucesos de 3 }\gamma\text{, estr. masa}
+      - m_{\pi^0} \text{ en sucesos de 3 }\gamma\text{, estr. dist.}
+    title: \text{Distribución de } m_{\pi^0} \text{ según estr. de asociación}
+    x: \text{Masa [GeV/c}^2\text{]}
+    y: "Eventos Normalizados"
+    norm: True
+    position: [0.4, 0.6, 0.9, 0.8]
+
+
+  ThreePhotonsPMass:
+    variabs:
+      - hRecoConstlessPhotonPa1strMass
+      - hRecoConstxtraPhotonPrhostrMass
+    labels:
+      - 3 Photons Mass (Mass Strategy) - a1
+      - 3 Photons Mass (Mass Strategy) - rho
+    title: "Histogram of 3 Photons cases P (Mass Strategy)"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+    norm: True
+  
+  ThreePhotonsPDist:
+    variabs:
+      - hRecoConstlessPhotonPa1strDist
+      - hRecoConstxtraPhotonPrhostrDist
+    labels:
+      - 3 Photons Mass - a1
+      - 3 Photons Mass - rho
+    title: "Histogram of 3 Photons cases P (Dist Strategy)"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+    norm: True
+
+  OnePhotonP:
+    variabs:
+      - hRecoConstlessPhotonPrho
+      - hRecoConstxtraPhotonPi
+    labels:
+      - 1 Photon P - rho
+      - 1 Photon P - pi
+    title: "Histogram of 1 Photon P"
+    x: "1 Photon P [GeV/c]"
+    y: "Events"
+    norm: True
+  
+  ThreePhotonMatch:
+    variabs:
+      - hRecoThreePhotonMatchOnestrMassP
+      - hRecoThreePhotonMatchTwostrMassP
+      - hRecoThreePhotonNoMatchstrMassP
+    labels:
+      - 1 Photon P (Mass Strategy)
+      - 2 Photons P (Mass Strategy)
+      - No Match P (Mass Strategy)
+    title: "Histogram of 3 Photons cases P (Mass Strategy)"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+    norm: True
+  
+  ThreePhotonsPMassZoom:
+    variabs:
+      - hRecoConstlessPhotonPa1strMassZoom
+      - hRecoConstxtraPhotonPrhostrMassZoom
+    labels:
+      - 3 Photons Mass (Mass Strategy) - a1
+      - 3 Photons Mass (Mass Strategy) - rho
+    title: "Histogram of 3 Photons cases P (Mass Strategy) - Zoom"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+    norm: True
+    position: [0.45, 0.28, 0.75, 0.38]
+
+
+  OnePhotonPZoom:
+    variabs:
+      - hRecoConstlessPhotonPrhoZoom
+      - hRecoConstxtraPhotonPiZoom
+    labels:
+      - 1 Photon P - rho
+      - 1 Photon P - pi
+    title: "Histogram of 1 Photon P - Zoom"
+    x: "1 Photon P [GeV/c]"
+    y: "Events (normalized)"
+    norm: True
+    position: [0.7, 0.3, 0.9, 0.5]
+  
+  RecoTwoPhotonPiRho:
+    variabs:
+      - hRecoRhoTwoPhotonDecayP
+      - hRecoRhoPiDecayP
+      - hRecoRhoTwoPhotonDecaySumP
+    labels:
+      - 2 Photon P
+      - Pion P
+      - 2 Photon Sum P
+    title: "Histogram of Reco Rho Component P"
+    x: "Component P [GeV/c]"
+    y: "Events"
+    norm: True
+
+  GenTwoPhotonPiRho:
+    variabs:
+      - hGenRhoTwoPhotonDecayP
+      - hGenRhoPiDecayP
+      - hGenRhoTwoPhotonDecaySumP
+    labels:
+      - 2 Photon P
+      - Pion P
+      - 2 Photon Sum P
+    title: "Histogram of Gen Rho Component P"
+    x: "Component P [GeV/c]"
+    y: "Events"
+    norm: True
+  
+  RecoOnePhotonPiRho:
+    variabs:
+      - hRecoRhoOnePhotonDecayPiP
+      - hRecoRhoOnePhotonDecayPhotonP
+    labels:
+      - Pion P
+      - Photon P
+    title: "Histogram of Reco Rho Component P (photon loss case)"
+    x: "Component P [GeV/c]"
+    y: "Events"
+    norm: True
+  
+  GenOnePhotonPiRho:
+    variabs:
+      - hGenRhoOnePhotonDecayPiP
+      - hGenRhoOnePhotonDecayPhotonP
+      - hGenRhoOnePhotonDecayPhotonSumP
+    labels:
+      - Pion P
+      - Photons P
+      - Photons Sum P
+    title: "Histogram of Gen Rho Component P (photon loss case)"
+    x: "Component P [GeV/c]"
+    y: "Events"
+    norm: True
+  
+  OnePhotonRecognition:
+    variabs:
+      - hGenRhoOnePhotonDecayPhotonP
+      - hGenRhoOnePhotonDecayPhotonSumP
+      - hRecoRhoOnePhotonDecayPhotonP
+    labels:
+      - \text{Momento de cada }\gamma\text{ simulado}
+      - \text{Suma de momentos de }\gamma\text{ simulados}
+      - \text{Momento de }\gamma\text{ reconstruido}
+    title: \text{Distribución } \gamma\text{ P}
+    x: "P [GeV/c]"
+    y: "Eventos Normalizados"
+    norm: True
+    position: [0.4, 0.6, 0.9, 0.9]
+
+
+  RecoPResolution:
+    variabs:
+      - histoTauPRes0
+      - histoTauPRes1
+      - histoTauPRes2
+      - histoTauPRes10
+    labels:
+      - (\tau \rightarrow \pi\gamma)
+      - (\rho \rightarrow \pi \pi ^0\gamma)
+      - (a_1 \rightarrow \pi 2\pi ^0\gamma)
+      - (a_1 \rightarrow 3\pi \gamma)
+    title: "Histogram of Tau P Resolution"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    norm: True
+  
+  RecoMatchedPResolution:
+    variabs:
+      - histoMatchedTauPRes0
+      - histoMatchedTauPRes1
+      - histoMatchedTauPRes2
+      - histoMatchedTauPRes3
+    labels:
+      - (\tau \rightarrow \pi\nu)
+      - (\rho \rightarrow \pi \pi ^0\nu)
+      - (a_1 \rightarrow \pi 2\pi ^0\nu)
+      - (a_1 \rightarrow 3\pi \nu)
+    title: "Tau P Resolution"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    norm: True
+
+  RecoMatchedThetaResolution:
+    variabs:
+      - histoMatchedTauThetaRes0
+      - histoMatchedTauThetaRes1
+      - histoMatchedTauThetaRes2
+      - histoMatchedTauThetaRes3
+    labels:
+      - (\tau \rightarrow \pi\gamma)
+      - (\rho \rightarrow \pi \pi ^0\gamma)
+      - (a_1 \rightarrow \pi 2\pi ^0\gamma)
+      - (a_1 \rightarrow 3\pi \gamma)
+    title: "Histogram of Matched Tau Theta Resolution"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}" 
+    y: "Events"
+    norm: True
+  
+  RecoThetaResolution:
+    variabs:
+      - histoTauThetaRes0
+      - histoTauThetaRes1
+      - histoTauThetaRes2
+      - histoTauThetaRes10
+    labels:
+      - (\tau \rightarrow \pi\gamma)
+      - (\rho \rightarrow \pi \pi ^0\gamma)
+      - (a_1 \rightarrow \pi 2\pi ^0\gamma)
+      - (a_1 \rightarrow 3\pi \gamma)
+    title: "Histogram of Tau Theta Resolution"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}"
+    y: "Events"
+    norm: True
+  
+  EffiTheta:
+    variabs:
+      - hEffiGenTauTheta0
+      - hEffiGenTauTheta1
+      - hEffiGenTauTheta2
+      - hEffiGenTauTheta10
+    labels:
+      - (\tau \rightarrow \pi\gamma)
+      - (\rho \rightarrow \pi \pi ^0\gamma)
+      - (a_1 \rightarrow \pi 2\pi ^0\gamma)
+      - (a_1 \rightarrow 3\pi \gamma)
+    title: "Efficiency of Tau Theta"
+    x: "Theta [rad]"
+    y: "Efficiency"
+    position: [0.45, 0.2, 0.75, 0.4]
+
+  TauTheta0:
+    variabs:
+      - histoGenTauTheta0
+      - histoRecoTauTheta0
+      - histoMatchedGenTauTheta0
+    labels:
+      - Gen Tau Theta
+      - Reco Tau Theta
+      - Matched Gen Tau Theta
+    title: "Histogram of Tau Theta (Decay 0)"
+    x: "Theta [rad]"
+    y: "Events"
+    position: [0.45, 0.3, 0.75, 0.4]
+
+  TauTheta1:
+    variabs:
+      - hEffiGenTauTheta0
+      - hEffiGenTauTheta1
+    labels:
+      - \pi \text{ decay } \theta \text{ efficiency}
+      - \rho \text{ decay } \theta \text{ efficiency}
+    title: "Efficiency of Tau Theta"
+    x: \theta \text{ [rad]}
+    y: "Efficiency"
+    position: [0.45, 0.3, 0.75, 0.4]
+
+
+  TauTheta1:
+    variabs:
+      - histoGenTauTheta1
+      - histoRecoTauTheta1
+      - histoMatchedGenTauTheta1
+    labels:
+      - \text{Gen Tau }\theta
+      - \text{Reco Tau }\theta
+      - \text{Matched Gen Tau }\theta
+    title: Histogram of Tau Efficency (Decay 1)
+    x: \theta \text{ [rad]}
+    y: "Events"
+    position: [0.45, 0.3, 0.77, 0.4]
+
+
+  TauTheta2:
+    variabs:
+      - histoGenTauTheta2
+      - histoRecoTauTheta2
+      - histoMatchedGenTauTheta2
+    labels:
+      - Gen Tau Theta
+      - Reco Tau Theta
+      - Matched Gen Tau Theta
+    title: "Histogram of Tau Theta (Decay 2)"
+    x: "Theta [rad]"
+    y: "Events"
+    position: [0.45, 0.3, 0.75, 0.4]
+
+  RhoDecayRes:
+    variabs:
+      - histoTauThetaRes1
+      - histoTauPRes1
+    labels:
+      - \theta \text{ resolution}
+      - P resolution
+    title: \text{Histogram of }\rho \text{ Decay Resolution}
+    x: Resolution
+    y: Normalized Events
+    norm: true
+
+  TauTheta10:
+    variabs:
+      - histoGenTauTheta10
+      - histoRecoTauTheta10
+      - histoMatchedGenTauTheta10
+    labels:
+      - Gen Tau Theta
+      - Reco Tau Theta
+      - Matched Gen Tau Theta
+    title: "Histogram of Tau Theta (Decay 10)"
+    x: "Theta [rad]"
+    y: "Events"
+    position: [0.45, 0.3, 0.75, 0.4]
+
+  TauP0:
+    variabs:
+      - histoGenTauVisP0
+      - histoRecoTauP0
+      - histoMatchedGenTauVisP0
+    labels:
+      - Gen Tau Vis P
+      - Reco Tau P
+      - Matched Gen Tau Vis P
+    title: "Histogram of Tau P (Decay 0)"
+    x: "P [GeV/c]"
+    y: "Events"
+    position: [0.35, 0.35, 0.65, 0.54]
+    
+  TauP1:
+    variabs:
+      - histoGenTauVisP1
+      - histoRecoTauP1
+      - histoMatchedGenTauVisP1
+    labels:
+      - Gen Tau Vis P
+      - Reco Tau P
+      - Matched Gen Tau Vis P
+    title: "Histogram of Tau P (Decay 1)"
+    x: "P [GeV/c]"
+    y: "Events"
+    position: [0.35, 0.35, 0.65, 0.54]
+  TauP2:
+    variabs:
+      - histoGenTauVisP2
+      - histoRecoTauP2
+      - histoMatchedGenTauVisP2
+    labels:
+      - Gen Tau Vis P
+      - Reco Tau P
+      - Matched Gen Tau Vis P
+    title: "Histogram of Tau P (Decay 2)"
+    x: "P [GeV/c]"
+    y: "Events"
+    position: [0.52, 0.35, 0.75, 0.54]
+  TauP10:
+    variabs:
+      - histoGenTauVisP10
+      - histoRecoTauP10
+      - histoMatchedGenTauVisP10
+    labels:
+      - Gen Tau Vis P
+      - Reco Tau P
+      - Matched Gen Tau Vis P
+    title: "Histogram of Tau P (Decay 10)"
+    x: "P [GeV/c]"
+    y: "Events"
+    position: [0.13, 0.35, 0.38, 0.55]
+
+Zoom:
+  OnePhotonPZoom:
+    main:
+      - hRecoConstlessPhotonPrho
+      - hRecoConstxtraPhotonPi
+    zoom:
+      - hRecoConstlessPhotonPrhoZoom
+      - hRecoConstxtraPhotonPiZoom
+    labels:
+      - 1 Photon P - rho
+      - 1 Photon P - pi
+    title: "Histogram of 1 Photon P"
+    x: "Photon P [GeV/c]"
+    y: "Events (Normalized)"
+    norm: True
+    position: [0.4, 0.3, 0.7, 0.45]
+    zoom_position: [0.45, 0.55 , 0.9, 0.9]
+    zoom_title: "Zoom"
+
+
+
+plot_titles_config_hist:
+  histoRecoRhoMass:
+    title: \text{Masa }\rho 
+    x: \text{Masa [GeV/c}^2\text{]}
+    y: "Eventos"
+    fit: True
+    fitrange:
+      - 0.5
+      - 1
+
+  histoRecoa1OnePionMass:
+    title: \text{Masa }a_1 \text{ (1 }\pi^\pm\text{)}
+    x: \text{Masa [GeV/c}^2\text{]}
+    y: "Eventos"
+    fit: True
+    fitrange:
+      - 0.9
+      - 1.4
+
+  histoRecoa1ThreePionMass:
+    title: \text{Masa }a_1 \text{ (3 }\pi^\pm\text{)}
+    x: \text{Masa [GeV/c}^2\text{]}
+    y: "Eventos"
+    fit: True
+    fitrange:
+      - 0.9
+      - 1.35
+  hEffiGenAllPhotonsP:
+    title: "Photon Matching efficiency"
+    x: "Photon P [GeV/c]"
+    y: "Efficiency"
+  hEffiGenAllPhotonsTheta:
+    title: "Photon Matching efficiency"
+    x: "Photon Theta [rad]"
+    y: "Efficiency"
+  hMatchedPionsPRes:
+    title: "Matched Pions P Resolution"
+    x: "P [GeV/c]"
+    y: "Events"
+    fit: True
+  hMatchedPionsThetaRes:
+    title: "Matched Pions Theta Resolution"
+    x: \theta\text{ [rad]}
+    y: "Events"
+    fit: True
+  hMatchedPhotonPRes:
+    title: "Matched Photon P Resolution"
+    x: "P [GeV/c]"
+    y: "Events"
+    fit: True
+
+  hMatchedPhotonThetaRes:
+    title: "Matched Photon Theta Resolution"
+    x: \theta\text{ [rad]}
+    y: "Events"
+    fit: True
+
+  histoGenTauDR:
+    title: \text{Distancia angular máxima entre hijas de un }\tau
+    x: "R [rad]"
+    y: "Eventos"
+  hEffiGenTauP1Correct:
+    title: "Tau P Efficiency w/o unknown cases (Decay 1)"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+  histoRecoNeutralHadronTauP:
+    title: "Neutral Hadron in Reco Tau P"
+    x: "Neutral Hadron P [GeV/c]"
+    y: "Events"
+  hEffiGenAllPionsPionThetaCut:
+    title: "Pion matching Efficency (cos(theta)<0.9)"
+    x: "Pion Theta [rad]"
+    y: "Efficiency"
+  hEffiGenAllPionsPCut:
+    title: "Pion matching Efficency (cos(theta)<0.9)"
+    x: "Pion P [GeV/c]"
+    y: "Efficiency"
+  histoRecoNeutralHadronP:
+    title: "Neutral Hadron Reco P"
+    x: "Neutral Hadron P [GeV/c]"
+    y: "Events"
+  hGenAllPionsP:
+    title: "Pion gen events (P)"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  hMatchedAllPionsP:
+    title: "Pion matched events (P)"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  hGenAllPionsTheta:
+    title: "Pion gen events (theta)"
+    x: "Pion Theta [rad]"
+    y: "Events"
+  hMatchedAllPionsTheta:
+    title: "Pion matched events (theta)"
+    x: "Pion Theta [rad]"
+    y: "Events"
+  hEffiGenAllPionsP:
+    title: "Pion matching Efficency (P)"
+    x: "Pion P [GeV/c]"
+    y: "Efficiency"
+  hEffiGenAllPionsTheta:
+    title: "Pion matching Efficency (theta)"
+    x: "Pion Theta [rad]"
+    y: "Efficiency"
+  hUnmatchedPionsTheta:
+    title: "Unmatched Gen Pions Theta"
+    x: "Pion Theta [rad]"
+    y: "Events"
+  hUnmatchedRecoPionsTheta:
+    title: "Unmatched Reco Pions Theta"
+    x: "Pion Theta [rad]"
+    y: "Events"
+  hUnmatchedRecoPionsP:
+    title: "Unmatched Reco Pions P"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  hUnmatchedGenPionP:
+    title: "Unmatched Gen Pions P"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  histoGenPionCumP0:
+    title: "Gen Components P decay 0"
+    x: "Components P [GeV/c]"
+    y: "Events"
+  histoGenPionP0:
+    title: "Gen Pion P decay 0"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  histoGenPionP1:
+    title: "Gen Pion P decay 1"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  histoGenPionP2:
+    title: "Gen Pion P decay 2"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  histoGenPionP10:
+    title: "Gen Pion P decay 10"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  hEffiGenPhotonP:
+    title: "Photon Reco Efficiency vs P"
+    x: "Photon P [GeV/c]"
+    y: "Efficiency"
+    norm: True
+  histoMatchedGenPhotonP:
+    title: "Matched Gen Photon P"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hGenPhotonP:
+    title: "Gen Photon P"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoPhotonP:
+    title: "Reco Photon P"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hEffiGenPhotonTheta:
+    title: \text{Photon Reco Efficiency vs } \theta
+    x: \theta \text{[rad]}
+    y: "Efficiency"
+  histoMatchedGenPhotonTheta:
+    title: "Matched Gen Photon Theta"
+    x: "Theta [rad]"
+    y: "Events"
+  histoGenPhotonTheta:
+    title: "Gen Photon Theta"
+    x: "Theta [rad]"
+    y: "Events"
+  histoRecoPhotonTheta:
+    title: "Reco Photon Theta"
+    x: "Theta [rad]"
+    y: "Events"
+  hEffiGenTauPionP:
+    title: "Charged Pion Reco Efficiency vs P"
+    x: "Pion P [GeV/c]"
+    y: "Efficiency"
+    norm: True
+  histoMatchedGenPionP:
+    title: "Matched Gen Pion P"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  histoMatchedGenPionTheta:
+    title: "Matched Gen Pion Theta"
+    x: "Theta [rad]"
+    y: "Events"
+  histoGenPionP:
+    title: "Gen Pion P"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  histoGenPionTheta:
+    title: "Gen Pion Theta"
+    x: "Theta [rad]"
+    y: "Events"
+  histoRecoPionP:
+    title: "Reco Pion P"
+    x: "Pion P [GeV/c]"
+    y: "Events"
+  histoRecoPionTheta:
+    title: "Reco Pion Theta"
+    x: "Theta [rad]"
+    y: "Events"
+  hEffiGenTauPionTheta:
+    title: \text{Charged Pion Reco Efficiency vs }\theta
+    x: \theta \text{[rad]}
+    y: "Efficiency"
+  hRecoConstPi0MassRhoReco:
+    title: \text{Distribución de } \pi^0 \text{ reconstruida}
+    x: "Masa [GeV/c]"
+    y: "Eventos"
+    fit: True
+  hRecoConstPi0MassFromPhotonMass:
+    title: "Pi0 Mass from Photon - Mass strategy"
+    x: "Pi0 Mass [GeV/c]"
+    y: "Events"
+  hRecoConstPi0MassFromPhotonDist:
+    title: "Pi0 Mass from Photon - Dist strategy"
+    x: "Pi0 Mass [GeV/c]"
+    y: "Events"
+  hRecoConstlessPhotonPa1strMass:
+    title: "3 Photons Mass (Mass Strategy) - a1"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoConstlessPhotonPa1strDist:
+    title: "3 Photons Mass (Dist Strategy) - a1"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoConstxtraPhotonPrhostrMass:
+    title: "3 Photons Mass (Mass Strategy) - rho"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoConstxtraPhotonPrhostrDist:
+    title: "3 Photons Mass (Dist Strategy) - rho"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoConstlessPhotonPrho:
+    title: "1 Photon P - rho"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoConstxtraPhotonPi:
+    title: "1 Photon P - pi"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  
+  hRecoConstlessPhotonPa1strMassZoom:
+    title: "3 Photons Mass (Mass Strategy) - a1 - Zoom"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoConstxtraPhotonPrhostrMassZoom:
+    title: "3 Photons Mass (Mass Strategy) - rho - Zoom"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoConstlessPhotonPrhoZoom:
+    title: "1 Photon P - rho - Zoom"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoConstxtraPhotonPiZoom:
+    title: "1 Photon P - pi - Zoom"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoThreePhotonMatchOnestrMassP:
+    title: "Matched Photon 1 P (Mass Strategy)"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoThreePhotonMatchTwostrMassP:
+    title: "Matched Photons 2 P (Mass Strategy)"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  hRecoThreePhotonNoMatchstrMassP:
+    title: "No Match Photon P (Mass Strategy)"
+    x: "Photon P [GeV/c]"
+    y: "Events"
+  
+  hRecoConstTwoPhotonAngDist:
+    title: "Two Photon Angle Dist"
+    x: "Angle [rad]"
+    y: "Events"
+  hRecoRhoPiDecayP:
+    title: "Reco Rho Pi Decay P"
+    x: "P [GeV/c]"
+    y: "Events"
+  hGenRhoPiDecayP:
+    title: "Gen Rho Pi Decay P"
+    x: "P [GeV/c]"
+    y: "Events"
+  hRecoRhoTwoPhotonDecayP:
+    title: "Rho Two Photon Decay P"
+    x: "P [GeV/c]"
+    y: "Events"
+  hGenRhoTwoPhotonDecayP:
+    title: "Gen Rho Two Photon Decay P"
+    x: "P [GeV/c]"
+    y: "Events"
+  hRecoRhoTwoPhotonDecaySumP:
+    title: "Reco Rho Two Photon Decay Sum P"
+    x: "Sum P [GeV/c]"
+    y: "Events"
+  hGenRhoTwoPhotonDecaySumP:
+    title: "Gen Rho Two Photon Decay Sum P"
+    x: "Sum P [GeV/c]"
+    y: "Events"
+  hRecoRhoOnePhotonDecayPiP:
+    title: "Reco Rho Miss Photon Decay Pi P"
+    x: "P [GeV/c]"
+    y: "Events"
+  hGenRhoOnePhotonDecayPiP:
+    title: "Gen Rho Miss Photon Decay Pi P"
+    x: "P [GeV/c]"
+    y: "Events"
+  hRecoRhoOnePhotonDecayPhotonP:
+    title: "Reco Rho One Photon Decay Photon P"
+    x: "P [GeV/c]"
+    y: "Events"
+  hGenRhoOnePhotonDecayPhotonP:
+    title: "Gen Rho One Photon Decay Photon P"
+    x: "P [GeV/c]"
+    y: "Events"
+  hGenRhoOnePhotonDecayPhotonSumP:
+    title: "Gen Rho One Photon Decay Photon Sum P"
+    x: "Sum P [GeV/c]"
+    y: "Events"
+  hGenRhoOnePhotonDecayPhotonAng:
+    title: "Gen Rho One Photon Decay Photon Angle"
+    x: "Angle [rad]"
+    y: "Events"
+  
+  histoGenTauTheta0:
+    title: "Gen Tau Theta (Decay 0)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoGenTauTheta1:
+    title: "Gen Tau Theta (Decay 1)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoGenTauTheta2:
+    title: "Gen Tau Theta (Decay 2)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoGenTauTheta10:
+    title: "Gen Tau Theta (Decay 10)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoMatchedGenTauTheta0:
+    title: "Matched Gen Tau Theta (Decay 0)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoMatchedGenTauTheta1:
+    title: "Matched Gen Tau Theta (Decay 1)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoMatchedGenTauTheta2:
+    title: "Matched Gen Tau Theta (Decay 2)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoMatchedGenTauTheta10:
+    title: "Matched Gen Tau Theta (Decay 10)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoRecoTauTheta0:
+    title: "Reco Tau Theta (Decay 0)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoRecoTauTheta1:
+    title: "Reco Tau Theta (Decay 1)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoRecoTauTheta2:
+    title: "Reco Tau Theta (Decay 2)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoRecoTauTheta10:
+    title: "Reco Tau Theta (Decay 10)"
+    x: "Theta [rad]"
+    y: "Events"
+  histoTauThetaRes0:
+    title: "Tau Theta Resolution (Decay 0)"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}"
+    y: "Events"
+  histoTauThetaRes1:
+    title: "Tau Theta Resolution (Decay 1)"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}"
+    y: "Events"
+  histoTauThetaRes2:
+    title: "Tau Theta Resolution (Decay 2)"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}"
+    y: "Events"
+  histoTauThetaRes10:
+    title: "Tau Theta Resolution (Decay 10)"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}"
+    y: "Events"
+  histoMatchedTauThetaRes0:
+    title: "Matched Tau Theta Resolution (Decay 0)"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}"
+    y: "Events"
+  histoMatchedTauThetaRes1:
+    title: "Matched Tau Theta Resolution (Decay 1)"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}"
+    y: "Events"
+  histoMatchedTauThetaRes2:
+    title: "Matched Tau Theta Resolution (Decay 2)"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}"
+    y: "Events"
+  histoMatchedTauThetaRes10:
+    title: "Matched Tau Theta Resolution (Decay 10)"
+    x: "(\\theta_{Reco}-\\theta_{Gen})/\\theta_{Gen}"
+    y: "Events"
+  histoGenTauP0:
+    title: "Gen Tau P (Decay 0)"
+    x: "P [GeV/c]"
+    y: "Events"  
+  histoGenTauP1:
+    title: "Gen Tau P (Decay 1)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoGenTauP2:
+    title: "Gen Tau P (Decay 2)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoGenTauP10:
+    title: "Gen Tau P (Decay 10)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoGenTauVisP0 :
+    title: "Gen Tau Vis P (Decay 0)"
+    x: "P [GeV/c]"
+    y: "Events"
+  histoGenTauVisP1:
+    title: "Gen Tau Vis P (Decay 1)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoGenTauVisP2:
+    title: "Gen Tau Vis P (Decay 2)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoGenTauVisP10:
+    title: "Gen Tau Vis P (Decay 10)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoMatchedGenTauP0:
+    title: "Matched Gen Tau P (Decay 0)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoMatchedGenTauP1:
+    title: "Matched Gen Tau P (Decay 1)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoMatchedGenTauP2:
+    title: "Matched Gen Tau P (Decay 2)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoMatchedGenTauP10:
+    title: "Matched Gen Tau P (Decay 10)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoMatchedGenTauVisP0:
+    title: "Matched Gen Tau Vis P (Decay 0)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoMatchedGenTauVisP1:
+    title: "Matched Gen Tau Vis P (Decay 1)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoMatchedGenTauVisP2:
+    title: "Matched Gen Tau Vis P (Decay 2)"
+    x: "P [GeV/c]"
+    y: "Events" 
+  histoMatchedGenTauVisP10:
+    title: "Matched Gen Tau Vis P (Decay 10)"
+    x: "P [GeV/c]"
+    y: "Events"
+  histoRecoTauP0:
+    title: "Reco Tau P (Decay 0)"
+    x: "P [GeV/c]"
+    y: "Events"
+  histoRecoTauP1:
+    title: "Reco Tau P (Decay 1)"
+    x: "P [GeV/c]"
+    y: "Events"
+  histoRecoTauP2:
+    title: "Reco Tau P (Decay 2)"
+    x: "P [GeV/c]"
+    y: "Events"
+  histoRecoTauP10:
+    title: "Reco Tau P (Decay 10)"
+    x: "P [GeV/c]"
+    y: "Events"
+  histoTauPRes0:
+    title: "Tau P Resolution (Decay 0)"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    print_mean: True
+  histoTauPRes1:
+    title: "Tau P Resolution (Decay 1)"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    print_mean: True
+  histoTauPRes2:
+    title: "Tau P Resolution (Decay 2)"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    print_mean: True
+  histoTauPRes10:
+    title: "Tau P Resolution (Decay 10)"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    print_mean: True
+  histoMatchedTauPRes0:
+    title: "Matched Tau P Resolution (Decay 0)"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    print_mean: True
+  histoMatchedTauPRes1:
+    title: "Matched Tau P Resolution (Decay 1)"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    print_mean: True
+
+  histoMatchedTauPRes2:
+    title: "Matched Tau P Resolution (Decay 2)"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    print_mean: True
+  histoMatchedTauPRes10:
+    title: "Matched Tau P Resolution (Decay 10)"
+    x: "(P_{Reco}-P_{Gen})/P_{Gen}"
+    y: "Events"
+    print_mean: True
+  hEffiGenTauTheta0:
+    title: "Efficiency Gen Tau Theta (Decay 0)"
+    x: "Theta [rad]"
+    y: "Efficiency"
+  hEffiGenTauTheta1:
+    title: "Efficiency Gen Tau Theta (Decay 1)"
+    x: "Theta [rad]"
+    y: "Efficiency"
+  hEffiGenTauTheta2:
+    title: "Efficiency Gen Tau Theta (Decay 2)"
+    x: "Theta [rad]"
+    y: "Efficiency"
+  hEffiGenTauTheta10:
+    title: "Efficiency Gen Tau Theta (Decay 10)"
+    x: "Theta [rad]"
+    y: "Efficiency"
+  hEffiGenTauP0:
+    title: "Efficiency Gen Tau P (Decay 0)"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+  hEffiGenTauP1:
+    title: "Efficiency Gen Tau P (Decay 1)"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+  hEffiGenTauP2:
+    title: "Efficiency Gen Tau P (Decay 2)"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+  hEffiGenTauP10:
+    title: "Efficiency Gen Tau P (Decay 10)"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+  hEffiGenTauVisP0:
+    title: "Efficiency Gen Tau Vis P (Decay 0)"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+  hEffiGenTauVisP1:
+    title: "Efficiency Gen Tau Vis P (Decay 1)"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+  hEffiGenTauVisP2:
+    title: "Efficiency Gen Tau Vis P (Decay 2)"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+  hEffiGenTauVisP10:
+    title: "Efficiency Gen Tau Vis P (Decay 10)"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+
+variabs_2d:
+- h2DRecoRhoOnePhotonDecayPiPhotonP
+- h2DGenRhoOnePhotonDecayPiPhotonSumP
+- h2DRecoRhoTwoPhotonDecayPiPhotonSumP
+- h2DGenRhoTwoPhotonDecayPiPhotonSumP
+- histo2DPionPid
+- hMatchedPionsP
+- hMatchedPionsTheta
+
+plot_titles_config_2d:
+  hMatchedPionsTheta:
+    title: "Matched Pions Theta"
+    x: "Gen Pion Theta [rad]"
+    y: "Reco Pion Theta [rad]"
+  hMatchedPionsP:
+    title: "Matched Pions P"
+    x: "Gen Pion P [GeV/c]"
+    y: "Reco Pion P [GeV/c]"
+  histo2DPionPid:
+    title: "Pion P vs PID"
+    x: "Pion P [GeV/c]"
+    y: "Decay ID"
+  h2DRecoRhoOnePhotonDecayPiPhotonP:
+    title: "Reco Rho One Photon Decay Pi P vs Photon P"
+    x: "Pi P [GeV/c]"
+    y: "Photon P [GeV/c]"
+  h2DGenRhoOnePhotonDecayPiPhotonSumP:
+    title: "Gen Rho One Photon Decay Pi P vs Photon Sum P"
+    x: "Pi P [GeV/c]"
+    y: "Photon Sum P [GeV/c]"
+  h2DRecoRhoTwoPhotonDecayPiPhotonSumP:
+    title: "Reco Rho Two Photon Decay Pi P vs Photon Sum P"
+    x: "Pi P [GeV/c]"
+    y: "Photon Sum P [GeV/c]"
+  h2DGenRhoTwoPhotonDecayPiPhotonSumP:
+    title: "Gen Rho Two Photon Decay Pi P vs Photon Sum P"
+    x: "Pi P [GeV/c]"
+    y: "Photon Sum P [GeV/c]"
+
+
+cm_config:
+  decays: [-20, -2, -1, 1, 2, 3, 4, 10, 11, 12]
+  # photonDecays : [0, 1, 2, 3, 4, 10, 11]
+  colorbar: false

@@ -1,0 +1,17 @@
+migrations:
+  0->0: [0,0]
+  1->1: [1,1]
+  10->10: [10,10]
+  11->11: [11,11]
+  10->0: [10,0]
+  11->1: [11,1]
+  0->10: [0,10]
+  1->11: [1,11]
+  -1->10: [-1,10]
+  10->-1: [10, -1]
+axis:
+  xlabel: "P mínimo (GeV/c)"
+  title: "Recall vs corte en pion P"
+  # xlabel: "R [rad]"
+  # title: "Migrations regarding R"
+metric: "recall"

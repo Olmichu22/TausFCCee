@@ -1,0 +1,761 @@
+
+
+
+variabs_hist:
+  - histoGenTauPt
+  - histoGenTauVisPt
+  - histoGenTauP
+  - histoGenTauVisP
+  - histoGenTauType
+  - histoGenTauVisMass
+  - histoGenTauQ
+  - histoGenTauEta
+  - histoGenTauTheta
+  - histoGenTauDR
+  - histoMatchedGenTauPt
+  - histoMatchedGenTauVisPt
+  - histoMatchedGenTauP
+  - histoMatchedGenTauVisP
+  - histoMatchedGenTauType
+  - histoMatchedGenTauVisMass
+  - histoMatchedGenTauQ
+  - histoMatchedGenTauEta
+  - histoMatchedGenTauTheta
+  - histoMatchedGenTauDR
+  - histoRecoTauPt
+  - histoRecoTauP
+  - histoRecoTauMass
+  - histoRecoTauType
+  - histoRecoTauQ
+  - histoRecoTauEta
+  - histoRecoTauTheta
+  - histoRecoTauDR
+  - hRecoConstP
+  - hRecoConstPhotonP
+  - hRecoConstPionP
+  - hRecoConstPOverTauP
+  - hRecoConstPhotonPOverTauP
+  - hRecoConstPionPOverTauP
+  - hRecoConstPion1P
+  - hRecoConstPion2P
+  - hRecoConstPion3P
+  - hMatchedGenConstPion1P
+  - hMatchedGenConstPion2P
+  - hMatchedGenConstPion3P
+  - hGenConstPion1P
+  - hGenConstPion2P
+  - hGenConstPion3P
+  - hGenConstP
+  - hGenConstPi0P
+  - hGenConstPionP
+  - hGenConstPhotonP
+  - hGenConstPOverTauP
+  - hGenConstPi0POverTauP
+  - hGenConstPionPOverTauP
+  - hGenConstPhotonPOverTauP
+  - hMatchedGenConstP
+  - hMatchedGenConstPi0P
+  - hMatchedGenConstPionP
+  - hMatchedGenConstPhotonP
+  - hMatchedGenConstPOverTauP
+  - hMatchedGenConstPi0POverTauP
+  - hMatchedGenConstPionPOverTauP
+  - hMatchedGenConstPhotonPOverTauP
+  - histoResTauPt
+  - histoResTauP
+  - histoResTauMass
+  - histoNTaus
+  - histoNGenTaus
+  - histoNTausType
+  - histoNGenTausType
+  - histoMatchedTausPRes
+  - histoMatchedTausPtRes
+  - histoMatchedTausChargeRes
+  - histoMatchedTausMaxAngleRes
+  - histoMatchedTausNCompRes
+  - hEffiGenTauPt
+  - hEffiGenVisTauPt
+  - hEffiGenTauP
+  - hEffiGenVisTauP
+  - hEffiGenVisTauMass
+  - hEffiGenTauEta
+  - hEffiGenTauTheta
+  - hEffiGenTauType
+  - hRecoConstPi0Mass
+  - hGenConstPi0Mass
+  - hMatchedConstPi0Mass
+  - hEffiGenPi0Mass
+  # - hGenConstNonMatchedPi3P
+  # - hRecoConstNonMatchedPi3P
+  # - hRecoNonMatchedTauType
+  # - hRecoNonMatchedPisP
+plot_together:
+  Pi0Mass:
+    variabs:
+      - hRecoConstPi0Mass
+      - hGenConstPi0Mass
+      - hMatchedConstPi0Mass
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Pi0 Mass"
+    x: "Pi0 Mass [GeV]"
+    y: "Events"
+  P:
+    variabs:
+      - histoGenTauP
+      - histoMatchedGenTauP
+    labels:
+      - Gen
+      - Matched Gen
+    title: "Histogram of Constituent P"
+    x: "Constituent P [GeV]"
+    y: "Events"
+  VisP:
+    variabs:
+      - histoGenTauVisP
+      - histoMatchedGenTauVisP
+      - histoRecoTauP
+    labels:
+      - Gen
+      - Matched Gen
+      - Reco
+    title: "Histogram of Visible Constituent P"
+    x: "Visible Constituent P [GeV]"
+    y: "Events"
+  Pt:
+    variabs:
+      - histoGenTauPt
+      - histoMatchedGenTauPt
+    labels:
+      - Gen
+      - Matched Gen
+    title: "Histogram of Tau Pt"
+    x: "Tau Pt [GeV]"
+    y: "Events"
+  VisPt:
+    variabs:
+      - histoGenTauVisPt
+      - histoMatchedGenTauVisPt
+      - histoRecoTauPt
+    labels:
+      - Gen
+      - Matched Gen
+      - Reco
+    title: "Histogram of Visible Tau Pt"
+    x: "Visible Tau Pt [GeV]"
+    y: "Events"
+  Mass:
+    variabs:
+      - histoGenTauVisMass
+      - histoMatchedGenTauVisMass
+      - histoRecoTauMass
+    labels:
+      - Gen
+      - Matched Gen
+      - Reco
+    title: "Histogram of Tau Mass"
+    x: "Tau Mass [GeV]"
+    y: "Events"
+  Type:
+    variabs:
+      - histoGenTauType
+      - histoMatchedGenTauType
+      - histoRecoTauType
+    labels:
+      - Gen
+      - Matched Gen
+      - Reco
+    title: "Histogram of Tau Type"
+    x: "Tau Type"
+    y: "Events"
+  Q:
+    variabs:
+      - histoGenTauQ
+      - histoMatchedGenTauQ
+      - histoRecoTauQ
+    labels:
+      - Gen
+      - Matched Gen
+      - Reco
+    title: "Histogram of Tau Charge"
+    x: "Tau Charge"
+    y: "Events"
+  Eta:
+    variabs:
+      - histoGenTauEta
+      - histoMatchedGenTauEta
+      - histoRecoTauEta
+    labels:
+      - Gen
+      - Matched Gen
+      - Reco
+    title: "Histogram of Tau Eta"
+    x: "Tau Eta"
+    y: "Events"
+  Theta:
+    variabs:
+      - histoGenTauTheta
+      - histoMatchedGenTauTheta
+      - histoRecoTauTheta
+    labels:
+      - Gen
+      - Matched Gen
+      - Reco
+    title: "Histogram of Tau Theta"
+    x: "Tau Theta [rad]"
+    y: "Events"
+  DR:
+    variabs:
+      - histoGenTauDR
+      - histoMatchedGenTauDR
+      - histoRecoTauDR
+    labels:
+      - Gen
+      - Matched Gen
+      - Reco
+    title: "Histogram of ΔR for Tau Constituents"
+    x: "Delta R"
+    y: "Events"
+  ConstP:
+    variabs:
+      - hRecoConstP
+      - hGenConstP
+      - hMatchedGenConstP
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Constituent P"
+    x: "Constituent P [GeV]"
+    y: "Events"
+  ConstPhotonP:
+    variabs:
+      - hRecoConstPhotonP
+      - hGenConstPhotonP
+      - hMatchedGenConstPhotonP
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Photon P"
+    x: "Photon P [GeV]"
+    y: "Events"
+  ConstPionP:
+    variabs:
+      - hRecoConstPionP
+      - hGenConstPionP
+      - hMatchedGenConstPionP
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Pion P"
+    x: "Pion P [GeV]"
+    y: "Events"
+  ConstPOverTauP:
+    variabs:
+      - hRecoConstPOverTauP
+      - hGenConstPOverTauP
+      - hMatchedGenConstPOverTauP
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Constituent P/Tau P"
+    x: "P/Tau P Ratio"
+    y: "Events"
+  ConstPhotonPOverTauP:
+    variabs:
+      - hRecoConstPhotonPOverTauP
+      - hGenConstPhotonPOverTauP
+      - hMatchedGenConstPhotonPOverTauP
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Photon P/Tau P"
+    x: "Photon P/Tau P Ratio"
+    y: "Events"
+  ConstPionPOverTauP:
+    variabs:
+      - hRecoConstPionPOverTauP
+      - hGenConstPionPOverTauP
+      - hMatchedGenConstPionPOverTauP
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Pion P/Tau P"
+    x: "Pion P/Tau P Ratio"
+    y: "Events"
+  ConstPion1P:
+    variabs:
+      - hRecoConstPion1P
+      - hGenConstPion1P
+      - hMatchedGenConstPion1P
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Pion1 P"
+    x: "Pion1 P [GeV]"
+    y: "Events"
+  ConstPion2P:
+    variabs:
+      - hRecoConstPion2P
+      - hGenConstPion2P
+      - hMatchedGenConstPion2P
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Pion2 P"
+    x: "Pion2 P [GeV]"
+    y: "Events"
+  ConstPion3P:
+    variabs:
+      - hRecoConstPion3P
+      - hGenConstPion3P
+      - hMatchedGenConstPion3P
+    labels:
+      - Reco
+      - Gen
+      - Matched Gen
+    title: "Histogram of Pion3 P"
+    x: "Pion3 P [GeV]"
+    y: "Events"
+
+plot_titles_config_hist:
+  histoResTauPt:
+    x: "(Reco Pt - Gen Pt) / Gen Pt"
+    y: "Events"
+    title: "Histogram of Tau Pt Resolution"
+  histoResTauP:
+    x: "(Reco P - Gen P) / Gen P"
+    y: "Events"
+    title: "Histogram of Tau P Resolution"
+  histoResTauMass:
+    x: "(Reco Mass - Gen Mass) / Gen Mass"
+    y: "Events"
+    title: "Histogram of Tau Mass Resolution"
+  hRecoNonMatchedPisP:
+    x: "Pion P [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Non-Matched Pion P"
+  hGenConstNonMatchedPi3P:
+    x: "Pion3 P [GeV]"
+    y: "Events"
+    title: "Histogram of Gen Non-Matched Pion3 P"
+  hRecoConstNonMatchedPi3P:
+    x: "Pion3 P [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Non-Matched Pion3 P"
+  hRecoNonMatchedTauType:
+    x: "Tau Type"
+    y: "Events"
+    title: "Histogram of Reco Non-Matched Tau Type"
+  hRecoConstPi0Mass:
+    x: "Pi0 Mass [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Pi0 Mass"
+  hGenConstPi0Mass:
+    x: "Pi0 Mass [GeV]"
+    y: "Events"
+    title: "Histogram of Gen Pi0 Mass"
+  hMatchedConstPi0Mass:
+    x: "Pi0 Mass [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Gen Pi0 Mass"
+  hEffiGenPi0Mass:
+    x: "Pi0 Mass [GeV]"
+    y: "Efficiency"
+    title: "Efficiency: hMatchedConstPi0Mass / hGenConst"
+  histoGenTauPt:
+    x: "Gen Tau Pt [GeV]"
+    y: "Events"
+    title: "Histogram of Generated Tau Pt"
+  histoGenTauVisPt:
+    x: "Gen Visible Tau Pt [GeV]"
+    y: "Events"
+    title: "Histogram of Generated Visible Tau Pt"
+  histoGenTauP:
+    x: "Gen Tau P [GeV]"
+    y: "Events"
+    title: "Histogram of Generated Tau P"
+  histoGenTauVisP:
+    x: "Gen Visible Tau P [GeV]"
+    y: "Events"
+    title: "Histogram of Generated Visible Tau P"
+  histoGenTauType:
+    x: "Tau Type"
+    y: "Events"
+    title: "Histogram of Generated Tau Type"
+  histoGenTauVisMass:
+    x: "Gen Visible Tau Mass [GeV]"
+    y: "Events"
+    title: "Histogram of Generated Visible Tau Mass"
+  histoGenTauQ:
+    x: "Tau Charge"
+    y: "Events"
+    title: "Histogram of Generated Tau Charge"
+  histoGenTauEta:
+    x: "Tau Eta"
+    y: "Events"
+    title: "Histogram of Generated Tau Eta"
+  histoGenTauTheta:
+    x: "Tau Theta [rad]"
+    y: "Events"
+    title: "Histogram of Generated Tau Theta"
+  histoGenTauDR:
+    x: "Delta R"
+    y: "Events"
+    title: "Histogram of ΔR for Generated Tau Constituents"
+  histoMatchedGenTauPt:
+    x: "Matched Gen Tau Pt [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Generated Tau Pt"
+  histoMatchedGenTauVisPt:
+    x: "Matched Gen Visible Tau Pt [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Generated Visible Tau Pt"
+  histoMatchedGenTauP:
+    x: "Matched Gen Tau P [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Generated Tau P"
+  histoMatchedGenTauVisP:
+    x: "Matched Gen Visible Tau P [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Generated Visible Tau P"
+  histoMatchedGenTauType:
+    x: "Tau Type"
+    y: "Events"
+    title: "Histogram of Matched Generated Tau Type"
+  histoMatchedGenTauVisMass:
+    x: "Matched Gen Visible Tau Mass [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Generated Visible Tau Mass"
+  histoMatchedGenTauQ:
+    x: "Tau Charge"
+    y: "Events"
+    title: "Histogram of Matched Generated Tau Charge"
+  histoMatchedGenTauEta:
+    x: "Tau Eta"
+    y: "Events"
+    title: "Histogram of Matched Generated Tau Eta"
+  histoMatchedGenTauTheta:
+    x: "Tau Theta [rad]"
+    y: "Events"
+    title: "Histogram of Matched Generated Tau Theta"
+  histoMatchedGenTauDR:
+    x: "Delta R"
+    y: "Events"
+    title: "Histogram of ΔR for Matched Generated Tau Constituents"
+  histoRecoTauPt:
+    x: "Reco Tau Pt [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Tau Pt"
+  histoRecoTauP:
+    x: "Reco Tau P [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Tau P"
+  histoRecoTauMass:
+    x: "Reco Tau Mass [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Tau Mass"
+  histoRecoTauType:
+    x: "Tau Type"
+    y: "Events"
+    title: "Histogram of Reco Tau Type"
+  histoRecoTauQ:
+    x: "Tau Charge"
+    y: "Events"
+    title: "Histogram of Reco Tau Charge"
+  histoRecoTauEta:
+    x: "Tau Eta"
+    y: "Events"
+    title: "Histogram of Reco Tau Eta"
+  histoRecoTauTheta:
+    x: "Tau Theta [rad]"
+    y: "Events"
+    title: "Histogram of Reco Tau Theta"
+  histoRecoTauDR:
+    x: "Delta R"
+    y: "Events"
+    title: "Histogram of ΔR for Reco Tau Constituents"
+  hRecoConstP:
+    x: "Constituent P [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Constituent P"
+  hRecoConstPhotonP:
+    x: "Photon P [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Photon P"
+  hRecoConstPionP:
+    x: "Pion P [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Pion P"
+  hRecoConstPOverTauP:
+    x: "P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Reco Constituent P/Tau P"
+  hRecoConstPhotonPOverTauP:
+    x: "Photon P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Reco Photon P/Tau P"
+  hRecoConstPionPOverTauP:
+    x: "Pion P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Reco Pion P/Tau P"
+  hRecoConstPion1P:
+    x: "Pion1 P [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Pion1 P"
+  hRecoConstPion2P:
+    x: "Pion2 P [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Pion2 P"
+  hRecoConstPion3P:
+    x: "Pion3 P [GeV]"
+    y: "Events"
+    title: "Histogram of Reco Pion3 P"
+  hMatchedGenConstPion1P:
+    x: "Pion1 P [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Gen Pion1 P"
+  hMatchedGenConstPion2P:
+    x: "Pion2 P [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Gen Pion2 P"
+  hMatchedGenConstPion3P:
+    x: "Pion3 P [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Gen Pion3 P"
+  hGenConstPion1P:
+    x: "Pion1 P [GeV]"
+    y: "Events"
+    title: "Histogram of Gen Pion1 P"
+  hGenConstPion2P:
+    x: "Pion2 P [GeV]"
+    y: "Events"
+    title: "Histogram of Gen Pion2 P"
+  hGenConstPion3P:
+    x: "Pion3 P [GeV]"
+    y: "Events"
+    title: "Histogram of Gen Pion3 P"
+  hGenConstP:
+    x: "Constituent P [GeV]"
+    y: "Events"
+    title: "Histogram of Gen Constituent P"
+  hGenConstPi0P:
+    x: "Pi0 P [GeV]"
+    y: "Events"
+    title: "Histogram of Gen Pi0 P"
+  hGenConstPionP:
+    x: "Pion P [GeV]"
+    y: "Events"
+    title: "Histogram of Gen Pion P"
+  hGenConstPhotonP:
+    x: "Photon P [GeV]"
+    y: "Events"
+    title: "Histogram of Gen Photon P"
+  hGenConstPOverTauP:
+    x: "P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Gen Constituent P/Tau P"
+  hGenConstPi0POverTauP:
+    x: "Pi0 P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Gen Pi0 P/Tau P"
+  hGenConstPionPOverTauP:
+    x: "Pion P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Gen Pion P/Tau P"
+  hGenConstPhotonPOverTauP:
+    x: "Photon P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Gen Photon P/Tau P"
+  hMatchedGenConstP:
+    x: "Constituent P [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Gen Constituent P"
+  hMatchedGenConstPi0P:
+    x: "Pi0 P [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Gen Pi0 P"
+  hMatchedGenConstPionP:
+    x: "Pion P [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Gen Pion P"
+  hMatchedGenConstPhotonP:
+    x: "Photon P [GeV]"
+    y: "Events"
+    title: "Histogram of Matched Gen Photon P"
+  hMatchedGenConstPOverTauP:
+    x: "P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Matched Gen Constituent P/Tau P"
+  hMatchedGenConstPi0POverTauP:
+    x: "Pi0 P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Matched Gen Pi0 P/Tau P"
+  hMatchedGenConstPionPOverTauP:
+    x: "Pion P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Matched Gen Pion P/Tau P"
+  hMatchedGenConstPhotonPOverTauP:
+    x: "Photon P/Tau P Ratio"
+    y: "Events"
+    title: "Histogram of Matched Gen Photon P/Tau P"
+    hEffiGenTauPt:
+    x: "Gen Tau Pt [GeV]"
+    y: "Efficiency"
+    title: "Efficiency: hMatchedGenTauPt / hGenTauPt"
+  hEffiGenVisTauPt:
+    x: "Gen Visible Tau Pt [GeV]"
+    y: "Efficiency"
+    title: "Efficiency: hMatchedGenVisTauPt / hGenVisTauPt"
+  hEffiGenTauP:
+    x: "Gen Tau P [GeV]"
+    y: "Efficiency"
+    title: "Efficiency: hMatchedGenTauP / hGenTauP"
+  hEffiGenVisTauP:
+    x: "Gen Visible Tau P [GeV]"
+    y: "Efficiency"
+    title: "Efficiency: hMatchedGenVisTauP / hGenVisTauP"
+  hEffiGenVisTauMass:
+    x: "Gen Visible Tau Mass [GeV]"
+    y: "Efficiency"
+    title: "Efficiency: hMatchedGenVisTauMass / hGenVisTauMass"
+  hEffiGenTauEta:
+    x: "Gen Tau Eta"
+    y: "Efficiency"
+    title: "Efficiency: hMatchedGenTauEta / hGenTauEta"
+  hEffiGenTauTheta:
+    x: "Gen Tau Theta [rad]"
+    y: "Efficiency"
+    title: "Efficiency: hMatchedGenTauTheta / hGenTauTheta"
+  hEffiGenTauType:
+    x: "Tau Type"
+    y: "Efficiency"
+    title: "Efficiency: hMatchedGenTauType / hGenTauType"
+
+variabs_2d:
+  - hRecoConstPType
+  - hRecoConstPhotonPType
+  - hRecoConstPionPType
+  - hGenConstPType
+  - hGenConstPi0PType
+  - hGenConstPionPType
+  - hGenConstPhotonPType
+  - histo2DGenTauTypeMass
+  - histo2DRecoTauTypeMass
+  - histoMatched2DGenTauTypeMass
+  - histo2DGenTauDRType
+  - histo2DRecoTauDRType
+  - histoMatched2DGenTauDRType
+  - histo2DGenTauDRNConst
+  - histo2DRecoTauDRNConst
+  - histoMatched2DGenTauDRNConst
+  - histo2DTauPt
+  - histo2DTauP
+  - histo2DTauDR
+  - histo2DTauMass
+  - histo2DTauType
+  - hRecoPi0MassOverNPhoton
+  # - histo2DTauQ
+
+plot_titles_config_2d:
+  hRecoPi0MassOverNPhoton:
+    x: "Pi0 Mass [GeV]"
+    y: "N Photons"
+    title: "2D Histogram of Pi0 Mass vs N Photons"
+  hRecoConstPType:
+    x: "Reco Constituent P [GeV]"
+    y: "Type"
+    title: "2D Histogram of Reco Constituent P vs Type"
+  hRecoConstPhotonPType:
+    x: "Reco Photon P [GeV]"
+    y: "Type"
+    title: "2D Histogram of Reco Photon P vs Type"
+  hRecoConstPionPType:
+    x: "Reco Pion P [GeV]"
+    y: "Type"
+    title: "2D Histogram of Reco Pion P vs Type"
+  hGenConstPType:
+    x: "Gen Constituent P [GeV]"
+    y: "Type"
+    title: "2D Histogram of Gen Constituent P vs Type"
+  hGenConstPi0PType:
+    x: "Gen Pi0 P [GeV]"
+    y: "Type"
+    title: "2D Histogram of Gen Pi0 P vs Type"
+  hGenConstPionPType:
+    x: "Gen Pion P [GeV]"
+    y: "Type"
+    title: "2D Histogram of Gen Pion P vs Type"
+  hGenConstPhotonPType:
+    x: "Gen Photon P [GeV]"
+    y: "Type"
+    title: "2D Histogram of Gen Photon P vs Type"
+  histo2DGenTauTypeMass:
+    x: "Tau Type"
+    y: "Mass [GeV]"
+    title: "2D Histogram of Gen Tau Type vs Mass"
+  histo2DRecoTauTypeMass:
+    x: "Tau Type"
+    y: "Mass [GeV]"
+    title: "2D Histogram of Reco Tau Type vs Mass"
+  histoMatched2DGenTauTypeMass:
+    x: "Tau Type"
+    y: "Mass [GeV]"
+    title: "2D Histogram of Matched Gen Tau Type vs Mass"
+  histo2DGenTauDRType:
+    x: "Delta R"
+    y: "Tau Type"
+    title: "2D Histogram of Gen Tau ΔR vs Type"
+  histo2DRecoTauDRType:
+    x: "Delta R"
+    y: "Tau Type"
+    title: "2D Histogram of Reco Tau ΔR vs Type"
+  histoMatched2DGenTauDRType:
+    x: "Delta R"
+    y: "Tau Type"
+    title: "2D Histogram of Matched Gen Tau ΔR vs Type"
+  histo2DGenTauDRNConst:
+    x: "Delta R"
+    y: "N Constituents"
+    title: "2D Histogram of Gen Tau ΔR vs N Constituents"
+  histo2DRecoTauDRNConst:
+    x: "Delta R"
+    y: "N Constituents"
+    title: "2D Histogram of Reco Tau ΔR vs N Constituents"
+  histoMatched2DGenTauDRNConst:
+    x: "Delta R"
+    y: "N Constituents"
+    title: "2D Histogram of Matched Gen Tau ΔR vs N Constituents"
+  histo2DTauPt:
+    x: "Tau Pt [GeV]"
+    y: "Tau Pt [GeV]"
+    title: "2D Histogram of Tau Pt"
+  histo2DTauP:
+    x: "Tau P [GeV]"
+    y: "Tau P [GeV]"
+    title: "2D Histogram of Tau P"
+  histo2DTauDR:
+    x: "Delta R"
+    y: "Delta R"
+    title: "2D Histogram of Tau ΔR"
+  histo2DTauMass:
+    x: "Tau Mass [GeV]"
+    y: "Tau Mass [GeV]"
+    title: "2D Histogram of Tau Mass"
+  histo2DTauType:
+    x: "Tau Type"
+    y: "Tau Type"
+    title: "2D Histogram of Tau Type"
+  histo2DTauQ:
+    x: "Tau Charge"
+    y: "Tau Charge"
+    title: "2D Histogram of Tau Charge"

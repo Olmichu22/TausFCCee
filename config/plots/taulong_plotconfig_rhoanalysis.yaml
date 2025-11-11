@@ -1,0 +1,63 @@
+variabs_hist:
+  - RecoMesonEOverBeamE
+  - RecoMesonEOverBeamE_BG
+  - RecoMesonEOverBeamE_BGMuon
+  - RecoMesonEOverBeamE_BGEle
+  - RecoMesonEOverBeamE_BGPion
+  - RecoMesonEOverBeamE_BGA1
+  - RecoMesonEOverBeamE_BGOther
+
+plot_together:
+  RecoMesonOverBeamEBG:
+    variabs:
+      - RecoMesonEOverBeamE
+      - RecoMesonEOverBeamE_BG
+      - RecoMesonEOverBeamE_BGMuon
+      - RecoMesonEOverBeamE_BGEle
+      - RecoMesonEOverBeamE_BGPion
+      - RecoMesonEOverBeamE_BGA1
+      - RecoMesonEOverBeamE_BGOther
+    labels:
+      - "Rho Events"
+      - "Rho Events BG"
+      - "Rho Events BG Muon"
+      - "Rho Events BG Electron"
+      - "Rho Events BG Pion"
+      - "Rho Events BG A1"
+      - "Rho Events BG Other"
+    title: "Reco Meson E Over Beam E BG"
+    x: "Reco Meson E Over Beam E [GeV]"
+    y: "E Fraction"
+
+plot_titles_config_hist:
+  RecoMesonEOverBeamE:
+    title: "Reco Meson E Over Beam E"
+    x: "Meson E [GeV]"
+    y: "Events"
+  RecoMesonEOverBeamE_BG:
+    title: "Reco Meson E Over Beam E BG"
+    x: "Meson E [GeV]"
+    y: "E Fraction"
+  RecoMesonEOverBeamE_BGMuon:
+    title: "Reco Meson E Over Beam E BG Muon"
+    x: "Meson E [GeV]"
+    y: "E Fraction"
+  RecoMesonEOverBeamE_BGEle:
+    title: "Reco Meson E Over Beam E BG Electron"
+    x: "Meson E [GeV]"
+    y: "E Fraction"
+  RecoMesonEOverBeamE_BGPion:
+    title: "Reco Meson E Over Beam E BG Pion"
+    x: "Meson E [GeV]"
+    y: "E Fraction"
+  RecoMesonEOverBeamE_BGA1:
+    title: "Reco Meson E Over Beam E BG A1"
+    x: "Meson E [GeV]"
+    y: "E Fraction"
+  RecoMesonEOverBeamE_BGOther:
+    title: "Reco Meson E Over Beam E BG Other"
+    x: "Meson E [GeV]"
+    y: "E Fraction"
+variabs_2d:
+
+plot_titles_config_2d:

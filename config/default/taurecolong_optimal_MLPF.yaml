@@ -1,0 +1,18 @@
+cuts:
+  NeutronCut: 0.
+  TauPhotonPCut: 0.35
+  TauPionPCut: 0.6
+  dRMax: 0.4
+  MatchedGenMinDR: 1
+  generalPCut: 0.
+general:
+  decay:
+  - -777
+  outfile: tau_trained
+  sample: ZTauTau_SMPol_25Sept_MuonFix
+  matchedCM: "True"
+  test: 'False'
+output:
+  outputfile:
+  outputpath:
+  outputlabels:

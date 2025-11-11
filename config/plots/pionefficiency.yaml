@@ -1,0 +1,489 @@
+variabs_hist:
+  - hGenAllPionsP
+  - hGenAllPionsTheta
+  - hGenIsolatedPionsP
+  - hGenIsolatedPionsTheta
+  - hGenClusterPionP
+  - hGenClusterPionTheta
+  - hMatchedAllGenPionsP
+  - hMatchedAllGenPionsTheta
+  - hMatchedIsolatedPionsGenP
+  - hMatchedIsolatedPionsGenTheta
+  - hMatchedClusterPionGenP
+  - hMatchedClusterPionGenTheta
+  - effGenGeneralPionPEfficiency
+  - effGenIsolatedPionPEfficiency
+  - effGenClusterPionPEfficiency
+  - hGenPionsWTrackTrackP
+  - hGenPionsWTrackWRecoPionTrackP
+  - hGenPionsWTrackWORecoTrackP
+  - hGenPionsWTrackTrackTheta
+  - hGenPionsWTrackWRecoPionTrackTheta
+  - hGenPionsWTrackWORecoTrackTheta
+  - hGenPionsWOTrackWRecoPionRecoP
+  - hGenPionsWTrackWRecoPionRecoP
+  - hGenPionsWTrackGenP
+  - hGenPionsWTrackWRecoGenP
+  - hGenPionsWTrackWORecoGenP
+  - hGenPionsWTrackGenTheta
+  - hGenPionsWTrackWRecoGenTheta
+  - hGenPionsWTrackWORecoGenTheta
+  - effGenPionsWTrackEfficiency
+  - hGenPionsWOTrackGenP
+  - hMissmatchedGenPionP_11
+  - hMissmatchedGenPionTheta_11
+  - hMissmatchedIsolatedGenPionP_11
+  - hMissmatchedIsolatedGenPionTheta_11
+  - hMissmatchedClusterGenPionP_11
+  - hMissmatchedClusterGenPionTheta_11
+  - hMissmatchedGenPionP_13
+  - hMissmatchedGenPionTheta_13
+  - hMissmatchedIsolatedGenPionP_13
+  - hMissmatchedIsolatedGenPionTheta_13
+  - hMissmatchedClusterGenPionP_13
+  - hMissmatchedClusterGenPionTheta_13
+  - hMissmatchedGenPionP_2112
+  - hMissmatchedGenPionTheta_2112
+  - hMissmatchedIsolatedGenPionP_2112
+  - hMissmatchedIsolatedGenPionTheta_2112
+  - hMissmatchedClusterGenPionP_2112
+  - hMissmatchedClusterGenPionTheta_2112
+  - effGenMissMatch11Efficiency
+  - effGenMissMatch11ThetaEfficiency
+  - effGenMissMatch13Efficiency
+  - effGenMissMatch13ThetaEfficiency
+  - effGenMissMatch2112Efficiency
+  - effGenMissMatch2112ThetaEfficiency
+  - effGenMissMatchCluster11Efficiency
+  - effGenMissMatchCluster11ThetaEfficiency
+  - effGenMissMatchCluster13Efficiency
+  - effGenMissMatchCluster13ThetaEfficiency
+  - effGenMissMatchCluster2112Efficiency
+  - effGenMissMatchCluster2112ThetaEfficiency
+  - effGenMissMatchIsolated11Efficiency
+  - effGenMissMatchIsolated11ThetaEfficiency
+  - effGenMissMatchIsolated13Efficiency
+  - effGenMissMatchIsolated13ThetaEfficiency
+  - effGenMissMatchIsolated2112Efficiency
+  - effGenMissMatchIsolated2112ThetaEfficiency
+  - hGenPionsUnmatchedGenP
+  - hGenPionsUnmatchedGenTheta
+  - hIsolatedPionsUnmatchedGenP
+  - hIsolatedPionsUnmatchedGenTheta
+  - hClusterPionsUnmatchedGenP
+  - hClusterPionsUnmatchedGenTheta
+  - effGenUnmatchedGeneralPionPEfficiency
+  - effGenUnmatchedGeneralPionThetaEfficiency
+  - effGenUnmatchedIsolatedPionPEfficiency
+  - effGenUnmatchedIsolatedPionThetaEfficiency
+  - effGenUnmatchedClusterPionPEfficiency
+  - effGenUnmatchedClusterPionThetaEfficiency
+  - effGenMissMatchCluster2112DREfficiency
+  - effGenMissMatchCluster13DREfficiency
+  - effGenMissMatchCluster11DREfficiency
+  - effGenClusterPionDREfficiency
+  - effGenUnmatchedClusterDREfficiency
+  - effGenTrackPionClusterDREfficiency
+  - hMatchedGenPionClusterDr
+  - hGenPionClusterDr
+
+plot_together:
+  ClusteredPionsDREfficiency:
+    variabs:
+      - effGenClusterPionDREfficiency
+      - effGenMissMatchCluster2112DREfficiency
+      - effGenMissMatchCluster13DREfficiency
+      - effGenMissMatchCluster11DREfficiency
+      - effGenUnmatchedClusterDREfficiency
+      - effGenTrackPionClusterDREfficiency
+    labels:
+      - Clustered Pions Efficiency
+      - Mismatched (neutron)
+      - Mismatched (muon)
+      - Mismatched (electron)
+      - Unmatched
+      - Track Efficiency
+    title: "Clustered Pion Reconstruction Efficiency vs dR"
+    x: "dR [rad]"
+    y: "Efficiency"
+    position: [0.25, 0.4, 0.4, 0.6]
+    gridy: true
+
+  GenPionsP:
+    variabs:
+      - hGenAllPionsP
+      - hGenPionsWOTrackGenP
+      - hGenPionsWTrackGenP
+    labels:
+      - All Generated Pions
+      - Generated Pions without matched Track
+      - Generated Pions with matched Track
+    title: "Gen Pions P Distribution"
+    x: "Gen P [GeV/c]"
+    y: "Events"
+    position: [0.45, 0.5, 0.6, 0.7]
+  GenPionsTheta:
+    variabs:
+      - hGenAllPionsTheta
+      - hGenPionsWOTrackGenTheta
+      - hGenPionsWTrackGenTheta
+    labels:
+      - All Generated Pions
+      - Generated Pions without matched Track
+      - Generated Pions with matched Track
+    title: "Gen Pions Theta Distribution"
+    x: "Gen Theta [rad]"
+    y: "Events"
+    position: [0.5, 0.4, 0.65, 0.6]
+    fill: true
+  TrackGenMomentum:
+    variabs:
+      - hGenPionsWTrackGenP
+      - hGenPionsWTrackWRecoGenP
+      - hGenPionsWTrackWORecoGenP
+    labels:
+      - All gen pions with Track
+      - Pions with Track and Reco Pion
+      - Pions with Track and without Reco Pion
+    title: "Generated Momentum for Generated Pions with Track"
+    x: "Gen P [GeV/c]"
+    y: "Events"
+    position: [0.5, 0.4, 0.65, 0.6]
+    gridy: true
+    fill: true
+    # markersize: 0.5
+    # logy: true
+  TrackGenTheta:
+    variabs:
+      - hGenPionsWTrackGenTheta
+      - hGenPionsWTrackWRecoGenTheta
+      - hGenPionsWTrackWORecoGenTheta
+    labels:
+      - All gen pions with Track
+      - Pions with Track and Reco Pion
+      - Pions with Track and without Reco Pion
+    title: "Generated Theta for Generated Pions with Track"
+    x: "Gen Theta [rad]"
+    y: "Events"
+    position: [0.35, 0.4, 0.6, 0.6]
+    gridy: true
+    fill: true
+
+  TrackMomentum:
+    variabs:
+      - hGenPionsWTrackTrackP
+      - hGenPionsWTrackWRecoPionTrackP
+      - hGenPionsWTrackWORecoTrackP
+    labels:
+      - All gen pions with Track
+      - Pions with Track and Reco Pion
+      - Pions with Track and without Reco Pion
+    title: "Track Momentum for Generated Pions with Track"
+    x: "Track P [GeV/c]"
+    y: "Events"
+    position: [0.45, 0.4, 0.65, 0.6]
+    gridy: true
+    fill: true
+
+    # markersize: 0.5
+    # logy: true
+  TrackTheta:
+    variabs:
+      - hGenPionsWTrackTrackTheta
+      - hGenPionsWTrackWRecoPionTrackTheta
+      - hGenPionsWTrackWORecoTrackTheta
+    labels:
+      - All gen pions with Track
+      - Pions with Track and Reco Pion
+      - Pions with Track and without Reco Pion
+    title: "Track Theta for Generated Pions with Track"
+    x: "Track Theta [rad]"
+    y: "Events"
+    position: [0.35, 0.4, 0.65, 0.6]
+    gridy: true
+    fill: true
+
+    # markersize: 0.5
+    # logy: true
+
+  IsolatedPionEfficiencyP:
+    variabs:
+      - effGenIsolatedPionPEfficiency
+      - effGenMissMatchIsolated11Efficiency
+      - effGenMissMatchIsolated13Efficiency
+      - effGenMissMatchIsolated2112Efficiency
+      - effGenUnmatchedIsolatedPionPEfficiency
+    labels:
+      - Isolated Pions
+      - Mismatched (electron)
+      - Mismatched (muon)
+      - Mismatched (neutron)
+      - Unmatched
+    title: "Isolated Pion Reconstruction Efficiency"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.6, 0.6]
+    gridy: true
+    markersize: 0.5
+  IsolatedPionEfficiencyTheta:
+    variabs:
+      - effGenIsolatedPionThetaEfficiency
+      - effGenMissMatchIsolated11ThetaEfficiency
+      - effGenMissMatchIsolated13ThetaEfficiency
+      - effGenMissMatchIsolated2112ThetaEfficiency
+      - effGenUnmatchedIsolatedPionThetaEfficiency
+    labels:
+      - Isolated Pions
+      - Mismatched (electron)
+      - Mismatched (muon)
+      - Mismatched (neutron)
+      - Unmatched
+    title: "Isolated Pion Reconstruction Efficiency vs Theta"
+    x: "Theta [rad]"
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.6, 0.6]
+    gridy: true
+    markersize: 0.5
+  ClusteredPionEfficiencyP:
+    variabs:
+      - effGenClusterPionPEfficiency
+      - effGenMissMatchCluster11Efficiency
+      - effGenMissMatchCluster13Efficiency
+      - effGenMissMatchCluster2112Efficiency
+      - effGenUnmatchedClusterPionPEfficiency
+    labels:
+      - Clustered Pions
+      - Mismatched (electron)
+      - Mismatched (muon)
+      - Mismatched (neutron)
+      - Unmatched
+    title: "Clustered Pion Reconstruction Efficiency"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.6, 0.6]
+    gridy: true
+    markersize: 0.5
+  ClusteredPionEfficiencyTheta:
+    variabs:
+      - effGenClusterPionThetaEfficiency
+      - effGenMissMatchCluster11ThetaEfficiency
+      - effGenMissMatchCluster13ThetaEfficiency
+      - effGenMissMatchCluster2112ThetaEfficiency
+      - effGenUnmatchedClusterPionThetaEfficiency
+    labels:
+      - Clustered Pions
+      - Mismatched (electron)
+      - Mismatched (muon)
+      - Mismatched (neutron)
+      - Unmatched
+    title: "Clustered Pion Reconstruction Efficiency vs Theta"
+    x: "Theta [rad]"
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.6, 0.6]
+    gridy: true
+    markersize: 0.5
+
+  GeneralPionEfficiencyP:
+    variabs:
+      - effGenGeneralPionPEfficiency
+      - effGenMissMatch11Efficiency
+      - effGenMissMatch13Efficiency
+      - effGenMissMatch2112Efficiency
+      - effGenUnmatchedGeneralPionPEfficiency
+    labels:
+      - All Pions
+      - Mismatched (electron)
+      - Mismatched (muon)
+      - Mismatched (neutron)
+      - Unmatched
+    title: "General Pion Reconstruction Efficiency"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.6, 0.6]
+    gridy: true
+    markersize: 0.5
+  
+  GeneralPionEfficiencyTheta:
+    variabs:
+      - effGenGeneralPionThetaEfficiency
+      - effGenMissMatch11ThetaEfficiency
+      - effGenMissMatch13ThetaEfficiency
+      - effGenMissMatch2112ThetaEfficiency
+      - effGenUnmatchedGeneralPionThetaEfficiency
+    labels:
+      - All Pions
+      - Mismatched (electron)
+      - Mismatched (muon)
+      - Mismatched (neutron)
+      - Unmatched
+    title: "General Pion Reconstruction Efficiency vs Theta"
+    x: "Theta [rad]"
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.6, 0.6]
+    gridy: true
+    markersize: 0.5
+    # logy: true
+
+  PionEfficiency:
+    variabs:
+      - effGenIsolatedPionPEfficiency
+      - effGenClusterPionPEfficiency
+      - effGenGeneralPionPEfficiency
+      - effGenPionsWTrackEfficiency
+    labels:
+      - Isolated Pions
+      - Clustered Pions
+      - All Pions
+      - Track Efficiency
+    title: "Pion Reconstruction Efficiency"
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    position: [0.35, 0.4, 0.6, 0.6]
+    gridy: true
+    markersize: 0.5
+    # logy: true
+  
+  
+Zoom:
+  # OnePhotonPZoom:
+  #   main:
+  #     - hRecoConstlessPhotonPrho
+  #     - hRecoConstxtraPhotonPi
+  #   zoom:
+  #     - hRecoConstlessPhotonPrhoZoom
+  #     - hRecoConstxtraPhotonPiZoom
+  #   labels:
+  #     - 1 Photon P - rho
+  #     - 1 Photon P - pi
+  #   title: "Histogram of 1 Photon P"
+  #   x: "Photon P [GeV/c]"
+  #   y: "Events (Normalized)"
+  #   norm: True
+  #   position: [0.4, 0.3, 0.7, 0.45]
+  #   zoom_position: [0.45, 0.55 , 0.9, 0.9]
+  #   zoom_title: "Zoom"
+
+
+
+plot_titles_config_hist:
+  hGenPionClusterDr:
+    title: "Generated Pion Cluster dR"
+    x: "dR [rad]"
+    y: "Events"
+  hMatchedGenPionClusterDr:
+    title: "Matched Generated Pion Cluster dR"
+    x: "dR [rad]"
+    y: "Events"
+  hGenAllPionsP:
+    title: "Generated All Pions Momentum"
+    x: "P [GeV/c]"
+    y: "Events"
+  hGenAllPionsTheta:
+    title: "Generated All Pions Theta"
+    x: "P [rad]"
+    y: "Events"
+  hGenIsolatedPionsP:
+    title: "Generated Isolated Pions Momentum"
+    x: "P [GeV/c]"
+    y: "Events"
+  hGenIsolatedPionsTheta:
+    title: "Generated Isolated Pions Theta"
+    x: \theta\text{ [rad]}
+    y: "Events"
+  hGenClusterPionP:
+    title: "Generated Clustered Pions Momentum"
+    x: "P [GeV/c]"
+    y: "Events"
+  hGenClusterPionTheta:
+    title: "Generated Clustered Pions Theta"
+    x: \theta\text{ [rad]}
+    y: "Events"
+  hMatchedAllGenPionsP:
+    title: "Matched All Gen Pions Momentum"
+    x: "P [GeV/c]"
+    y: "Events"
+  hMatchedAllGenPionsTheta:
+    title: "Matched All Gen Pions Theta"
+    x: \theta\text{ [rad]}
+    y: "Events"
+  hMatchedIsolatedPionsGenP:
+    title: "Matched Isolated Gen Pions Momentum"
+    x: "P [GeV/c]"
+    y: "Events"
+  hMatchedIsolatedPionsGenTheta:
+    title: "Matched Isolated Gen Pions Theta"
+    x: \theta\text{ [rad]}
+    y: "Events"
+  hMatchedClusterPionGenP:
+    title: "Matched Clustered Gen Pions Momentum"
+    x: "P [GeV/c]"
+    y: "Events"
+  hMatchedClusterPionGenTheta:
+    title: "Matched Clustered Gen Pions Theta"
+    x: \theta\text{ [rad]}
+    y: "Events"
+  hGenGeneralPionPEfficiency:
+    title: "Pion Reconstruction Efficiency (All Pions)"
+    x: "Pion Momentum [GeV/c]"
+    y: "Efficiency"
+  hGenIsolatedPionPEfficiency:
+    title: "Pion Reconstruction Efficiency (Isolated Pions)"
+    x: "Pion Momentum [GeV/c]"
+    y: "Efficiency"
+  hGenClusterPionPEfficiency:
+    title: "Pion Reconstruction Efficiency (Clustered Pions)"
+    x: "Pion Momentum [GeV/c]"
+    y: "Efficiency"
+  histoRecoRhoMass:
+    title: \text{Masa }\rho 
+    x: \text{Masa [GeV/c}^2\text{]}
+    y: "Eventos"
+    fit: True
+    fitrange:
+      - 0.5
+      - 1
+
+variabs_2d:
+  - hGenClusteredPionsMaxPvsDR
+  - hGenClusteredPionsMinPvsDR
+  - hUnmatchedClusteredPionsThetavsDR
+  - hMatchedClusteredPionsThetavsDR
+  - hUnmatchedClusteredPionsPvsDR
+  - hMatchedClusteredPionsPvsDR
+
+plot_titles_config_2d:
+  hGenClusteredPionsMaxPvsDR:
+    title: "Clustered Pions Max Momentum vs dR"
+    x: "Max Pion P [GeV/c]"
+    y: "dR [rad]"
+  hGenClusteredPionsMinPvsDR:
+    title: "Clustered Pions Min Momentum vs dR"
+    x: "Min Pion P [GeV/c]"
+    y: "dR [rad]"
+  hUnmatchedClusteredPionsThetavsDR:
+    title: "Unmatched Clustered Pions Theta vs dR"
+    x: "Theta [rad]"
+    y: "dR [rad]"
+  hMatchedClusteredPionsThetavsDR:
+    title: "Matched Clustered Pions Theta vs dR"
+    x: "Theta [rad]"
+    y: "dR [rad]"
+  hUnmatchedClusteredPionsPvsDR:
+    title: "Unmatched Clustered Pions P vs dR"
+    x: "P [GeV/c]"
+    y: "dR [rad]"
+  hMatchedClusteredPionsPvsDR:
+    title: "Matched Clustered Pions P vs dR"
+    x: "P [GeV/c]"
+    y: "dR [rad]"
+  # hMatchedPionsTheta:
+  #   title: "Matched Pions Theta"
+  #   x: "Gen Pion Theta [rad]"
+  #   y: "Reco Pion Theta [rad]"
+  
+
+
+cm_config:
+  # decays: [-20, -2, -1, 1, 2, 3, 4, 10, 11, 12]
+  # photonDecays : [0, 1, 2, 3, 4, 10, 11]
+  # colorbar: false

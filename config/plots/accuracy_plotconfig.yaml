@@ -1,0 +1,6 @@
+migrations:
+"": []
+axis:
+  xlabel: "R [rad]"
+  title: "Accuracy regarding max R between components"
+metric: "accuracy"
