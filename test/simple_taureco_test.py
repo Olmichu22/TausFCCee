@@ -351,7 +351,7 @@ for eventid, event in enumerate(reader.get("events")):
             # Gen Tau with key i will be matched with reco tau with key findMatch. (-1) means unmatched.
         recoTau = recoTaus[findMatch]
         recotauP4 = recoTau.getMomentum()
-        hResTauP.Fill((recoTauP4.P() - genVisTauP4.P()) / genVisTauP4.P())
+        hResTauP.Fill((recotauP4.P() - genVisTauP4.P()) / genVisTauP4.P())
         
         
 logger_process.info("Found %d events", countEvents)

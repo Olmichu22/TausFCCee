@@ -9,8 +9,8 @@ general:
   decay:
   - -777
   outfile: results
-  sample: ZTauTau_SMPol_25Sept_MuonFix
-  matchedCM: "True"
+  sample: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/ZTauTau_SMPol_25Sept_MuonFix/
+  matchedCM: "True" # Ignore
   test: 'False'
 output:
   outputfile:

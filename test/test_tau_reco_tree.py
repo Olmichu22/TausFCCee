@@ -17,14 +17,24 @@ default_config = "config/default/taurecolong.yaml"
 # Output Configuration
 outputbasepath = "Results/TauReco/"
 
+def my_hook(parser):
+    parser.add_argument("--extra-args", type=str, default="Example", help="example of extra argument")
+
 general_configs = myutils.setup_analysis_config(default_config,
-                                                outputbasepath)
+                                                outputbasepath,
+                                                parser_hook=my_hook)
 
 
 
 loggers = general_configs["loggers"]
 
 run_config = general_configs["config"]
+
+args = general_configs["args"]
+# Extra argument example
+extra_args = args.extra_args
+
+
 # Cut Configuration
 dRMax = 0.4 # Max distance to look for components in the pion cone (rads)
 
@@ -60,10 +70,9 @@ test_arg = general_configs["flags"]["test"]
 logger_config.info("Configuration loaded!")
 logger_config.info("Configuration:\n%s", pprint.pformat(general_configs, indent=4))
 
-# If there are results provied from neural network
-gatr_results_path = general_configs["args"].gatr_result
 
-filenames, mlpf_results = myutils.get_root_trees_path(sample, gatr_results_path, loggers, test_arg)
+filenames = myutils.get_root_trees_path(sample, loggers, test_arg, path=None, file_prefix=None)
+
 # mlpf results is an empty dict if no neural network results provided
 
 if test_arg:
@@ -97,6 +106,7 @@ GenTauP = ROOT.std.vector('float')()
 GenVisTauP = ROOT.std.vector('float')()
 GenTauType = ROOT.std.vector('int')()
 GenVisTauMass = ROOT.std.vector('float')()
+GenTauMass = ROOT.std.vector('float')()
 GenTauQ = ROOT.std.vector('float')()
 GenTauEta = ROOT.std.vector('float')()
 GenTauTheta = ROOT.std.vector('float')()
@@ -117,6 +127,7 @@ Tau_tree.Branch("GenTauP", GenTauP)
 Tau_tree.Branch("GenVisTauP", GenVisTauP)
 Tau_tree.Branch("GenTauType", GenTauType)
 Tau_tree.Branch("GenVisTauMass", GenVisTauMass)
+Tau_tree.Branch("GenTauMass", GenTauMass)
 Tau_tree.Branch("GenTauQ", GenTauQ)
 Tau_tree.Branch("GenTauEta", GenTauEta)
 Tau_tree.Branch("GenTauTheta", GenTauTheta)
@@ -175,6 +186,7 @@ GenTauP,
 GenVisTauP,
 GenTauType,
 GenVisTauMass,
+GenTauMass,
 GenTauQ,
 GenTauEta,
 GenTauTheta,
@@ -226,20 +238,12 @@ for eventid, event in enumerate(reader.get("events")):
         nGenTaus,
         "\n".join("GenTau %d: %s" % (i, tau) for i, tau in genTaus.items()),
     )
-
-    if gatr_results_path is not None and not general_configs["args"].test_pfo:
-        particles = mlpf_results.get(eventid, {})
-        recoTau = tauReco.findAllTaus(
-            particles, dRMax, minPTauPhoton, minPTauPion, PNeutron, generalPCut, charge_condition=False
+    
+    recoTau = tauReco.findAllTaus(
+        pfos, dRMax, minPTauPhoton, minPTauPion, PNeutron, generalPCut
         )
-        recoElectrons = electronReco.findAllElectrons(particles, generalPCut)
-        recoMuons = muonReco.findAllMuons(particles, generalPCut)  
-    else:
-        recoTau = tauReco.findAllTaus(
-            pfos, dRMax, minPTauPhoton, minPTauPion, PNeutron, generalPCut
-        )
-        recoElectrons = electronReco.findAllElectrons(pfos, generalPCut)
-        recoMuons = muonReco.findAllMuons(pfos, generalPCut)
+    recoElectrons = electronReco.findAllElectrons(pfos, generalPCut)
+    recoMuons = muonReco.findAllMuons(pfos, generalPCut)
     
     nRecoTaus = len(recoTau)
     nRecoElectrons = len(recoElectrons)
@@ -291,13 +295,14 @@ for eventid, event in enumerate(reader.get("events")):
         genTauNConsts = genTaus[i].getnConst()
         genTauConsts = genTaus[i].getDaughters()
 
-        # Fill histograms
+        # Fill branches with generator level tau information
         GenEventId.push_back(eventid)  # Event ID
         GenTauPt.push_back(genTauP4.Pt())  # Transverse momentum
         GenVisTauPt.push_back(genVisTauP4.Pt())  # Visible transverse momentum
         GenTauP.push_back(genTauP4.P())  # Momentum
         GenVisTauP.push_back(genVisTauP4.P())  # Visible momentum
         GenVisTauMass.push_back(genVisTauP4.M())  # Visible mass
+        GenTauMass.push_back(genTauP4.M())  # Full tau mass
         GenTauType.push_back(genTauId)  # Tau decay type
         GenTauQ.push_back(genTauQ)  # Tau charge
 

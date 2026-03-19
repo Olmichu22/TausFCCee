@@ -11,7 +11,6 @@ import pickle
 import numpy as np
 import pprint
 from pathlib import Path
-from modules import myutils
 
 
 
@@ -523,7 +522,7 @@ def get_single_root_file(file_path, loggers):
     my_file = Path(file_path)
 
     if my_file.is_file():
-        root_file = myutils.open_root_file(file_path)
+        root_file = open_root_file(file_path)
         if not root_file or root_file.IsZombie():
             loggers["io"].warning("File %s is a zombie or could not be opened.", file_path)
             sys.exit(1)
@@ -535,101 +534,52 @@ def get_single_root_file(file_path, loggers):
     return filenames
 
 
-def get_root_trees_path(sample, gatr_results_path, loggers, test, path=None, file_prefix=None):
+def get_root_trees_path(sample, loggers, test, path=None, file_prefix=None):
     """
-    Loads ROOT file paths and associated GATr (Graph Analysis Training results) predictions 
-    for a given sample. Handles both local GATr result files and simulation-only workflows.
-
-    Depending on whether `gatr_results_path` is provided, it either:
-      - Loads GATr prediction files and corresponding ROOT simulation files listed in a CSV file.
-      - Or, if `gatr_results_path` is None, reads simulation ROOT files directly from a predefined path.
+    Loads ROOT file paths for a given sample directory.
 
     Args:
-        sample (str): Name of the dataset or sample to process (used when `gatr_results_path` is None).
-        gatr_results_path (str or None): Path to a CSV file containing columns `prediction_file` and 
-            `simulation_file`. If None, simulation files are loaded from the default path.
-        loggers (dict): Dictionary of loggers with at least the `"io"` key used for logging 
-            information, warnings, and errors.
+        sample (str): Absolute or relative path to the directory containing ROOT files.
+        loggers (dict): Dictionary of loggers with at least the `"io"` key.
         test (bool): If True, limits the processing to only one file for quick testing.
-        path (str): If provided, uses this path to look for root_files.
+        path (str): If provided, overrides `sample` as the directory path to look for root files.
         file_prefix (str): If provided, uses this prefix to look for root_files.
 
-    Raises:
-        SystemExit: If `gatr_results_path` is provided but the path does not exist.
-
     Returns:
-        tuple:
-            - **filenames** (*list[str]*): List of valid ROOT file paths to be processed.
-            - **mlpf_results** (*dict*): Dictionary mapping unique event IDs to MLPF/GATr predictions 
-              (empty if no `gatr_results_path` is provided).
+        list[str]: List of valid ROOT file paths to be processed.
     """
-    mlpf_results = {}
-    
-    if gatr_results_path is not None:
-        if not os.path.exists(gatr_results_path):
-            loggers["io"].error("GATr results path %s does not exist.", gatr_results_path)
-            sys.exit(1)
-        else:
-            loggers["io"].info("Using GATr results from %s", gatr_results_path)
-        # abrimos archivo configuracion yml
-        mlpf_config = pd.read_csv(gatr_results_path)
-        filenames = []
-        n_files = 0
-        n_preds = 1
-        for i, row in enumerate(mlpf_config.iterrows()):
-            if test == True and i > 0:
-                break
-            
-            mlpf_predictions_path = row[1]["prediction_file"]
-            simulation_path = row[1]["simulation_file"]
-            my_file = Path(simulation_path)
-            loggers["io"].debug("Reading file %s", simulation_path)
-            if my_file.is_file():
-                root_file = myutils.open_root_file(simulation_path)
-                if not root_file or root_file.IsZombie():
-                    loggers["io"].warning("File %s is a zombie or could not be opened.", simulation_path)
-                    continue
-                filenames.append(simulation_path)
-            
-            with open(mlpf_predictions_path, "rb") as f:
-                mlpf_preds_i = pickle.load(f)
-            
-            loggers["io"].debug("Read %d GATr results", len(mlpf_results))
-                
-            for key, value in mlpf_preds_i.items():
-                key_id = n_files*1000 + key - 1
-                mlpf_results[key_id] = value
-                n_preds += 1
-            n_files += 1
+    dir_path = os.path.abspath(path if path else sample)
+    filenames = []
 
-        loggers["io"].info("Total predictions loaded: %d", n_preds)
-            
-    else:
-        # Simulation files
-        if not path:
-            path = "/pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/"
-            dir_path = path + "/" + sample
-            file = "out_reco_edm4hep_edm4hep"
-        else:
-            dir_path = path
-            file = file_prefix
-        filenames = []
+    loggers["io"].info("Reading files from %s", dir_path)
 
-        nfiles = len(os.listdir(dir_path))
-
-        nfiles = 1000
-        if test == True:
-            nfiles = 1
-
-        loggers["io"].info("Reading files from %s", dir_path)
+    # Try numbered files with prefix first
+    if file_prefix:
+        nfiles = 1 if test else 1000
         for i in range(1, nfiles + 1):
-            filename = dir_path + "/" + file + "_{}.root".format(i)
+            filename = dir_path + "/" + file_prefix + "_{}.root".format(i)
             loggers["io"].debug("Reading file %s", filename)
             my_file = Path(filename)
             if my_file.is_file():
-                root_file = myutils.open_root_file(filename)
+                root_file = open_root_file(filename)
                 if not root_file or root_file.IsZombie():
-                    logger_io.warning("File %s is a zombie or could not be opened.", filename)
+                    loggers["io"].warning("File %s is a zombie or could not be opened.", filename)
                     continue
                 filenames.append(filename)
-    return filenames, mlpf_results
+
+    # Fall back to all .root files in the directory
+    if not filenames:
+        if file_prefix:
+            loggers["io"].info("No files found with prefix '%s', loading all .root files.", file_prefix)
+        all_root = sorted(Path(dir_path).glob("*.root"))
+        if test:
+            all_root = all_root[:1]
+        for filepath in all_root:
+            loggers["io"].debug("Reading file %s", filepath)
+            root_file = open_root_file(str(filepath))
+            if not root_file or root_file.IsZombie():
+                loggers["io"].warning("File %s is a zombie or could not be opened.", filepath)
+                continue
+            filenames.append(str(filepath))
+
+    return filenames

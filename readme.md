@@ -8,10 +8,9 @@ The main tools included are:
 
 # Simple Tau Reconstruction Test
 
-This script (`test/simple_tau_reco_test.py`) provides a **basic example** for reconstructing **tau leptons** and related decay products from ROOT event data using the **EDM4hep** format.
+This script (`test/simple_taureco_test.py`) provides a **basic example** for reconstructing **tau leptons** and related decay products from ROOT event data using the **EDM4hep** format.
 
 It reads generator-level (`MCParticles`) and reconstructed-level (`PandoraPFOs`) collections, performs tau reconstruction, fills histograms for analysis, and writes the results to a ROOT output file.
-
 
 The script performs the following tasks:
 
@@ -19,6 +18,54 @@ The script performs the following tasks:
 * Match reconstructed taus to their generator-level counterparts.
 * Produce validation histograms (momentum, mass, decay type, and P resolution).
 * Save the output in a ROOT file for further analysis.
+
+---
+
+# Tree-Based Tau Reconstruction Workflow
+
+An alternative two-step workflow stores all reconstruction results in a **TTree** first and then derives histograms from it. This separates the (slow) EDM4hep loop from the (fast) histogram filling and allows re-running the analysis without reprocessing the raw data.
+
+## Step 1 — Build the TTree (`test/test_tau_reco_tree.py`)
+
+Reads EDM4hep input files, runs the same tau reconstruction and gen–reco matching as `simple_taureco_test.py`, and writes a ROOT file containing a `Tau_tree` with one entry per event.
+
+Run with:
+
+```bash
+python test/test_tau_reco_tree.py [options]
+```
+
+Output: `Results/TauReco/Tree_<fileOutName>.root`
+
+### Key branches
+
+| Branch            | Type            | Description                                          |
+| ----------------- | --------------- | ---------------------------------------------------- |
+| `numGenTaus`      | `int`           | Number of gen-level taus in the event                |
+| `GenTauPt`        | `vector<float>` | Gen tau transverse momentum                          |
+| `GenVisTauPt`     | `vector<float>` | Visible tau transverse momentum                      |
+| `GenTauP`         | `vector<float>` | Gen tau total momentum                               |
+| `GenVisTauP`      | `vector<float>` | Visible tau total momentum                           |
+| `GenTauMass`      | `vector<float>` | Full gen tau invariant mass (~1.777 GeV)             |
+| `GenVisTauMass`   | `vector<float>` | Visible tau invariant mass                           |
+| `GenTauType`      | `vector<int>`   | Decay mode ID (see decay ID table below)             |
+| `RecoMatchedKey`  | `vector<int>`   | Index of matched reco tau for each gen tau (-1 if unmatched) |
+| `RecoTauPt`       | `vector<float>` | Reco tau transverse momentum                         |
+| `RecoTauP`        | `vector<float>` | Reco tau total momentum                              |
+| `RecoTauMass`     | `vector<float>` | Reco tau invariant mass                              |
+| `RecoTauDM`       | `vector<int>`   | Reco tau decay mode ID                               |
+
+## Step 2 — Fill histograms (`test/hist_from_tree.py`)
+
+Reads the TTree produced in Step 1 and fills the same histograms as `simple_taureco_test.py`. The momentum resolution is computed using `RecoMatchedKey[i]` directly from the tree (no re-running of the matching algorithm).
+
+Run with:
+
+```bash
+python test/hist_from_tree.py [options]
+```
+
+Output: `Results/TauReco/Hist_<fileOutName>.root`
 
 ---
 
@@ -65,15 +112,22 @@ Results/TauRecoTestHist.root
 
 This ROOT file includes histograms such as:
 
-| Histogram          | Description                             |
-| ------------------ | --------------------------------------- |
-| `histoGenTauPt`    | Generator-level tau transverse momentum |
-| `histoGenTauVisPt` | Visible tau transverse momentum         |
-| `histoGenTauP`     | Tau total momentum                      |
-| `histoGenTauMass`  | True tau invariant mass                 |
-| `histoRecoTauPt`   | Reconstructed tau transverse momentum   |
-| `histoRecoTauType` | Tau decay mode (hadronic/leptonic)      |
-| `histoResTauP`     | Momentum resolution ((Reco - Gen)/Gen)  |
+| Histogram            | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `histoGenTauPt`      | Generator-level tau transverse momentum          |
+| `histoGenTauVisPt`   | Visible tau transverse momentum                  |
+| `histoGenTauP`       | Gen tau total momentum                           |
+| `histoGenTauVisP`    | Visible tau total momentum                       |
+| `histoGenTauMass`    | True tau invariant mass (~1.777 GeV)             |
+| `histoGenTauVisMass` | Visible tau invariant mass                       |
+| `histoGenTauType`    | Gen tau decay mode ID                            |
+| `histoRecoTauPt`     | Reconstructed tau transverse momentum            |
+| `histoRecoTauP`      | Reconstructed tau total momentum                 |
+| `histoRecoTauType`   | Reco tau decay mode (hadronic/leptonic)          |
+| `histoRecoTauMass`   | Reconstructed tau invariant mass                 |
+| `histoResTauP`       | Momentum resolution ((Reco − GenVis) / GenVis)  |
+
+> **Note:** `hist_from_tree.py` produces the same set of histograms.
 
 
 ### Description of decay ID:

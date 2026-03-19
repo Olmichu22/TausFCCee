@@ -10,7 +10,7 @@ except:
    logger = None
 
 import ROOT
-
+import math
  
 
 def MatchRecoGenTau(genTau, recoTaus, nTausType, maxDRMatch=1, selectDecay=-777):
@@ -33,14 +33,17 @@ def MatchRecoGenTau(genTau, recoTaus, nTausType, maxDRMatch=1, selectDecay=-777)
       # we want to study migrations: keep all the decays but count how many are good 
       # careful, at reco level we count photons and at gen level pi0s: difference in the
       # decay mode (1 gen can be 1,2 reco)
-
+      # Reconstruct pi0s from photons: if we have 2 photons, we consider it as a pi0, if we have 1 photon we consider it as a pi0 as well (to account for merged/lost photons), if we have more than 2 photons we consider it as 2 pi0s. This is to be refined in the future with a proper pi0 reconstruction. 
+      
       recoDM=recoTauId
-      if recoTauId==2:
-         recoDM=1
-      elif (recoTauId>=11 and recoTauId<15):
-         recoDM=11
-      elif recoTauId>=3 and recoTauId<10:
-         recoDM=3
+      if recoTauId < 10 and recoTauId >= 0:
+            nPhotons = recoTauId
+            n_pi0s = math.ceil(nPhotons / 2)
+            recoDM = n_pi0s
+      elif recoTauId >= 10:
+            nPhotons = recoTauId - 10
+            n_pi0s = math.ceil(nPhotons / 2)
+            recoDM = 10 + n_pi0s
 
       if selectDecay!=-777 and selectDecay==recoDM:
             nTausType+=1
@@ -312,7 +315,15 @@ def findAllGenTaus(mc_particles):
          continue
 
       genTau_data=visTauGen(particle)
-      genTau = GenParticle(genTau_data[0], genTau_data[1], genTau_data[2], genTau_data[3], genTau_data[4], genTau_data[5], genTau_data[6])
+      genTau = GenParticle(visP4=genTau_data[0],
+                           ID=genTau_data[1],
+                           charge=genTau_data[2],
+                           genP4=genTau_data[3], 
+                           maxAngleConsts=genTau_data[4],
+                           nConsts=genTau_data[5],
+                           const=genTau_data[6],
+                           mcp=particle,
+                           )
       if genTau.getCharge()<0:
          genTau.setPDG(15)
       else:
