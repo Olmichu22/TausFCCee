@@ -54,6 +54,26 @@ Gen:
 
 Matched:
   Events:
+    RecoPions_BG_e:
+      type: "1D"
+      name: hMatchedRecoPionsBGe
+      range: [0, 50]
+      bins: 100
+    RecoPions_BG_mu:
+      type: "1D"
+      name: hMatchedRecoPionsBGmu
+      range: [0, 50]
+      bins: 100
+    RecoPions_BG_n:
+      type: "1D"
+      name: hMatchedRecoPionsBGn
+      range: [0, 50]
+      bins: 100
+    RecoPions_BG_other:
+      type: "1D"
+      name: hMatchedRecoPionsBGother
+      range: [0, 50]
+      bins: 100
     ClusteredMatchedPionsPvsDR:
       type: "2D"
       name: hMatchedClusteredPionsPvsDR
@@ -359,6 +379,22 @@ Matched:
       bins: 100
       
   Effi:
+    PionP_BG_e_efficiency:
+      name: effMatchedPionPBGeefficiency
+      numerator: Matched/RecoPions_BG_e
+      denominator: Gen/AllPionsP
+    PionP_BG_mu_efficiency:
+      name: effMatchedPionPBGmuefficiency
+      numerator: Matched/RecoPions_BG_mu
+      denominator: Gen/AllPionsP
+    PionP_BG_n_efficiency:
+      name: effMatchedPionPBGnefficiency
+      numerator: Matched/RecoPions_BG_n
+      denominator: Gen/AllPionsP
+    PionP_BG_other_efficiency:
+      name: effMatchedPionPBGotherefficiency
+      numerator: Matched/RecoPions_BG_other
+      denominator: Gen/AllPionsP
     TrackPionPEfficiency:
       name: effGenPionsWTrackEfficiency
       numerator: Matched/GenPionsWTrackGenP

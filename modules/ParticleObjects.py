@@ -1,6 +1,21 @@
 import ROOT
-from modules import myutils
+import math
 
+def dRAngle(p1,p2):
+    """
+    Calculate the angle between two particles in the eta-phi plane
+    Args:
+        p1 (TLorentzVector): 4-momentum vector of the first particle
+        p2 (TLorentzVector): 4-momentum vector of the second particle
+    Returns:
+        float: angle between the two particles in the theta-phi plane
+    """
+    dphi=p1.Phi()-p2.Phi()
+    if (dphi>math.pi) : dphi=2*math.pi-dphi
+    if (dphi<-math.pi) : dphi=2*math.pi+dphi
+    dtheta=p1.Theta()-p2.Theta()
+    dR=math.sqrt(dtheta*dtheta+dphi*dphi)
+    return dR
 
 class Track:
     """Reconstructed track class to store momentum and track object.
@@ -140,6 +155,20 @@ class RecoParticle(Particle):
         self.nConst = nConst
         self.const = const if const is not None else {}
 
+    def copy(self):
+        """Create a copy of the RecoParticle."""
+        new_particle = RecoParticle(
+            p4=self.p4.Clone(),
+            ID=self.ID,
+            charge=self.charge,
+            maxCone=self.maxCone,
+            nConst=self.nConst,
+            const=self.const.copy(),
+            PDGID=self.PDGID,
+            idx=self.idx if hasattr(self, 'idx') else -1,
+        )
+        return new_particle
+    
     def getMomentum(self):
         return self.p4
 
@@ -242,6 +271,7 @@ class GenParticle(Particle):
         PDGID=-1,
         mcp=None,
         idx=-1,
+        helicity=None,
     ):
         """Constructor of the Particle class."""
         # Initialize the parent class
@@ -252,7 +282,28 @@ class GenParticle(Particle):
         self.nConst = nConsts
         self.const = const if const is not None else {}
         self.mcp = mcp
+        self.helicity = helicity
 
+    def copy(self):
+        """Create a copy of the GenParticle."""
+        new_particle = GenParticle(
+            visP4=self.visp4.Clone(),
+            ID=self.ID,
+            charge=self.charge,
+            genP4=self.p4.Clone(),
+            maxAngleConsts=self.maxAngle,
+            nConsts=self.nConst,
+            const=self.const.copy(),
+            PDGID=self.PDGID,
+            mcp=self.mcp,
+            idx=self.idx,
+            helicity=self.helicity,
+        )
+        return new_particle
+    
+    def getHelicity(self):
+        return self.helicity
+    
     def getPDG(self):
         return self.PDGID
 
@@ -282,6 +333,9 @@ class GenParticle(Particle):
 
     def getMaxAngle(self):
         return self.maxAngle
+    
+    def setHelicity(self, helicity):
+        self.helicity = helicity
 
     def setID(self, ID):
         self.ID = ID
@@ -422,7 +476,7 @@ class GenRecoMatched:
             dRs
             if dRs is not None
             else [
-                myutils.dRAngle(genParticle.getvisMomentum(), rp.getMomentum())
+                dRAngle(genParticle.getvisMomentum(), rp.getMomentum())
                 for rp in recoParticles
             ]
         )
@@ -497,7 +551,7 @@ class GenRecoMatched:
         elif recoParticle is not None:
             self.matchedRecoParticle = recoParticle
             self.matchedRecoPDG = recoParticle.getPDG()
-            self.matchedDR = myutils.dRAngle(
+            self.matchedDR = dRAngle(
                 self.genParticle.getMomentum(), recoParticle.getMomentum()
             )
             self.recoIDs.append(idx)

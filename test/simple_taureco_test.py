@@ -23,6 +23,14 @@ parser.add_argument(
         help="Increase verbosity level: -v for INFO, -vv for DEBUG",
     )
 parser.add_argument("--log-dir", default="./logs", help="Path to save the logs.")
+parser.add_argument(
+        "--input-list", nargs="+", metavar="FILE", default=None,
+        help="One or more ROOT files (absolute paths). Skips the directory scan.",
+    )
+parser.add_argument(
+        "--samples-config", type=str, default="config/samples/samples.yaml",
+        help="YAML mapping sample name -> path on disk.",
+    )
 args = parser.parse_args()
 
 log_dir = args.log_dir
@@ -86,11 +94,11 @@ fileOutName = os.path.join(outputpath, filename) # Complete Root file output pat
 # ------------------------------------------------------------------------
 
 # ------------------------------------- INSTRUCTIONS -----------------------------
-# If more than one file provided, use the combination of path + file_prefix to read all the files (if test is false)
-# path -> main path of the root files
-# file_prefix -> files must be named as {file_prefix}_{id}.root with id = [1....N]
-
-# If you want to read one file, use the function "get_single_root_file".
+# For several files, give a sample name defined in config/samples/samples.yaml;
+# get_root_trees_path resolves it to the directory on disk and reads every .root.
+#
+# To read a single file (or an explicit list), pass its full path through
+# args.input_list; get_root_trees_path then skips the directory scan.
 
 test_arg = False # True to read less files
 
@@ -99,21 +107,20 @@ test_arg = False # True to read less files
 read_one_file = True
 
 if not read_one_file:
-    # More than one file
-    path = "path/to/root/files"
-    file_prefix = "root_file_prefix"
-
-    filenames, mlpf_results = myutils.get_root_trees_path(sample="",
-                                                        gatr_results_path=None,
-                                                        loggers=loggers,
-                                                        test_arg=test_arg,
-                                                        path=path,
-                                                        file_prefix=file_prefix
-                                                        )
+    # More than one file: resolve a sample name via config/samples/samples.yaml
+    sample = "ztt"  # sample (or alias) defined in config/samples/samples.yaml
+    args.input_list = None
+    filenames, mlpf_results = myutils.get_root_trees_path(
+        sample, None, loggers, test_arg, args
+    )
     # mlpf results is an empty dict as no neural network results provided
 else:
+    # Single file: pass its full path through the input-list mechanism
     file_path = "/pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/ZTauTau_SMPol_25Sept_MuonFix/out_reco_edm4hep_edm4hep_1.root"
-    filenames = myutils.get_single_root_file(file_path=file_path, loggers=loggers)
+    args.input_list = [file_path]
+    filenames, mlpf_results = myutils.get_root_trees_path(
+        "", None, loggers, test_arg, args
+    )
 
 if test_arg:
     logger_io.info("Running in test mode, limiting to 10 files.")

@@ -4,3 +4,10 @@
 *.out
 Results/
 test/examples.py
+
+# Python cache / compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ipynb_checkpoints/

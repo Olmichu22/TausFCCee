@@ -1,7 +1,8 @@
 import ROOT
 from modules.ParticleObjects import RecoParticle
+from modules.tauReco import modifyMomentumWithErrors
 
-def findAllElectrons(pfos, minPt):
+def findAllElectrons(pfos, minPt, err_d_e: float = 0., err_p_e: float = 0.):
   """ Find all tau candidates starting from PFO collection by recognizing the decay products.
 
   Args:
@@ -27,7 +28,7 @@ def findAllElectrons(pfos, minPt):
         continue
     electronpdg = pf.getPDG()
     electroncharge = pf.getCharge()
-    
+    # electronP4 = modifyMomentumWithErrors(electronP4, err_d_e, err_p_e)
     electron = RecoParticle(p4 = electronP4, ID = -11, charge = electroncharge, PDGID=electronpdg)      
 
     electrons[nElectrons]=electron

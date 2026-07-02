@@ -187,3 +187,99 @@ def cumulatedPhotonsMass(P1, P2):
   
   P1 += P2
   return P1.M()
+
+import numpy as np
+
+
+
+def compute_photonp4(entry, reco=True):
+    """
+    Reconstruye el pi0 RECO usando los vectores guardados en el TTree.
+    Devuelve la masa invariante del pi0 reconstruido.
+    """
+    cum = ROOT.TLorentzVector()
+    cum.SetXYZM(0, 0, 0, 0)
+
+    
+    key = "reco" if reco else "gen"
+    n = len(getattr(entry, f"{key}_photons_E"))
+    if n < 2:
+        return []  # No hay suficientes fotones para formar pi0
+
+    p4_list = []
+    for i in range(n):
+        E   = getattr(entry, f"{key}_photons_E")[i]
+        th  = getattr(entry, f"{key}_photons_theta")[i]
+        phi = getattr(entry, f"{key}_photons_phi")[i]
+
+        px = E * np.sin(th) * np.cos(phi)
+        py = E * np.sin(th) * np.sin(phi)
+        pz = E * np.cos(th)
+
+        p4 = ROOT.TLorentzVector()
+        p4.SetPxPyPzE(px, py, pz, E)
+        p4_list.append(p4)
+
+
+    return p4_list
+
+
+
+def compute_pi0_mass(entry, reco=True):
+    """
+    Reconstruye el pi0 RECO usando los vectores guardados en el TTree.
+    Devuelve la masa invariante del pi0 reconstruido.
+    """
+    cum = ROOT.TLorentzVector()
+    cum.SetXYZM(0, 0, 0, 0)
+
+    
+    key = "reco" if reco else "gen"
+    n = len(getattr(entry, f"{key}_photons_E"))
+    if n < 2:
+        return -1  # No hay suficientes fotones para formar pi0
+
+    for i in range(n):
+        E   = getattr(entry, f"{key}_photons_E")[i]
+        th  = getattr(entry, f"{key}_photons_theta")[i]
+        phi = getattr(entry, f"{key}_photons_phi")[i]
+
+        px = E * np.sin(th) * np.cos(phi)
+        py = E * np.sin(th) * np.sin(phi)
+        pz = E * np.cos(th)
+
+        p4 = ROOT.TLorentzVector()
+        p4.SetPxPyPzE(px, py, pz, E)
+
+        cum += p4
+
+    return cum.M()
+
+def compute_gen_pi0_mass_with_smearing(entry, rng=np.random):
+    """
+    Reconstruye el pi0 GEN aplicando el smearing energético
+    idéntico al usado en el análisis original.
+    Usa los vectores guardados en el TTree.
+    """
+    cum = ROOT.TLorentzVector()
+    cum.SetXYZM(0, 0, 0, 0)
+    new_p4 = []
+    for i in range(len(entry.gen_photons_E)):
+        E   = entry.gen_photons_E[i]
+        th  = entry.gen_photons_theta[i]
+        phi = entry.gen_photons_phi[i]
+
+        # Smearing original:
+        sigma = E * 0.16 / np.sqrt(E)
+        E_new = rng.normal(E, sigma)
+
+        px = E_new * np.sin(th) * np.cos(phi)
+        py = E_new * np.sin(th) * np.sin(phi)
+        pz = E_new * np.cos(th)
+
+        p4 = ROOT.TLorentzVector()
+        p4.SetPxPyPzE(px, py, pz, E_new)
+        new_p4.append(p4)
+        cum += p4
+
+    return cum.M(), new_p4

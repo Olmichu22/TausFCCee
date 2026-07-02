@@ -224,6 +224,205 @@ INFO [io] - End of job
 
 ---
 
+# Particle-Level Hit Analysis (parallel)
+
+`HitAnalysis/particle_level_analisis_parallel.py` measures **particle-level
+reconstruction performance**: it matches every generator particle to a
+reconstructed one (PandoraPFO or MLPF/GATr), and produces **PID confusion
+matrices**, **reconstruction-efficiency curves**, and **energy-resolution
+plots** — split by energy bin and aggregated. It is the parallel (multi-worker)
+version of `HitAnalysis/particle_level_analisis.py` and is the recommended way
+to run over more than a handful of files.
+
+The matching is done **two independent ways**, and every output is produced for
+both:
+
+- **`dR`** — geometric matching by angular distance between gen and reco.
+- **`truthlink`** — matching via the `RecoMCTruthLink` collection (MC-truth
+  energy-deposit weights). This branch is empty if the input files do not carry
+  a readable `RecoMCTruthLink` (depends on the podio version that wrote them).
+
+---
+
+## 1. Environment
+
+The script needs the Key4hep stack (ROOT, podio, edm4hep). **For ILD work use:**
+
+```bash
+source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
+```
+
+If that release misbehaves, fall back to the nightlies:
+
+```bash
+source /cvmfs/sw-nightlies.hsf.org/key4hep/setup.sh
+```
+
+All commands below are run from the repository root.
+
+---
+
+## 2. Requirement: enable the truth-link association in the config
+
+The confusion matrices are built from a per-event association table that is only
+produced when the config enables the hit-type map. A ready-made config is
+provided:
+
+```yaml
+# config/default/taurecolong_optimal_neutral_reco.yaml
+neutral_recover:
+  enable: true
+  return_hit_type_map: true   # <-- required, otherwise the output is empty
+```
+
+Always pass it with `-c` (see below). Without `return_hit_type_map: true` the
+run finishes cleanly but writes **no** matrices.
+
+---
+
+## 3. Choosing the input — two options
+
+### Option A — by sample name (`config/samples/samples.yaml`)
+
+Give a **sample name** (or alias) defined in `config/samples/samples.yaml`; the
+script resolves it to the directory on disk and reads every `.root` there.
+
+```bash
+python HitAnalysis/particle_level_analisis_parallel.py \
+    -c config/default/taurecolong_optimal_neutral_reco.yaml \
+    -f ztt \
+    --n-workers 8
+```
+
+To register a new sample, add an entry to `config/samples/samples.yaml`:
+
+```yaml
+default_base: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/
+default_file_prefix: out_reco_edm4hep_edm4hep
+
+samples:
+  my_sample:                        # name passed to -f
+    folder: My_Sample_Directory     # relative to default_base
+    aliases: [mine]                 # optional alternative names
+  # other forms: `path:` (absolute dir), `folders:`/`paths:` (several dirs merged)
+```
+
+The sample can also be fixed in the config under `general.sample`; the `-f` flag
+overrides it.
+
+### Option B — by explicit file list (`--input-list`)
+
+Skip `samples.yaml` entirely and pass one or more absolute ROOT paths. Handy for
+a quick test on a single file:
+
+```bash
+python HitAnalysis/particle_level_analisis_parallel.py \
+    -c config/default/taurecolong_optimal_neutral_reco.yaml \
+    --input-list /pnfs/.../out_reco_edm4hep_edm4hep_1.root \
+    --n-workers 4
+```
+
+`--input-list` accepts several files separated by spaces and takes precedence
+over the sample name.
+
+---
+
+## 4. Key command-line options
+
+| Option                     | Default                                         | Description                                                                 |
+| -------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| `-c`, `--config`           | `config/default/taurecolong.yaml`               | Analysis config. Use the `_optimal_neutral_reco` one to get matrices.       |
+| `-f`, `--sample`           | from config `general.sample`                    | Sample name/alias in `config/samples/samples.yaml`.                         |
+| `--input-list FILE [...]`  | `None`                                           | Explicit ROOT file(s); bypasses `samples.yaml`.                             |
+| `--n-workers`              | all CPU cores                                    | Number of parallel workers.                                                 |
+| `--gatr-result PATH`       | `None`                                           | Use MLPF/GATr predictions instead of PandoraPFOs.                          |
+| `--dedup-mode {gen,reco}`  | `reco`                                           | Deduplication side for `RecoMCTruthLink` matching.                          |
+| `--weight-mode {raw,decoded}` | `decoded`                                     | How to interpret the truth-link weight (decoded splits track/cluster).      |
+| `--max-gen-pdg N`          | `10000`                                          | Ignore gen particles with `|PDG| > N` (excludes nuclear fragments).         |
+| `--skip-gen-status-filter` | off                                              | Keep non-final (`generatorStatus != 1`) gen particles.                      |
+| `--all-plot PDG [...]`     | `22`                                             | PDGs for the combined energy-resolution plots.                              |
+| `-v`, `-vv`                | warnings only                                    | Increase log verbosity (INFO / DEBUG).                                       |
+
+---
+
+## 5. Output structure
+
+Everything is written under `Results/TauReco/<auto-named-by-cuts>/` (the
+sub-directory name encodes the cut values). Each result type has a `dR/` and a
+`truthlink/` sub-folder:
+
+```
+Results/TauReco/<run>/
+├── association_results_full_dR.csv         # one row per gen–reco match (dR)
+├── association_results_full_truthlink.csv  # one row per gen–reco match (truth-link)
+├── config.yaml                             # snapshot of the config used
+├── worker_*.log                            # per-worker logs
+│
+├── confusion_matrices_particle_level/
+│   ├── dR/                                  # and truthlink/
+│   │   ├── confusion_matrix_bin_00_absolute.png    # per energy bin:
+│   │   ├── confusion_matrix_bin_00_efficiency.png  #   abs. counts / efficiency
+│   │   ├── confusion_matrix_bin_00_purity.png      #   / purity
+│   │   ├── ...                                      # bins 00..07
+│   │   ├── confusion_matrix_general_absolute.png   # ALL bins combined:
+│   │   ├── confusion_matrix_general_efficiency.png #   abs / efficiency / purity
+│   │   ├── confusion_matrix_general_purity.png
+│   │   └── confusion_matrix_all_bins.pdf           # every matrix in one PDF
+│   └── truthlink/ ...
+│
+├── efficiency_plots/                        # efficiency vs |p_gen|
+│   ├── dR/ , truthlink/
+│   │   ├── efficiency_<genpid>_<recopid>.png       # one gen→reco pair
+│   │   └── efficiency_global_<genpid>.png          # all destinations + total
+│
+├── efficiency_plots_theta/                  # efficiency vs θ_gen (same layout)
+│
+└── energy_distributions/                    # (reco−true)/true resolution vs E
+    ├── dR/ , truthlink/
+    │   ├── residual_resolution_std_<mig>.png
+    │   ├── residual_resolution_iqr84_16_<mig>.png
+    │   ├── residual_resolution_std90_<mig>.png
+    │   └── residual_resolution_combined_<mig>.png
+```
+
+How to read the matrices:
+- **rows = gen particle, columns = reco particle** (PDG labels).
+- **Efficiency** = matrix normalised by row (gen) → fraction of each gen species
+  reconstructed as each reco species.
+- **Purity** = matrix normalised by column (reco) → fraction of each reco species
+  that truly came from each gen species.
+- `general` = the same three matrices summed over all energy bins; the `bin_NN`
+  files break it down by the gen-energy bins `[0,1,5,10,20,30,45,100,∞]` GeV.
+
+The `_dR.csv` / `_truthlink.csv` tables hold the raw matches (`Gen_pid`,
+`Reco_pid`, energies, momenta, `event_id`, and `dR`) if you want to re-plot or
+cross-check the aggregated figures yourself.
+
+---
+
+## 6. Quick start (copy-paste)
+
+```bash
+# 1. Environment (ILD)
+source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
+
+# 2. Run on a single file to try it out
+python HitAnalysis/particle_level_analisis_parallel.py \
+    -c config/default/taurecolong_optimal_neutral_reco.yaml \
+    --input-list /pnfs/.../out_reco_edm4hep_edm4hep_1.root \
+    --n-workers 4
+
+# 3. Inspect the results
+ls Results/TauReco/*/confusion_matrices_particle_level/dR/
+```
+
+> The single-worker, non-parallel `HitAnalysis/particle_level_analisis.py`
+> produces the same `dR` confusion matrices (written directly under
+> `confusion_matrices_particle_level/`, without the `dR`/`truthlink` split) and
+> is useful for debugging, but the parallel version is preferred for real runs.
+
+---
+
 ## License
 
 This project is intended for research and educational use in particle reconstruction studies.

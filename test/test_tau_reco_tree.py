@@ -71,7 +71,7 @@ logger_config.info("Configuration loaded!")
 logger_config.info("Configuration:\n%s", pprint.pformat(general_configs, indent=4))
 
 
-filenames = myutils.get_root_trees_path(sample, loggers, test_arg, path=None, file_prefix=None)
+filenames, mlpf_results = myutils.get_root_trees_path(sample, None, loggers, test_arg, args)
 
 # mlpf results is an empty dict if no neural network results provided
 

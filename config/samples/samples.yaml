@@ -1,0 +1,99 @@
+# Mapeo de samples a rutas en disco.
+#
+# Reglas de resolución:
+#   - `folder`:  dir_path = default_base / folder   (usa default_file_prefix)
+#   - `path`:    dir_path = path (ruta absoluta)     (puede tener file_prefix propio)
+#   - `folders`: lista de carpetas relativas a default_base (varias rutas a la
+#                misma muestra; se cogen los ficheros de TODAS)
+#   - `paths`:   lista de rutas absolutas (varias rutas a la misma muestra)
+#   - `aliases`: nombres alternativos case-insensitive que apuntan a la misma entrada
+#
+# Los plurales (`paths`/`folders`) y singulares (`path`/`folder`) pueden combinarse.
+# Cada elemento de una lista puede ser una cadena o un dict {path|folder, file_prefix}
+# para dar a ese directorio un prefijo de fichero propio. Ejemplo:
+#
+#   p1_all:
+#     paths:
+#       - /pnfs/.../ZtautauPolP1_v1/
+#       - {path: /pnfs/.../ZtautauPolP1_v2/, file_prefix: out_reco_edm4hep}
+#     file_prefix: out_reco_edm4hep
+#     has_gen_taus: true
+#
+# Para añadir una nueva muestra basta con añadir una entrada aquí; no hay que
+# tocar el código Python.
+
+default_base: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/
+default_file_prefix: out_reco_edm4hep_edm4hep
+
+samples:
+  ZTauTau_SMPol_25Sept_MuonFix:
+    folder: ZTauTau_SMPol_25Sept_MuonFix
+    aliases: [ztt]
+    has_gen_taus: true
+
+  # Combina la ruta actual (_2) con la original (sin el 2): coge ficheros de ambas
+  ztt_plus:
+    folders:
+      - ZTauTau_SMPol_25Sept_MuonFix_2
+      - ZTauTau_SMPol_25Sept_MuonFix
+      - ZTauTau_PolSM_March24_1M
+      - ZTauTau_PolSM_March24_2M
+      - ZTauTau_PolSM_March24_2M_2
+      - ZTauTau_PolSM_March24_2M_3
+      - ZTauTau_PolSM_March24_2M_4
+    has_gen_taus: true
+
+  zqq:
+    folder: Zqq_1M
+
+  zee:
+    folder: Zee_50k
+
+  bhabha:
+    paths:
+      - path: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/bhabha_1M
+        file_prefix: out_reco_edm4hep_edm4hep
+      - path: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/bhabha_1M_3
+        file_prefix: out_reco_edm4hep_edm4hep
+      - path: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/bhabha_1M_2
+        file_prefix: out_reco_edm4hep_edm4hep
+      - path: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/bhabha_1M_4
+        file_prefix: out_reco_edm4hep_edm4hep
+      - path: /pnfs/ciemat.es/data/calice/local/arqolmo/CLDFCCFullSim/BHABHA_2M
+        file_prefix: out_reco_edm4hep
+      - path: /pnfs/ciemat.es/data/calice/local/arqolmo/CLDFCCFullSim/BHABHA_2M_2
+        file_prefix: out_reco_edm4hep
+    has_gen_taus: false
+
+  bhabha_1M3:
+    folder: bhabha_1M_3
+
+  # Muestra ILD: ruta absoluta y prefijo de fichero distinto
+  ild:
+    path: /pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztt_ILD_ILC
+    file_prefix: out_reco_edm4hep
+    has_gen_taus: true
+
+  p1:
+    path: [/pnfs/ciemat.es/data/calice/local/arqolmo/CLDFCCFullSim/ZtautauPolP1/,/pnfs/ciemat.es/data/calice/local/arqolmo/CLDFCCFullSim/ZtautauPolP1_1M/]
+    file_prefix: out_reco_edm4hep
+    has_gen_taus: true
+  
+  m1:
+    path: [/pnfs/ciemat.es/data/calice/local/arqolmo/CLDFCCFullSim/ZtautauPolM1/, /pnfs/ciemat.es/data/calice/local/arqolmo/CLDFCCFullSim/ZtautauPolM1_1M/]
+    file_prefix: out_reco_edm4hep
+    has_gen_taus: true
+
+  KKMC:
+    path:
+      - /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/KKMCee_ONLYSIM_10M
+    file_prefix: "mini_sim_edm4hep_withhel"
+    has_gen_taus: true
+    bad_file_indices: [4321]
+  
+  KKMC2M:
+    path:
+      - /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/KKMCee_ONLYSIM_2M
+    file_prefix: "mini_sim_edm4hep_withhel"
+    has_gen_taus: true
+
