@@ -1,0 +1,27 @@
+cuts:
+  NeutronCut: 0.
+  TauPhotonPCut: 0.
+  TauPionPCut: 0.
+  dRMax: 0.4
+  MatchedGenMinDR: 1
+  generalPCut: 0.
+general:
+  decay:
+  - -777
+  outfile: effis
+  sample: ZTauTau_SMPol_25Sept_MuonFix
+  matchedCM: "True"
+  test: 'False'
+output:
+  outputfile:
+  outputpath:
+  outputlabels:
+
+
+neutral_recover:
+  enable: true
+  save_extra_data: false
+  cut_in_DR: 0.1
+  cut_in_E: 0.2
+  apply_filter_in_energy: false
+  return_hit_type_map: true
