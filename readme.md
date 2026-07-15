@@ -5,6 +5,9 @@ The main tools included are:
 - Identification of the gennerator-level tau leptons and their decay products (decay type).
 - Reconstruction of hadronic and leptonic tau decays from PandoraPFO collections.
 - Matching reconstructed taus to generator-level taus.
+- **Tau polarization analysis** (`RhoAnalysis/`): extraction of the polarization
+  asymmetry `A_τ` from the optimal polarimeter observable, with event reweighting,
+  background handling, selection-cut optimization and an MLP observable.
 
 # Simple Tau Reconstruction Test
 
@@ -420,6 +423,213 @@ ls Results/TauReco/*/confusion_matrices_particle_level/dR/
 > produces the same `dR` confusion matrices (written directly under
 > `confusion_matrices_particle_level/`, without the `dR`/`truthlink` split) and
 > is useful for debugging, but the parallel version is preferred for real runs.
+
+---
+
+# Tau Polarization Analysis (`RhoAnalysis/` — ρ / MDecs pipeline)
+
+`RhoAnalysis/` contains the pipeline that **extracts the tau polarization
+asymmetry `A_τ`** from the *optimal polarimeter observable* of each tau decay,
+channel by channel. It is a three-stage, mostly-parallel workflow:
+
+1. **Stage 1 — build a flat `TTree`** (one entry per event, two taus per entry)
+   holding every kinematic quantity, the optimal observable `ω`/`optimalVar`, the
+   gen helicity, and the **polarization reweighting weights** `weight_P1`/
+   `weight_M1` (reweight the sample to `A_τ = ±1`). Two entry points:
+   - `genOnlyRHOTree_MDecs_parallel.py` — **gen-level only** (fast; truth
+     kinematics, reco branches mirror gen). Ideal for closure tests.
+   - `analysisRHOTree_MDecs_parallel.py` — **full reco** (reads EDM4hep
+     PandoraPFO / MLPF-GATr collections, runs tau reco + gen–reco matching,
+     then fills the same branches plus their `reco_*` counterparts).
+2. **Stage 2 — histograms** (`RhoHistFromTree_MDecs_parallel.py`): reads the tree
+   and fills the `Omega_*` / observable distributions per decay category, with the
+   nominal, `P1`, `M1` and correlated (`corr_P1`/`corr_M1`) reweighted variants,
+   split into signal/background categories.
+3. **Extraction** — `makeCosBins_MDecs.py` bins the observable in `cos θ` and
+   `fitPolAssym.py` fits `A_τ` (and `A_e`) from the reweighted templates.
+
+The polarization physics lives in the shared modules
+`modules/weightsPol.py` (reweighting weights, Alcaraz joint formulas) and
+`modules/optimalVariabRho.py` (optimal ρ observable `ω`). Auxiliary helpers moved
+into `modules/` during the migration: `modules/rhoTreeUtils.py` (per-entry
+variable extraction, `make_p4`, histogram filling) and
+`modules/rhoParallelUtils.py` (file-splitting, per-worker logging, ROOT merge).
+
+> **Decay-ID codes** used by `--decay-modes` / `--single-decay` / `--decay-pair`:
+> `0` = π/K, `2` = ρ (π±π⁰), `10` = a₁, `-11` = e, `-13` = μ.
+> Gen-only trees store ρ as `1` (the pipeline remaps reco `2 → 1`), so always
+> pass `--only-gen` to Stage 2 when the tree came from `genOnlyRHOTree`.
+
+---
+
+## 1. Environment
+
+The pipeline runs on the standard Key4hep stack (all commands from the repo root):
+
+```bash
+source setupKey4Hep.sh          # = source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2024-10-03
+```
+
+This release already provides ROOT, podio, edm4hep, numpy/pandas, `uproot` and
+`joblib` (used by the cut optimizer) and `torch` (used by the MLP observable).
+**MLP *training* additionally needs** `optuna` (hyper-parameter search), and
+`shap` / `tabpfn` for the analysis variants — these are **not** in the base
+stack; install them into a `--system-site-packages` virtualenv on top of Key4hep
+(same pattern as `setupEventDisplay.sh`). Plain **inference** of the trained
+observable (`modules/mlpPolInference.py`) is numpy-only and needs none of them.
+
+---
+
+## 2. Stage 1a — gen-level tree (`genOnlyRHOTree_MDecs_parallel.py`)
+
+```bash
+python RhoAnalysis/genOnlyRHOTree_MDecs_parallel.py \
+    --sample ztt \
+    --config config/default/taurecolong_optimal.yaml \
+    --n-workers 8
+# quick single-file test: add  --input-list /pnfs/.../out_reco_edm4hep_edm4hep_1.root
+```
+
+Output: `Results/RhoAnalysis/<prefix><cuts>/tau_trained*.root`, TTree
+`outtree_original` with per-tau branches `tau{1,2}_{decayID,omega,optimalVar,
+weight_P1,weight_M1,genHelicity,...}`.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `-f`, `--sample` | from config | Sample name/alias in `config/samples/samples.yaml` (`ztt`, `p1`, `m1`, …). |
+| `--input-list FILE [...]` | — | Explicit ROOT file(s); bypasses `samples.yaml`. |
+| `-c`, `--config` | `config/default/taurecolong.yaml` | Analysis config (use `taurecolong_optimal.yaml`). |
+| `--decay-modes ID [...]` | all | Keep only pairs whose taus are in this list. |
+| `--sin-eff VAL` | `0.2312` | sin²θ_eff for the reweighting weights. |
+| `--n-workers N` | min(n_files, n_cpus) | Parallel workers. |
+| `--prefix STR` | `PolAnalysis_GEN_<SAMPLE>_NewWeights_` | Output-dir prefix. |
+| `-v` / `-vv` | warnings | Verbosity (INFO / DEBUG). |
+
+Cut flags `--tauCut --TauPhotonPCut --TauPionPCut --generalPCut --dRMax
+--NeutronCut --MatchedGenMinDR` override the values in the config.
+
+## 3. Stage 1b — full-reco tree (`analysisRHOTree_MDecs_parallel.py`)
+
+Same output schema as Stage 1a plus the `reco_*` branches. Reads real detector
+collections, so it is heavier — run it over a sample or a file list:
+
+```bash
+python RhoAnalysis/analysisRHOTree_MDecs_parallel.py \
+    --sample ztt \
+    --config config/default/taurecolong_optimal.yaml \
+    --n-workers 8
+```
+
+Extra options on top of the common ones: `--gatr-result PATH` (use MLPF/GATr
+predictions instead of PandoraPFOs), `-e/--electron-cut`, `-u/--muon-cut`,
+`--lepton-xor-p`, `--sys-err config/systematics/err_sys.yml`.
+
+## 4. Stage 2 — histograms (`RhoHistFromTree_MDecs_parallel.py`)
+
+```bash
+python RhoAnalysis/RhoHistFromTree_MDecs_parallel.py \
+    --tree-file "Results/RhoAnalysis/<...>/tau_trained*.root" \
+    --only-gen \                                   # required for gen-only trees
+    --single-decay 2 \                             # or  --decay-pair 2 -13
+    --hist-config-mdecs config/histograms/rho_analysis_config_mdecs.yml \
+    --config config/default/taurecolong_optimal.yaml \
+    --compute-weights \
+    --n-workers 8
+```
+
+Output: `Results/RhoAnalysis/<...>/HistosMDecs_*.root` with the `Omega_*` family
+(nominal + `_P1` / `_M1` / `_corr_P1` / `_corr_M1` reweighted variants) split by
+signal/background category.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `--tree-file PATH` | — | Input tree (**required**). |
+| `--single-decay D` / `--decay-pair D0 D1` | — | Channel to histogram (**one required**). |
+| `--only-gen` | off | Remap ρ `2→1`; **always set for `genOnlyRHOTree` trees**. |
+| `--compute-weights` | off | Recompute reweighting from kinematics (needed with `--sin-eff`). |
+| `--sin-eff VAL` | tree weights | Recompute weights at this sin²θ_eff. |
+| `--no-omega-weights` | ω on | Use the simplified `H_V = α_V·z_R` weight for ρ instead of the full ω. |
+| `--use-nn-optimal` + `--nn-model-path` | off | Use the MLP observable (see §8) as the ρ optimal variable. |
+| `--meson-cut`/`--lepton-cut`/`--zmass-cut MIN MAX`, `--ang MIN MAX`, `--cut "EXPR"` | open | Event selection cuts. |
+| `--n-workers N` | min(n_entries, n_cpus) | Parallel workers. |
+
+## 5. One-shot orchestrator (`runTreeHistPipeline_MDecs.py`)
+
+Runs Stage 1 → Stage 2 for a set of named runs described in a pipeline YAML
+(examples in `config/pipeline/`, incl. `config/pipeline/PolPipeline/`). Use
+`--dry-run` to print the exact commands without executing:
+
+```bash
+python RhoAnalysis/runTreeHistPipeline_MDecs.py \
+    --pipeline-config config/pipeline/tree_hist_pipeline_example.yaml --dry-run
+
+# only regenerate histograms from an existing tree:
+python RhoAnalysis/runTreeHistPipeline_MDecs.py \
+    --pipeline-config <cfg> --hist-only --tree-file <tree.root>
+```
+
+## 6. `cos θ` binning + `A_τ` fit
+
+```bash
+# 1) bin the observable in cos(theta) per decay pair
+python RhoAnalysis/makeCosBins_MDecs.py \
+    --sample-dir Results/RhoAnalysis/<...> \
+    --target-decay rho --other-decay lep \
+    -o ./Binned_histograms_MDecs/
+
+# 2) fit A_tau (and A_e) from the reweighted templates
+python RhoAnalysis/fitPolAssym.py \
+    -i Binned_histograms_MDecs/BINED_*.root \
+    --nBins 20 --bg-mode total -o ./Binned_histograms_MDecs/
+```
+
+`fitPolAssym.py` supports `--no-bg`, `--bg-mode {total,mig,ext,split}`, `--chi2`,
+`--perfect` (truth closure), and luminosity scaling (`--lumi-base`,
+`--lumi-target`, `--extra-legend`).
+
+## 7. Selection-cut optimization (`optimize_cuts.py` / `evaluate_cuts.py`)
+
+PSO-based optimization of the selection cuts (dR, meson-P, lepton-P, Z-mass)
+against a signal-vs-background figure of merit, backed by `modules/optimize_pso/`:
+
+```bash
+python RhoAnalysis/optimize_cuts.py \
+    --signal-root <signal_tree.root> --bg-root <bg1.root> <bg2.root> \
+    --selectGEN 2 --eff-target 0.90 --particles 500 --iters 1000
+```
+
+`evaluate_cuts.py` takes the same inputs plus `--cut-list <cuts.csv>` to evaluate
+a fixed list of working points. Score is `S/√(S+B)` by default, `S/(B+ε)` with
+`--use-s-over-b`.
+
+## 8. MLP optimal observable (`RhoAnalysis/MLP/`)
+
+Trains and exports a neural-network polarimeter observable for the ρ channel:
+`createPolDatasets.py` (build training datasets), `MLOptimalObservable.py` +
+`OptimizeMLObservable.py` (train / hyper-optimize, needs `optuna`),
+`exportMLPToNumpy.py` (export weights to the numpy-only inferencer
+`modules/mlpPolInference.py`), `SHAPAnalysis.py` (feature importance, needs
+`shap`). The exported model is consumed at Stage 2 via `--use-nn-optimal
+--nn-model-path <weights.npz>`.
+
+## 9. Quick start (copy-paste, gen-level closure)
+
+```bash
+source setupKey4Hep.sh
+F=/pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/ZTauTau_SMPol_25Sept_MuonFix/out_reco_edm4hep_edm4hep_1.root
+
+# Stage 1 (gen tree, single file)
+python RhoAnalysis/genOnlyRHOTree_MDecs_parallel.py \
+    --input-list "$F" -c config/default/taurecolong_optimal.yaml \
+    -o quicktest --n-workers 1
+
+# Stage 2 (rho histograms) — the tree stem follows the -o value ("quicktest")
+TREE=$(find Results/RhoAnalysis/quicktest* -name '*.root' ! -name 'HistosMDecs_*' | head -1)
+python RhoAnalysis/RhoHistFromTree_MDecs_parallel.py \
+    --tree-file "$TREE" --only-gen --single-decay 2 --compute-weights \
+    --hist-config-mdecs config/histograms/rho_analysis_config_mdecs.yml \
+    --config config/default/taurecolong_optimal.yaml --n-workers 1
+```
 
 ---
 
