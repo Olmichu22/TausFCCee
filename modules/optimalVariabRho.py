@@ -1,7 +1,7 @@
 import math 
 import ROOT
 
-def wVariab(genTauP4,genRhoP4,genPionP4,beamE, testAtau=0):
+def wVariab(genTauP4,genRhoP4,genPionP4,beamE, testAtau=0, sin_eff=None):
 
     # GEN 
     boostGEN=ROOT.TVector3()
@@ -21,7 +21,7 @@ def wVariab(genTauP4,genRhoP4,genPionP4,beamE, testAtau=0):
     v1 = genRho_TauRes.Vect()
     v2 = genTauP4.Vect()
     gen_theta_Rho= v1.Angle(v2)
-    z = math.cos( gen_theta_Rho)
+    z = math.cos(gen_theta_Rho)
     #print (theta_Rho,z)
 
     x=genRhoP4.E()/genTauP4.E()
@@ -46,24 +46,26 @@ def wVariab(genTauP4,genRhoP4,genPionP4,beamE, testAtau=0):
 
     cosPsi= (x * (mtau*mtau + mRho*mRho) - 2*mRho*mRho)/((mtau*mtau-mRho*mRho)*math.sqrt(x*x-4*mRho*mRho/sqrts/sqrts))
     if cosPsi>1:
-       print ('What happened?', cosPsi)
+      #  print ('What happened?', cosPsi)
        cosPsi=1
     if cosPsi<-1:
-       print ('What happened?', cosPsi)
+      #  print ('What happened?', cosPsi)
        cosPsi=-1
     anglePsi=math.acos(cosPsi)
 
-    w_a= (-2+mtau*mtau/mRho/mRho + 2*(1+mtau*mtau/mRho/mRho)*(3*cosPsi-1)/2*(3*gen_cosBeta*gen_cosBeta-1)/2)* math.cos(gen_theta_Rho)
+    w_a= (-2+mtau*mtau/mRho/mRho + 2*(1+mtau*mtau/mRho/mRho)*(3*cosPsi*cosPsi-1)/2*(3*gen_cosBeta*gen_cosBeta-1)/2)* math.cos(gen_theta_Rho)
     w_b = 3 * math.sqrt(mtau*mtau/mRho/mRho) * (3*gen_cosBeta*gen_cosBeta-1)/2 * math.sin(2 * anglePsi) * math.sin(gen_theta_Rho)
-    w_c = 2 + (mtau*mtau/mRho/mRho) - 2 *(1- (mtau*mtau/mRho/mRho)) * (3*cosPsi-1)/2 * (3*gen_cosBeta*gen_cosBeta-1)/2
+    w_c = 2 + (mtau*mtau/mRho/mRho) - 2 *(1- (mtau*mtau/mRho/mRho)) * (3*cosPsi*cosPsi-1)/2 * (3*gen_cosBeta*gen_cosBeta-1)/2
 
 
     w= (w_a+w_b)/w_c
 
     # is it the weights?
-
-    sin2theta_effective= 0.2312
-    gv_ga=  -1 + 4 *sin2theta_effective
+    if sin_eff is not None:
+      sin2theta_effective = sin_eff
+    else:  
+      sin2theta_effective= 0.2312
+    gv_ga=  1 - 4 *sin2theta_effective
     Ae_sm=  2* gv_ga / (1+gv_ga*gv_ga)
     Atau_sm= Ae_sm
 
@@ -150,12 +152,32 @@ def wVariabRECO(RhoP4,PionP4,beamE):
        cosPsi=-1
     anglePsi=math.acos(cosPsi)
 
-    w_a= (-2+mtau*mtau/mRho/mRho + 2*(1+mtau*mtau/mRho/mRho)*(3*cosPsi-1)/2*(3*cosBeta*cosBeta-1)/2)* cos_theta
+    w_a= (-2+mtau*mtau/mRho/mRho + 2*(1+mtau*mtau/mRho/mRho)*(3*cosPsi*cosPsi-1)/2*(3*cosBeta*cosBeta-1)/2)* cos_theta
     w_b = 3 * math.sqrt(mtau*mtau/mRho/mRho) * (3*cosBeta*cosBeta-1)/2 * math.sin(2 * anglePsi) * math.sin(angleTheta)
-    w_c = 2 + (mtau*mtau/mRho/mRho) - 2 *(1- (mtau*mtau/mRho/mRho)) * (3*cosPsi-1)/2 * (3*cosBeta*cosBeta-1)/2
+    w_c = 2 + (mtau*mtau/mRho/mRho) - 2 *(1- (mtau*mtau/mRho/mRho)) * (3*cosPsi*cosPsi-1)/2 * (3*cosBeta*cosBeta-1)/2
 
     w= (w_a+w_b)/w_c
 
     return (cos_theta,cosPsi,cosBeta,w)
+
+
+def optimal_var(decay_id, tauP4, visP4, pionP4, beamE):
+    """Variable óptima (observable) por canal — definición ÚNICA compartida por los
+    generadores (genOnly/analysisRHOTree) y el hist stage (RhoHistFromTree), para
+    evitar drift entre ellos.
+
+    - π (0), a1 (10) y leptónico (-11/-13): E_visible / E_τ  (convención Cepeda: meson =
+      sistema visible completo, consistente con el peso que también usa el visible).
+    - ρ (1): ω de wVariab (variable óptima completa; puramente cinemática, no depende de sin_eff).
+
+    Devuelve -999.0 si E_τ no es válido o el canal no está soportado.
+    """
+    if tauP4.E() <= 0:
+        return -999.0
+    if decay_id == 1:
+        return wVariab(tauP4, visP4, pionP4, beamE)[3]
+    if decay_id in (0, 10, -11, -13):
+        return visP4.E() / tauP4.E()
+    return -999.0
 
 

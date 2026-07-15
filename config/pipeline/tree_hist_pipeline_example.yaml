@@ -1,0 +1,99 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Pipeline MDecs: 1 generación de árbol + N runs de histogramas.
+# Se ejecuta con:
+#   python RhoAnalysis/runTreeHistPipeline_MDecs.py --pipeline-config <este fichero>
+#
+# Opciones útiles del orquestador:
+#   --dry-run             imprime los comandos sin ejecutarlos
+#   --hist-only           salta el paso de árbol (requiere tree_file)
+#   --tree-file PATH      override de pipeline.tree_file
+#   --runs NAME...        ejecuta solo esos hist_runs
+#
+# Las claves con valor null (o ausentes) no generan flag: se usan los
+# defaults del script correspondiente. Solo se exponen flags con efecto
+# real (los flags muertos --decay, --gatr-result, --test-pfo, --matchedCM,
+# --test, --hist-config, --decay-pair de analysisRHOTree y --test-extremes
+# no están soportados a propósito).
+#
+# DecayIDs de referencia: 0=π/K, 2=ρ (1=ρ gen), 10=a1, -11=e, -13=μ.
+# ═══════════════════════════════════════════════════════════════════════════
+
+pipeline:
+
+  # ── PASO 1: generación del árbol ──────────────────────────────────────────
+  tree:
+    enabled: true          # false → solo histogramas (usa pipeline.tree_file)
+    mode: gen              # gen  → genOnlyRHOTree_MDecs_parallel.py (solo generador)
+                           # reco → analysisRHOTree_MDecs_parallel.py (gen + reco)
+    sample: ztt            # clave/alias de config/samples/samples.yaml
+    prefix: PolAnalysis_GEN_SM_NewWeights_   # prefijo del dir en Results/RhoAnalysis/
+    config: config/default/taurecolong_optimal.yaml
+    outfile: null          # base del nombre de salida (default: 'outfile' del config)
+    n_workers: 16
+    decay_modes: null      # p.ej. [0, 2, -11, -13]; null = todas las desintegraciones
+    sin_eff: null          # sin²θ_eff para los pesos de polarización
+    helicity: false        # solo mode gen: rellena ramas de helicidad si la muestra las tiene
+
+    # Solo mode reco (se ignoran en mode gen):
+    electron_cut: null     # P mínimo del electrón [GeV]
+    muon_cut: null         # P mínimo del muón [GeV]
+    lepton_xor_p: null     # corte legacy: exactamente 1 e XOR 1 μ con P > valor
+    sys_err: null          # YAML de errores sistemáticos (default: config/systematics/err_sys.yml)
+
+    # Overrides de los cortes estándar del config general. OJO: definen el
+    # sufijo del directorio de salida; en mode gen NO afectan a la selección.
+    # Claves: tauCut, dRMax, TauPhotonPCut, TauPionPCut, NeutronCut,
+    #         generalPCut, MatchedGenMinDR
+    cuts: {}
+
+    input_list: null       # lista de ficheros ROOT explícitos (omite el escaneo del sample)
+    samples_config: null   # default: config/samples/samples.yaml
+    verbose: 0             # 0 / 1 (-v, INFO) / 2 (-vv, DEBUG)
+
+  # Árbol ya existente para el modo solo-histogramas (tree.enabled: false).
+  # Con tree.enabled: true se autodetecta tras la generación; si se indica
+  # aquí, tiene prioridad sobre la autodetección.
+  tree_file: null
+
+  # ── PASO 2: histogramas (RhoHistFromTree_MDecs_parallel.py) ──────────────
+  # hist_common define la base; cada entrada de hist_runs la hereda y puede
+  # sobrescribir cualquier clave.
+  hist_common:
+    hist_config_mdecs: config/histograms/rho_analysis_config_mdecs.yml
+    config: config/default/taurecolong_optimal.yaml
+    n_workers: 40
+    only_gen: auto         # auto → --only-gen si tree.mode==gen (obligatorio para
+                           # árboles de genOnlyRHOTree, prohibido para los de analysis);
+                           # true/false para forzarlo (p.ej. en modo solo-histogramas)
+    compute_weights: true # recalcula weight_P1/M1 desde cinemáticas (necesario para sin_eff)
+    no_omega_weights: false # desactiva ω: usa H simplificada H_V = α_V·z_R (añade noOmega_)
+    sin_eff: null          # recalcular pesos con este sin²θ_eff (requiere compute_weights)
+    cos_acceptance: null   # rechaza evento si |cos(θ_mesón_vis)| > valor (legacy: 0.95)
+    omega_border_cut: false # descarta ρ con cos_theta/cos_psi reco clampeados a ±1
+    ang: null              # [min, max] separación angular entre decays (rad)
+    meson_cut: null        # [min, max] P del dec0 [GeV]
+    lepton_cut: null       # [min, max] P del dec1 [GeV]
+    zmass_cut: null        # [min, max] masa Z reco [GeV]
+    cut: []                # expresiones Python extra sobre vars_dict (--cut)
+    verbose: 0
+
+  # Cada run necesita exactamente uno de: decay_pair [D0, D1] | single_decay D
+  hist_runs:
+    - name: rho_rho
+      decay_pair: [2, 2]
+    - name: pi_pi
+      decay_pair: [0, 0]
+    - name: rho_single
+      single_decay: 2
+    - name: pi_single
+      single_decay: 0
+    - name: e_simple
+      single_decay: -11
+    - name: mu_simple
+      single_decay: -13
+
+    # Ejemplo con overrides por run:
+    # - name: rho_mu_cosacc
+    #   decay_pair: [2, -13]
+    #   cos_acceptance: 0.95
+    #   cut: ["d1_P > 5"]
