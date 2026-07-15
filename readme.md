@@ -423,6 +423,68 @@ ls Results/TauReco/*/confusion_matrices_particle_level/dR/
 
 ---
 
+# Interactive Event Display (`EventDisplay/`)
+
+A web-based event display built with **Dash + Plotly**: interactive 3D view of an
+EDM4hep event (MC particles, PFOs, tracker/calorimeter hits), particle tables and
+summary histograms, all in a single browser page.
+
+Main features:
+
+* **Detector profiles** for **CLD** and **ILD** (`--detector`), each with its own
+  collection names and DD4hep compact-XML geometry (resolved automatically from
+  `$k4geo_DIR`; selectable version with `--geometry-version`, e.g. `v06` for CLD,
+  `v01`/`v02` for ILD). The ILD profile includes the TPC envelope.
+* 3D geometry envelopes parsed directly from the compact XML.
+* Hover info with PDG name, momentum and primary-particle ancestry.
+* Filter to hide secondary particles.
+* Gen–reco matching by ΔR or by truth links (`matching.py`).
+* Lazy podio reading: only the requested event is decoded.
+
+## Environment setup
+
+The display needs a **Key4hep** stack (for `podio` ≥ 1.7, matching the reco files)
+plus a small virtualenv with `dash`/`plotly` on top of it. Both are handled by
+`setupEventDisplay.sh`, which must be **sourced**:
+
+```bash
+source setupEventDisplay.sh
+```
+
+On first use it creates the virtualenv (default `~/.venv/fcc-display-latest`,
+override with `FCC_DISPLAY_VENV`) with `--system-site-packages` and installs
+`dash`, `plotly` and `dash-bootstrap-components`. On later uses it simply loads
+Key4hep (release `2026-04-08` by default, override with `KEY4HEP_RELEASE`) and
+activates the virtualenv.
+
+> The virtualenv is tied to the python version of the Key4hep release used to
+> create it. If a newer release changes the python version, delete the venv
+> directory and source the script again.
+
+## Running
+
+```bash
+python EventDisplay/event_display_dash.py -i /path/to/reco_edm4hep.root --detector CLD
+```
+
+Options:
+
+| Option               | Default   | Description                                        |
+| -------------------- | --------- | -------------------------------------------------- |
+| `-i, --input`        | —         | ROOT file to pre-load at startup (can also be loaded from the UI) |
+| `--detector`         | `CLD`     | Detector concept: `CLD` or `ILD`                   |
+| `--geometry-version` | per-detector | Compact-XML version tag (`v06` CLD, `v01`/`v02` ILD) |
+| `--port`             | `8050`    | HTTP port                                          |
+| `--host`             | `0.0.0.0` | Bind address                                       |
+| `--debug`            | off       | Dash debug mode (auto-reload)                      |
+
+Then open `http://<machine>:8050` in a browser. If running on a remote node
+(e.g. `gaeui05`), either browse to `http://gaeui05:8050` from inside the network
+or tunnel the port: `ssh -L 8050:localhost:8050 <node>` and open
+`http://localhost:8050`.
+
+---
+
 ## License
 
 This project is intended for research and educational use in particle reconstruction studies.
