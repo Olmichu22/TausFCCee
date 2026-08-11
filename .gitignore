@@ -11,3 +11,7 @@ __pycache__/
 *$py.class
 .pytest_cache/
 .ipynb_checkpoints/
+
+# Salidas de plots y artefactos de debug fuera de Results/
+CompareCLDILD/
+Cases_more_mesons.csv
