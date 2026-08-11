@@ -583,6 +583,15 @@ def setup_analysis_config(
         default=None,
         help="Uno o varios ficheros ROOT (rutas absolutas). Omite el escaneo de directorio.",
     )
+    parser.add_argument(
+        "--shard",
+        type=str,
+        metavar="I/N",
+        default=None,
+        help="Procesa solo el shard I de N (0-indexado). Reparte los ficheros de "
+             "entrada en N grupos estriados; pensado para lanzar N procesos en "
+             "paralelo y fusionar la salida después (ver runShardedPlots.py).",
+    )
 
     if parser_hook is not None:
         parser_hook(parser)
@@ -753,9 +762,67 @@ def setup_analysis_config(
     }
 
 
+def parse_shard_spec(shard):
+    """Parse a ``--shard I/N`` string into the tuple ``(I, N)``.
+
+    Returns ``None`` when *shard* is None/empty (sharding disabled).
+    """
+    if not shard:
+        return None
+    try:
+        index_str, total_str = str(shard).split("/")
+        shard_index, n_shards = int(index_str), int(total_str)
+    except ValueError:
+        raise ValueError(f"--shard debe tener el formato I/N (recibido: {shard!r})")
+    if n_shards < 1:
+        raise ValueError(f"--shard N debe ser >= 1 (recibido: {shard!r})")
+    if not 0 <= shard_index < n_shards:
+        raise ValueError(f"--shard I debe cumplir 0 <= I < N (recibido: {shard!r})")
+    return shard_index, n_shards
+
+
+def apply_shard(filenames, mlpf_results, shard, loggers):
+    """Keep only the files belonging to one shard, remapping the GATr predictions.
+
+    Files are split with a stride (``filenames[I::N]``) so the shards stay
+    balanced even when file sizes vary.
+
+    ``mlpf_results`` is keyed as ``file_position * 1000 + local_event`` — the
+    same convention the event loop relies on when it looks up predictions by a
+    running event id over ``root_io.Reader(filenames)``. Dropping files shifts
+    every position, so the keys are rebuilt against the new positions.
+    """
+    spec = parse_shard_spec(shard)
+    if spec is None:
+        return filenames, mlpf_results
+
+    shard_index, n_shards = spec
+    if n_shards == 1:
+        return filenames, mlpf_results
+
+    kept = [(pos, name) for pos, name in enumerate(filenames) if pos % n_shards == shard_index]
+
+    if mlpf_results:
+        new_pos_of = {old_pos: new_pos for new_pos, (old_pos, _) in enumerate(kept)}
+        remapped = {}
+        for key, value in mlpf_results.items():
+            old_pos, local = divmod(key, 1000)
+            new_pos = new_pos_of.get(old_pos)
+            if new_pos is not None:
+                remapped[new_pos * 1000 + local] = value
+        mlpf_results = remapped
+
+    filenames = [name for _, name in kept]
+    loggers["io"].info(
+        "Shard %d/%d: %d file(s) of the original list, %d prediction(s).",
+        shard_index, n_shards, len(filenames), len(mlpf_results),
+    )
+    return filenames, mlpf_results
+
+
 def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, skip_root_validation: bool = False):
     """
-    Loads ROOT file paths and associated GATr (Graph Analysis Training results) predictions 
+    Loads ROOT file paths and associated GATr (Graph Analysis Training results) predictions
     for a given sample. Handles both local GATr result files and simulation-only workflows.
 
     Depending on whether `gatr_results_path` is provided, it either:
@@ -947,6 +1014,11 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
                 remaining = 10 - len(filenames)
 
         loggers["io"].info("Total files to process for sample '%s': %d", sample, len(filenames))
+
+    if args is not None:
+        filenames, mlpf_results = apply_shard(
+            filenames, mlpf_results, getattr(args, "shard", None), loggers
+        )
     return filenames, mlpf_results
 
 
