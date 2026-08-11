@@ -5,11 +5,17 @@ cuts:
   dRMax: 0.4
   MatchedGenMaxDR: 1
   generalPCut: 0.
+  # Cono de la asociación gen-reco por dR (get_reco_mc_links_by_dR).
+  # Domina la eficiencia y el fake rate de la rama dR del análisis a nivel de
+  # partícula: si se cambia, las matrices de confusión y los fake rate de
+  # confusion_matrices_particle_level/dR y fake_rate_plots/dR no son comparables
+  # con los producidos con otro valor.
+  AssocMaxDR: 0.1
 general:
   decay:
   - -777
   outfile: results
-  sample: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/ZTauTau_SMPol_25Sept_MuonFix/
+  # sample: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/ZTauTau_SMPol_25Sept_MuonFix/
   matchedCM: "True" # Ignore
   test: 'False'
 output:

@@ -46,6 +46,11 @@ VALID_GEN_STATUS = {1}
 # PDG de neutrinos (ignorar en análisis gen)
 NEUTRINO_PDGS = {12, 14, 16}
 
+# Cono por defecto para la asociación gen-reco por dR. Configurable vía
+# cuts.AssocMaxDR en el YAML; este valor solo actúa como fallback para los
+# ficheros de configuración que no declaran la clave.
+DEFAULT_ASSOC_MAX_DR = 0.1
+
 # Códigos PDG → nombre legible (sin distinguir partícula/antipartícula)
 PDG_NAMES = {
     11: "epm",
@@ -660,14 +665,23 @@ def build_hit_type_map(event):
 #     return particles
 
 
-def get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=None):
+def get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=None,
+                            max_dR=DEFAULT_ASSOC_MAX_DR, dedup_mode="gen"):
     """
     Asocia partículas gen con partículas reco usando distancia dR en el plano (theta, phi).
-    
+
     Para cada partícula gen (status 1, sin neutrinos, con señal en detector):
     - Encuentra la partícula reco más cercana usando dRAngle(p1, p2)
     - Ignora la carga
-    
+
+    El tamaño del cono `max_dR` (cuts.AssocMaxDR en el YAML) determina qué gen se
+    consideran no reconstruidos y qué PFOs quedan sin contrapartida: es el
+    parámetro dominante de la eficiencia y del fake rate de esta rama.
+
+    `dedup_mode` ('gen' | 'reco') fija el lado por el que se deduplica, igual que
+    en el matching por RecoMCTruthLink: 'gen' permite PFOs repetidos, 'reco'
+    garantiza un PFO = una fila. Ver el comentario junto al groupby.
+
     Devuelve un DataFrame similar a get_reco_mc_links pero con asociaciones basadas en dR.
     """
     try:
@@ -785,7 +799,7 @@ def get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=
         gen_p4 = ROOT.TLorentzVector()
         gen_p4.SetXYZT(gen_momentum.x, gen_momentum.y, gen_momentum.z, gen_part.getEnergy())
         
-        min_dR = 0.1
+        min_dR = max_dR
         best_reco_idx = -999
         best_reco_pid = -999
         best_reco_p4 = None
@@ -830,11 +844,31 @@ def get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=
         return df_reco_mc_links
     
     df_reco_mc_links = df_reco_mc_links.sort_values("gen").reset_index(drop=True)
-    
-    # Para cada gen, mantener solo el match con mínimo dR
-    df_reco_mc_links = df_reco_mc_links.loc[df_reco_mc_links.groupby("gen")["dR"].idxmin()].reset_index(drop=True)
-    
-    # Añadir gen sin match (los que no están en la lista)
+
+    # Deduplicación, análoga a la de RecoMCTruthLink pero rankeando por dR en
+    # lugar de por peso de depósito:
+    #   'gen'  → un reco por gen. El bucle de arriba ya es gen-driven, así que
+    #            aquí no elimina nada: un mismo PFO puede seguir siendo el más
+    #            cercano de varios gen y aparecer repetido.
+    #   'reco' → un gen por PFO, el de menor dR. Evita que un PFO se cuente
+    #            varias veces en la matriz de confusión (denominadores de purity
+    #            inflados) y en el fake rate.
+    if dedup_mode == "reco":
+        # Las filas sin PFO (reco == -999) se excluyen del groupby: si no,
+        # colapsarían todas en una sola. Los gen que pierden su PFO frente a
+        # otro más cercano se recuperan abajo como no reconstruidos.
+        matched = df_reco_mc_links[df_reco_mc_links["reco"] != -999]
+        if not matched.empty:
+            matched = matched.loc[matched.groupby("reco")["dR"].idxmin()]
+        df_reco_mc_links = matched.reset_index(drop=True)
+    else:
+        df_reco_mc_links = df_reco_mc_links.loc[
+            df_reco_mc_links.groupby("gen")["dR"].idxmin()
+        ].reset_index(drop=True)
+
+    # Añadir gen sin match. Con dedup_mode='gen' no hace nada (el bucle
+    # gen-driven ya incluye todos los gen válidos); con 'reco' es lo que
+    # devuelve como no reconstruidos los gen que perdieron su PFO.
     gen_indices = set(df_reco_mc_links["gen"])
     new_rows = []
     for gen_idx, gen_part, gen_momentum, gen_pid in valid_gen_particles:
@@ -889,7 +923,11 @@ returns:
     hit_type_map, hit_energy_map = build_hit_type_map(event)
     
     # Usar asociaciones por dR
-    df_reco_mc_links = get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=logger_process)
+    df_reco_mc_links = get_reco_mc_links_by_dR(
+        event, hit_type_map, hit_energy_map, logger_process=logger_process,
+        max_dR=neutral_recover_cfg.get("assoc_max_dR", DEFAULT_ASSOC_MAX_DR),
+        dedup_mode=neutral_recover_cfg.get("assoc_dedup_mode", "gen"),
+    )
     
     pfos = particles_pfos
     genParticles = event.get("MCParticles")
