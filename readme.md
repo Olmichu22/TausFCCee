@@ -356,8 +356,11 @@ sub-directory name encodes the cut values). Each result type has a `dR/` and a
 
 ```
 Results/TauReco/<run>/
-├── association_results_full_dR.csv         # one row per gen–reco match (dR)
-├── association_results_full_truthlink.csv  # one row per gen–reco match (truth-link)
+├── association_results_full_dR.*           # one row per gen–reco match (dR)
+├── association_results_full_truthlink.*    # one row per gen–reco match (truth-link)
+│                                           #   .parquet if pyarrow/fastparquet is
+│                                           #   available, else .pkl.gz (read back
+│                                           #   with pd.read_parquet / pd.read_pickle)
 ├── config.yaml                             # snapshot of the config used
 ├── worker_*.log                            # per-worker logs
 │

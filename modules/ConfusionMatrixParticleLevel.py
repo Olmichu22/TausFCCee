@@ -77,6 +77,48 @@ def pid_label(pid):
     return pid_map.get(pid, str(pid))
 
 
+# Color fijo por PDG (valor absoluto) para que una misma especie tenga siempre
+# el mismo color en todos los plots globales: e→e es del mismo color en
+# efficiency_global_11.png, en efficiency_global_22.png (γ→e) y en
+# fake_rate_global.png.  Sin esto el color dependía del orden de aparición del
+# groupby y cambiaba de fichero a fichero.
+PID_COLORS = {
+    11:   "#e6194b",   # e±      rojo
+    13:   "#3cb44b",   # μ±      verde
+    15:   "#911eb4",   # τ±      morado
+    22:   "#4363d8",   # γ       azul
+    111:  "#f58231",   # π⁰      naranja
+    211:  "#46f0f0",   # π±      cian
+    130:  "#f032e6",   # K⁰L     magenta
+    310:  "#bcf60c",   # K⁰S     lima
+    321:  "#fabebe",   # K±      rosa
+    2112: "#008080",   # n       teal
+    2212: "#9a6324",   # p       marrón
+    3122: "#808000",   # Λ       oliva
+    3112: "#000075",   # Σ⁻      azul marino
+    3222: "#800000",   # Σ⁺      granate
+    3312: "#aaffc3",   # Ξ⁻      menta
+    3322: "#ffd8b1",   # Ξ⁰      albaricoque
+    -999: "#808080",   # unmatched / fake   gris
+    999:  "#808080",   # idem tras el abs() de Reco_pid
+}
+
+# Paleta de reserva para PDGs no listados; se asigna de forma determinista a
+# partir del propio PDG, así que tampoco depende del orden de aparición.
+_PID_FALLBACK_COLORS = [
+    "#a9a9a9", "#7f7f7f", "#c49c94", "#dbdb8d", "#9edae5",
+    "#ff9896", "#c5b0d5", "#98df8a", "#ffbb78", "#aec7e8",
+]
+
+
+def pid_color(pid):
+    """Color estable para un PDG (se espera el valor absoluto, salvo -999)."""
+    pid = int(pid)
+    if pid in PID_COLORS:
+        return PID_COLORS[pid]
+    return _PID_FALLBACK_COLORS[abs(pid) % len(_PID_FALLBACK_COLORS)]
+
+
 def _energy_bin_center(energy_bin):
     parts = energy_bin.strip("()[]").split(",")
     if len(parts) == 2:
@@ -91,33 +133,57 @@ def _energy_bin_center(energy_bin):
     return float(parts[0])
 
 
-def _extract_true_reco_pairs(samples):
-    true_energies = []
-    residuals = []
-
+def _pairs_slow_path(samples):
+    """Recorrido fila a fila, para dicts o secuencias con valores ausentes."""
+    rows = []
     for sample in samples:
         if isinstance(sample, dict):
             true_energy = sample.get("Gen_energy", sample.get("true_energy"))
             reco_energy = sample.get("Reco_energy", sample.get("reco_energy"))
-        elif isinstance(sample, (tuple, list)) and len(sample) >= 2:
+        elif isinstance(sample, (tuple, list, np.ndarray)) and len(sample) >= 2:
             true_energy, reco_energy = sample[0], sample[1]
         else:
             continue
 
         if true_energy is None or reco_energy is None:
             continue
+        rows.append((float(true_energy), float(reco_energy)))
 
-        true_energy = float(true_energy)
-        reco_energy = float(reco_energy)
-        if not np.isfinite(true_energy) or not np.isfinite(reco_energy):
-            continue
-        if true_energy == 0:
-            continue
+    return np.asarray(rows, dtype=float).reshape(-1, 2)
 
-        true_energies.append(true_energy)
-        residuals.append((reco_energy - true_energy) / true_energy)
 
-    return np.asarray(true_energies, dtype=float), np.asarray(residuals, dtype=float)
+def _as_pair_array(samples):
+    """
+    Normaliza cualquiera de los formatos aceptados a un array (N, 2) de
+    [E_true, E_reco]: array (N, 2) ya construido (camino rápido, el que produce
+    build_association_structures), lista de tuplas/listas, o lista de dicts.
+    """
+    if isinstance(samples, np.ndarray):
+        return samples.astype(float, copy=False).reshape(-1, 2)
+    if len(samples) == 0:
+        return np.empty((0, 2), dtype=float)
+    try:
+        return np.asarray(samples, dtype=float).reshape(-1, 2)
+    except (TypeError, ValueError):
+        return _pairs_slow_path(samples)
+
+
+def _extract_true_reco_pairs(samples):
+    pairs = _as_pair_array(samples)
+    if pairs.shape[0] == 0:
+        return np.empty(0, dtype=float), np.empty(0, dtype=float)
+
+    true_energies = pairs[:, 0]
+    reco_energies = pairs[:, 1]
+    keep = (
+        np.isfinite(true_energies)
+        & np.isfinite(reco_energies)
+        & (true_energies != 0)
+    )
+    true_energies = true_energies[keep]
+    reco_energies = reco_energies[keep]
+
+    return true_energies, (reco_energies - true_energies) / true_energies
 
 
 # def _std90(values):
@@ -352,11 +418,19 @@ def plot_energy_distributions(energy_distribution_results, output_dir=".", dpi=1
         if len(migration_parts) != 2:
             continue
         gen_pid_str, reco_pid = migration_parts
+        pair_array = None
         for pdg_str in _all_pdgs_str:
-            if gen_pid_str != "999" and reco_pid == pdg_str:
-                aggregated_results[pdg_str][energy_bin].extend(energies)
-            if reco_pid != "999" and gen_pid_str == pdg_str:
-                aggregated_true_results[pdg_str][energy_bin].extend(energies)
+            wants_reco = gen_pid_str != "999" and reco_pid == pdg_str
+            wants_true = reco_pid != "999" and gen_pid_str == pdg_str
+            if not (wants_reco or wants_true):
+                continue
+            # se normaliza una sola vez por clave, no una vez por PDG
+            if pair_array is None:
+                pair_array = _as_pair_array(energies)
+            if wants_reco:
+                aggregated_results[pdg_str][energy_bin].append(pair_array)
+            if wants_true:
+                aggregated_true_results[pdg_str][energy_bin].append(pair_array)
 
     for migration in migration_types:
         gen_pid_str, reco_pid_str = migration.split("_", 1)
@@ -425,8 +499,8 @@ def plot_energy_distributions(energy_distribution_results, output_dir=".", dpi=1
 
         if aggregated_results[pdg_str]:
             series_by_bin = {}
-            for energy_bin, pairs in aggregated_results[pdg_str].items():
-                _, residuals = _extract_true_reco_pairs(pairs)
+            for energy_bin, chunks in aggregated_results[pdg_str].items():
+                _, residuals = _extract_true_reco_pairs(np.concatenate(chunks))
                 if residuals.size == 0:
                     continue
                 series_by_bin[energy_bin] = residuals
@@ -462,8 +536,8 @@ def plot_energy_distributions(energy_distribution_results, output_dir=".", dpi=1
 
         if aggregated_true_results[pdg_str]:
             true_series_by_bin = {}
-            for energy_bin, pairs in aggregated_true_results[pdg_str].items():
-                _, residuals = _extract_true_reco_pairs(pairs)
+            for energy_bin, chunks in aggregated_true_results[pdg_str].items():
+                _, residuals = _extract_true_reco_pairs(np.concatenate(chunks))
                 if residuals.size == 0:
                     continue
                 true_series_by_bin[energy_bin] = residuals
@@ -614,7 +688,7 @@ def plot_efficiency_vs_momentum(
             continue
 
         gen_lbl = pid_label(int(gen_pid))
-        reco_lbl = pid_label(int(reco_pid)) if reco_pid != -999 else "unmatched"
+        reco_lbl = pid_label(int(reco_pid)) if abs(int(reco_pid)) != 999 else "unmatched"
         kind = "Efficiency" if gen_pid == reco_pid else "Migration"
 
         fig, ax = plt.subplots(figsize=(8, 6), constrained_layout=True)
@@ -644,23 +718,21 @@ def plot_efficiency_vs_momentum(
         plt.close()
 
     # ── Global plots (one per Gen_pid) ────────────────────────────────────────
-    prop_cycle = plt.rcParams["axes.prop_cycle"].by_key()["color"]
-
+    # El color lo fija el Reco_pid (pid_color), no el orden del groupby: así la
+    # curva "→ e±" es del mismo color en todos los ficheros.
     for gen_pid, gen_group in counts_df.groupby("Gen_pid"):
         gen_lbl = pid_label(int(gen_pid))
         fig, ax = plt.subplots(figsize=(8, 6), constrained_layout=True)
 
         total_eff = np.zeros(n_bins)
-        color_idx = 0
 
         for reco_pid, sub in gen_group.groupby("Reco_pid"):
             eff_vals, eff_errs = _eff_arrays(sub)
             if not np.any(np.isfinite(eff_vals)):
                 continue
 
-            reco_lbl = pid_label(int(reco_pid)) if reco_pid != -999 else "unmatched"
-            color = prop_cycle[color_idx % len(prop_cycle)]
-            color_idx += 1
+            reco_lbl = pid_label(int(reco_pid)) if abs(int(reco_pid)) != 999 else "unmatched"
+            color = pid_color(reco_pid)
 
             ax.errorbar(
                 centers,
@@ -697,6 +769,266 @@ def plot_efficiency_vs_momentum(
         fname = os.path.join(output_dir, f"efficiency_global_{int(gen_pid)}.png")
         plt.savefig(fname, dpi=dpi, bbox_inches="tight")
         print(f"Saved global efficiency plot → {fname}")
+        plt.close()
+
+
+def plot_fake_rate_vs_momentum(
+    full_df,
+    output_dir=".",
+    dpi=150,
+    n_bins=30,
+    p_min=0.0,
+    p_max=50.0,
+    plot_type="default",
+    selection_note="",
+    n_events=None,
+):
+    """
+    Plot the fake rate n(reco sin match gen) / n_reco vs |p_reco| (o theta_reco)
+    para cada Reco_pid presente en full_df.  Es el complemento reco-side de
+    plot_efficiency_vs_momentum: aquí el denominador son PFOs, no MCParticles.
+
+    IMPORTANTE: "fake" significa "PFO sin contrapartida gen DENTRO del conjunto
+    gen seleccionado" (filtro de generatorStatus, max_gen_pdg, neutrinos, y en
+    la rama dR también el cono dR<0.1 y el filtro de señal en detector).  No es
+    un fake rate absoluto; usa `selection_note` para dejar constancia de la
+    configuración con la que se produjo el plot.
+
+    Produce:
+      - fake_rate_{reco_pid}.png   : tasa de fakes por PDG reco
+      - fake_rate_global.png       : todos los PDG superpuestos
+      - fake_yield_{reco_pid}.png  : fakes por evento (absoluto), si n_events
+
+    Parameters
+    ----------
+    full_df : pandas.DataFrame
+        DataFrame de asociaciones con las columnas Gen_pid, Reco_pid, reco,
+        event_id y Reco_Px/Py/Pz.
+    n_events : int or None
+        Número total de eventos procesados.  Si se pasa, se generan además los
+        plots de rendimiento absoluto (fakes por evento).
+    """
+    os.makedirs(output_dir, exist_ok=True)
+
+    if plot_type == "theta":
+        bin_name = "theta_bin"
+        target_col = "Reco_theta"
+    else:
+        bin_name = "p_bin"
+        target_col = "Reco_P"
+
+    required_cols = {"Gen_pid", "Reco_pid", "Reco_Px", "Reco_Py", "Reco_Pz"}
+    missing = required_cols - set(full_df.columns)
+    if missing:
+        print(f"[plot_fake_rate_vs_momentum] Missing columns: {missing}. Skipping.")
+        return
+
+    if full_df.empty:
+        print("[plot_fake_rate_vs_momentum] Empty DataFrame. Skipping.")
+        return
+
+    df = full_df[full_df["Reco_pid"] != -999].copy()
+
+    # Forzar dtype numérico: los tipos cppyy de edm4hep pueden quedar como object
+    for _col in ["Reco_Px", "Reco_Py", "Reco_Pz"]:
+        df[_col] = pd.to_numeric(df[_col], errors="coerce")
+
+    df = df[
+        np.isfinite(df["Reco_Px"])
+        & np.isfinite(df["Reco_Py"])
+        & np.isfinite(df["Reco_Pz"])
+    ]
+
+    if df.empty:
+        print("[plot_fake_rate_vs_momentum] No valid reco rows. Skipping.")
+        return
+
+    # ── Deduplicación: un PFO = una fila ──────────────────────────────────────
+    # Con --dedup-mode gen (y con el matching por dR) un mismo PFO puede ser el
+    # mejor candidato de varios gen y aparecer repetido; contar filas inflaría
+    # el denominador.  Las filas CON match gen van primero para que un PFO
+    # emparejado nunca acabe contado como fake.
+    df["_matched"] = (df["Gen_pid"] != -999).astype(int)
+    if {"event_id", "reco"}.issubset(df.columns):
+        df = df.sort_values("_matched", ascending=False).drop_duplicates(
+            subset=["event_id", "reco"], keep="first"
+        )
+
+    df["Reco_pid"] = df["Reco_pid"].abs()
+
+    # |p_reco| a partir del momento, NO de Reco_energy: en la rama dR
+    # Reco_energy es P(masa 0) para los matched pero la energía real del PFO
+    # para los fakes, y mezclarlas sesgaría numerador contra denominador.
+    df["Reco_P"] = np.sqrt(df["Reco_Px"] ** 2 + df["Reco_Py"] ** 2 + df["Reco_Pz"] ** 2)
+    if plot_type == "theta":
+        df["Reco_theta"] = np.arccos(
+            np.clip(df["Reco_Pz"] / df["Reco_P"], -1.0, 1.0)
+        )
+        p_min, p_max = 0.0, np.pi
+
+    edges = np.linspace(p_min, p_max, n_bins + 1)
+    centers = 0.5 * (edges[:-1] + edges[1:])
+    bin_width = edges[1] - edges[0]
+
+    df[bin_name] = pd.cut(
+        df[target_col], bins=edges, labels=False, right=True, include_lowest=True
+    )
+    df = df.dropna(subset=[bin_name])
+    if df.empty:
+        print("[plot_fake_rate_vs_momentum] No reco rows inside the binning range. Skipping.")
+        return
+    df[bin_name] = df[bin_name].astype(int)
+
+    n_reco_series = df.groupby(["Reco_pid", bin_name]).size().rename("n_reco")
+    n_fake_series = (
+        df[df["_matched"] == 0].groupby(["Reco_pid", bin_name]).size().rename("n_fake")
+    )
+
+    counts_df = n_reco_series.reset_index().merge(
+        n_fake_series.reset_index(), on=["Reco_pid", bin_name], how="left"
+    )
+    counts_df["n_fake"] = counts_df["n_fake"].fillna(0.0)
+    counts_df["fake"] = counts_df["n_fake"] / counts_df["n_reco"]
+    # Error binomial sobre el denominador de PFOs
+    counts_df["fake_err"] = np.sqrt(
+        np.clip(counts_df["fake"] * (1.0 - counts_df["fake"]) / counts_df["n_reco"], 0.0, None)
+    )
+
+    def _bin_arrays(sub, value_col, err_col):
+        vals = np.full(n_bins, np.nan)
+        errs = np.full(n_bins, np.nan)
+        valid = sub[[bin_name, value_col, err_col]].copy()
+        valid[bin_name] = valid[bin_name].astype(int)
+        valid = valid[(valid[bin_name] >= 0) & (valid[bin_name] < n_bins)]
+        vals[valid[bin_name].values] = valid[value_col].values
+        errs[valid[bin_name].values] = np.where(
+            np.isfinite(valid[err_col].values), valid[err_col].values, 0.0
+        )
+        return vals, errs
+
+    def _style_ax(ax):
+        for spine in ax.spines.values():
+            spine.set_linewidth(1.5)
+        ax.yaxis.set_minor_locator(AutoMinorLocator())
+        ax.tick_params(axis="y", which="both", left=True, right=True)
+        ax.tick_params(axis="y", which="major", length=6, width=1.2)
+        ax.tick_params(axis="y", which="minor", length=3, width=0.8)
+        ax.grid(True)
+
+    def _annotate_selection(fig):
+        if selection_note:
+            fig.suptitle(selection_note, fontsize=7, color="#555555", y=1.02)
+
+    xlabel = "θ_reco [rad]" if plot_type == "theta" else "|p_reco| [GeV]"
+
+    # ── Individual plots ──────────────────────────────────────────────────────
+    for reco_pid, sub in counts_df.groupby("Reco_pid"):
+        fake_vals, fake_errs = _bin_arrays(sub, "fake", "fake_err")
+        if not np.any(np.isfinite(fake_vals)):
+            continue
+
+        reco_lbl = pid_label(int(reco_pid))
+
+        fig, ax = plt.subplots(figsize=(8, 6), constrained_layout=True)
+        ax.errorbar(
+            centers,
+            fake_vals,
+            yerr=np.where(np.isfinite(fake_errs), fake_errs, 0.0),
+            fmt="o-",
+            capsize=4,
+            linewidth=1.5,
+            markersize=4,
+            color="#c0392b",
+        )
+        ax.set_xlim(p_min, p_max)
+        y_top = min(1.15, max(0.1, float(np.nanmax(fake_vals)) * 1.4))
+        ax.set_ylim(0, y_top)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel("n(sin match gen) / n_reco")
+        ax.set_title(f"Fake rate: {reco_lbl}")
+        _style_ax(ax)
+        _annotate_selection(fig)
+
+        fname = os.path.join(output_dir, f"fake_rate_{int(reco_pid)}.png")
+        plt.savefig(fname, dpi=dpi, bbox_inches="tight")
+        print(f"Saved fake rate plot → {fname}")
+        plt.close()
+
+    # ── Global plot (todos los Reco_pid superpuestos) ─────────────────────────
+    # Sin línea "Total": cada curva tiene su propio denominador.
+    fig, ax = plt.subplots(figsize=(8, 6), constrained_layout=True)
+    drawn = False
+
+    for reco_pid, sub in counts_df.groupby("Reco_pid"):
+        fake_vals, fake_errs = _bin_arrays(sub, "fake", "fake_err")
+        if not np.any(np.isfinite(fake_vals)):
+            continue
+        color = pid_color(reco_pid)
+        drawn = True
+        ax.errorbar(
+            centers,
+            fake_vals,
+            yerr=np.where(np.isfinite(fake_errs), fake_errs, 0.0),
+            fmt="o-",
+            capsize=3,
+            linewidth=1.2,
+            markersize=3,
+            color=color,
+            label=pid_label(int(reco_pid)),
+        )
+
+    if drawn:
+        ax.set_xlim(p_min, p_max)
+        ax.set_ylim(0, 1.15)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel("n(sin match gen) / n_reco")
+        ax.set_title("Fake rate por tipo de PFO")
+        ax.legend(fontsize=8, loc="best")
+        _style_ax(ax)
+        _annotate_selection(fig)
+        fname = os.path.join(output_dir, "fake_rate_global.png")
+        plt.savefig(fname, dpi=dpi, bbox_inches="tight")
+        print(f"Saved global fake rate plot → {fname}")
+    plt.close()
+
+    # ── Rendimiento absoluto: fakes por evento ────────────────────────────────
+    # El ratio puede ser engañoso a bajo p, donde el denominador también cae;
+    # para el tau reco lo que importa es cuántos PFOs espurios hay por evento.
+    if not n_events:
+        return
+
+    counts_df["yield"] = counts_df["n_fake"] / (float(n_events) * bin_width)
+    counts_df["yield_err"] = np.sqrt(counts_df["n_fake"]) / (float(n_events) * bin_width)
+
+    x_unit = "rad" if plot_type == "theta" else "GeV"
+    for reco_pid, sub in counts_df.groupby("Reco_pid"):
+        yield_vals, yield_errs = _bin_arrays(sub, "yield", "yield_err")
+        if not np.any(np.isfinite(yield_vals)) or np.nanmax(yield_vals) <= 0:
+            continue
+
+        reco_lbl = pid_label(int(reco_pid))
+        fig, ax = plt.subplots(figsize=(8, 6), constrained_layout=True)
+        ax.errorbar(
+            centers,
+            yield_vals,
+            yerr=np.where(np.isfinite(yield_errs), yield_errs, 0.0),
+            fmt="o-",
+            capsize=4,
+            linewidth=1.5,
+            markersize=4,
+            color="#8e44ad",
+        )
+        ax.set_xlim(p_min, p_max)
+        ax.set_ylim(bottom=0)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(f"fakes / evento / {x_unit}")
+        ax.set_title(f"Fake yield: {reco_lbl}  ({n_events} eventos)")
+        _style_ax(ax)
+        _annotate_selection(fig)
+
+        fname = os.path.join(output_dir, f"fake_yield_{int(reco_pid)}.png")
+        plt.savefig(fname, dpi=dpi, bbox_inches="tight")
+        print(f"Saved fake yield plot → {fname}")
         plt.close()
 
 
