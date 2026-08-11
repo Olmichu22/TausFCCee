@@ -1371,7 +1371,10 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
           classes = decays
         mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes]
         mapped_classes_pred = mapped_classes_true  # Same for both axes
-    
+        for num, key in enumerate(mapped_classes_pred):
+            if "ν" in key:
+                mapped_classes_pred[num] = mapped_classes_pred[num].replace("ν", "")
+            
     # Create output directory if it doesn't exist
     cm_dir = os.path.join(outputpath, "CM")
     if not os.path.exists(cm_dir):
@@ -1434,6 +1437,9 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
 
         mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes_true]
         mapped_classes_pred = [id_to_key(cls, photons=False) for cls in classes_pred]
+        for num, key in enumerate(mapped_classes_pred):
+            if "ν" in key:
+                mapped_classes_pred[num] = mapped_classes_pred[num].replace("ν", "")
       plt.figure(figsize=(8, 6))
       fontsize = 10
     else:
@@ -1448,7 +1454,7 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
         plt.yticks(np.arange(len(mapped_classes_true)), mapped_classes_true)
     else:
         tick_marks = np.arange(len(mapped_classes_true))
-        plt.xticks(tick_marks, mapped_classes_true, rotation=45)
+        plt.xticks(tick_marks, mapped_classes_pred, rotation=45)
         plt.yticks(tick_marks, mapped_classes_true)
     # cm_normalized = cm_normalized.to_numpy()
     thresh_norm = cm_normalized.max() / 2.
