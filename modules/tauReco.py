@@ -64,6 +64,27 @@ def MatchRecoGenTau(genTau, recoTaus, nTausType, maxDRMatch=1, selectDecay=-777)
          
    return findMatch, nTausType
 
+def get_visible_final_state(particle, exclude_neutrinos=True):
+    daughters = list(particle.getDaughters())
+    pdg = abs(particle.getPDG())
+    is_final = particle.getGeneratorStatus() == 1
+
+    # Trata el pi0 como hoja, aunque decaiga en el generador
+    if pdg == 111:
+        return [particle]
+
+    if is_final or len(daughters) == 0:
+        if exclude_neutrinos and pdg in (12, 14, 16):
+            return []
+        return [particle]
+
+    result = []
+    for d in daughters:
+        if d.getGeneratorStatus() == 0:
+            continue
+        result.extend(get_visible_final_state(d, exclude_neutrinos))
+    return result
+
 # Check a generator level tau candidate, find the decay, 
 # and compute visible (meson) variables 
 def visTauGen(candTau, getHelicity=False):
@@ -108,8 +129,14 @@ def visTauGen(candTau, getHelicity=False):
    else: 
       helicity = None
 
-   # loop over daughter particles of the tau 
-   for dTau in daughters:
+   # loop over daughter particles of the tau
+   
+   # IMPORTANT CHANGE -> First identify the final state products, then clasify
+   final_daughters = get_visible_final_state(candTau) 
+   for dTau in final_daughters:
+         if dTau.getGeneratorStatus() == 0:
+         # Secondary, not a real product
+            continue
          dauP4=ROOT.TLorentzVector()
          dauP4.SetXYZM(dTau.getMomentum().x,dTau.getMomentum().y,dTau.getMomentum().z,dTau.getMass())
          dauPDG=abs(dTau.getPDG())
@@ -129,7 +156,7 @@ def visTauGen(candTau, getHelicity=False):
          if dauPDG==11 :
             countElectronDecay+=1               
             #continue # either filter here or at the analysis level
-
+ 
          # in this Pythia sample the tau decay directly goes to pi0/pi, without the rho/a1
          # to be checked in KKMC and Whizard...
          # if there was a rho, we would need an additional step
