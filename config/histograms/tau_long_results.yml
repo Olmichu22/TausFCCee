@@ -1,0 +1,1488 @@
+Gen:
+  Events:
+    ZMass:
+      type: "1D"
+      name: ZMassGen
+      range: [0, 100]
+      bins: 100
+
+    ZVisMass:
+      type: "1D"
+      name: ZVisMassGen
+      range: [0, 100]
+      bins: 100
+
+    TauPairVisAngle:
+      type: "1D"
+      name: TauPairVisAngleGen
+      range: [2, 4.5]
+      bins: 250
+
+    TauPairAngle:
+      type: "1D"
+      name: TauPairAngleGen
+      range: [2, 4.5]
+      bins: 250
+
+    TauPt:
+      type: "1D"
+      name: TauPtGen
+      range: [0, 50]
+      bins: 250
+
+    TauVisPt:
+      type: "1D"
+      name: TauVisPtGen
+      range: [0, 50]
+      bins: 250
+
+    TauP:
+      type: "1D"
+      name: TauPGen
+      range: [0, 50]
+      bins: 250
+
+    HadronTauP:
+      type: "1D"
+      name: HadronTauPGen
+      range: [0, 50]
+      bins: 12
+
+    TauVisP:
+      type: "1D"
+      name: TauVisPGen
+      range: [0, 50]
+      bins: 250
+
+    TauType:
+      type: "1D"
+      name: TauTypeGen
+      range: [-1, 20]
+      bins: 21
+
+    TauVisMass:
+      type: "1D"
+      name: TauVisMassGen
+      range: [0, 10]
+      bins: 500
+
+    TauQ:
+      type: "1D"
+      name: TauQGen
+      range: [-1.5, 1.5]
+      bins: 3
+
+    TauEta:
+      type: "1D"
+      name: TauEtaGen
+      range: [-5, 5]
+      bins: 100
+
+    TauTheta:
+      type: "1D"
+      name: TauThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    TauDR:
+      type: "1D"
+      name: TauDRGen
+      range: [0, 1]
+      bins: 100
+
+    ConstPi0Mass:
+      type: "1D"
+      name: ConstPi0MassGen
+      range: [0, 0.5]
+      bins: 100
+
+    RhoPiDecayP:
+      type: "1D"
+      name: RhoPiDecayPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecayP:
+      type: "1D"
+      name: RhoTwoPhotonDecayPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecaySumP:
+      type: "1D"
+      name: RhoTwoPhotonDecaySumPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecayPiPhotonSumP:
+      type: "2D"
+      name: RhoTwoPhotonDecayPiPhotonSumPGen
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    RhoOnePhotonDecayPiP:
+      type: "1D"
+      name: RhoOnePhotonDecayPiPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPhotonP:
+      type: "1D"
+      name: RhoOnePhotonDecayPhotonPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPhotonSumP:
+      type: "1D"
+      name: RhoOnePhotonDecayPhotonSumPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPhotonAng:
+      type: "1D"
+      name: RhoOnePhotonDecayPhotonAngGen
+      range: [0, 2]
+      bins: 100
+
+    RhoOnePhotonDecayPiPhotonSumP:
+      type: "2D"
+      name: RhoOnePhotonDecayPiPhotonSumPGen
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    PionPid:
+      type: "2D"
+      name: PionPidGen
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [-20, 20]
+      y_bins: 40
+
+    NTaus:
+      type: "1D"
+      name: NTausGen
+      range: [0, 6]
+      bins: 6
+
+    NTausType:
+      type: "1D"
+      name: NTausTypeGen
+      range: [0, 6]
+      bins: 6
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10Gen
+      range: [0, 3.15]
+      bins: 100
+
+    PhotonTheta:
+      type: "1D"
+      name: PhotonThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    PionTheta:
+      type: "1D"
+      name: PionThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    AllPhotonsP:
+      type: "1D"
+      name: AllPhotonsPGen
+      range: [0, 50]
+      bins: 100
+
+    AllPhotonsTheta:
+      type: "1D"
+      name: AllPhotonsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    MissmatchedPhotonsP:
+      type: "1D"
+      name: MissmatchedPhotonsPGen
+      range: [0, 50]
+      bins: 100
+
+    MissmatchedPhotonsTheta:
+      type: "1D"
+      name: MissmatchedPhotonsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    UnmatchedPhotonsP:
+      type: "1D"
+      name: UnmatchedPhotonsPGen
+      range: [0, 50]
+      bins: 100
+
+    UnmatchedPhotonsTheta:
+      type: "1D"
+      name: UnmatchedPhotonsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsP:
+      type: "1D"
+      name: AllPionsPGen
+      range: [0, 50]
+      bins: 250
+
+    AllPionsTheta:
+      type: "1D"
+      name: AllPionsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsPCut:
+      type: "1D"
+      name: AllPionsPCutGen
+      range: [0, 50]
+      bins: 100
+
+    AllPionsThetaCut:
+      type: "1D"
+      name: AllPionsThetaCutGen
+      range: [0, 3.15]
+      bins: 100
+
+    MissmatchedPionsP:
+      type: "1D"
+      name: MissmatchedPionsPGen
+      range: [0, 50]
+      bins: 100
+
+    MissmatchedPionsTheta:
+      type: "1D"
+      name: MissmatchedPionsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    UnmatchedPionsP:
+      type: "1D"
+      name: UnmatchedPionsPGen
+      range: [0, 50]
+      bins: 100
+
+    UnmatchedPionsTheta:
+      type: "1D"
+      name: UnmatchedPionsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    TauP0:
+      type: "1D"
+      name: TauP0Gen
+      range: [0, 50]
+      bins: 12
+
+    TauP1:
+      type: "1D"
+      name: TauP1Gen
+      range: [0, 50]
+      bins: 12
+
+    TauP2:
+      type: "1D"
+      name: TauP2Gen
+      range: [0, 50]
+      bins: 12
+
+    TauP10:
+      type: "1D"
+      name: TauP10Gen
+      range: [0, 50]
+      bins: 12
+
+    TauVisP0:
+      type: "1D"
+      name: TauVisP0Gen
+      range: [0, 50]
+      bins: 12
+
+    TauVisP1:
+      type: "1D"
+      name: TauVisP1Gen
+      range: [0, 50]
+      bins: 12
+
+    TauVisP2:
+      type: "1D"
+      name: TauVisP2Gen
+      range: [0, 50]
+      bins: 12
+
+    TauVisP10:
+      type: "1D"
+      name: TauVisP10Gen
+      range: [0, 50]
+      bins: 12
+
+    PhotonP:
+      type: "1D"
+      name: PhotonPGen
+      range: [0, 25]
+      bins: 100
+
+    PionP:
+      type: "1D"
+      name: PionPGen
+      range: [0, 50]
+      bins: 100
+
+    PionP0:
+      type: "1D"
+      name: PionP0Gen
+      range: [0, 50]
+      bins: 100
+
+    PionP1:
+      type: "1D"
+      name: PionP1Gen
+      range: [0, 50]
+      bins: 100
+
+    PionP2:
+      type: "1D"
+      name: PionP2Gen
+      range: [0, 50]
+      bins: 100
+
+    PionP10:
+      type: "1D"
+      name: PionP10Gen
+      range: [0, 50]
+      bins: 100
+
+
+  
+  Effi:
+    UnmatchedPionsP:
+      name: hGenUnmatchedPionsPNorm
+      numerator: Gen/UnmatchedPionsP
+      denominator: Gen/AllPionsP
+
+    UnmatchedPionsTheta:
+      name: hGenUnmatchedPionsThetaNorm
+      numerator: Gen/UnmatchedPionsTheta
+      denominator: Gen/AllPionsTheta
+
+    MissmatchedPionsP:
+      name: hGenMissmatchedPionsPNorm
+      numerator: Gen/MissmatchedPionsP
+      denominator: Gen/AllPionsP
+
+    MissmatchedPionsTheta:
+      name: hGenMissmatchedPionsThetaNorm
+      numerator: Gen/MissmatchedPionsTheta
+      denominator: Gen/AllPionsTheta
+
+    UnmatchedPhotonsP:
+      name: hGenUnmatchedPhotonsPNorm
+      numerator: Gen/UnmatchedPhotonsP
+      denominator: Gen/AllPhotonsP
+
+    UnmatchedPhotonsTheta:
+      name: hGenUnmatchedPhotonsThetaNorm
+      numerator: Gen/UnmatchedPhotonsTheta
+      denominator: Gen/AllPhotonsTheta
+
+    MissmatchedPhotonsP:
+      name: hGenMissmatchedPhotonsPNorm
+      numerator: Gen/MissmatchedPhotonsP
+      denominator: Gen/AllPhotonsP
+
+    MissmatchedPhotonsTheta:
+      name: hGenMissmatchedPhotonsThetaNorm
+      numerator: Gen/MissmatchedPhotonsTheta
+      denominator: Gen/AllPhotonsTheta
+
+Matched:
+  Events:
+    TauP:
+      type: "1D"
+      name: TauPMatched
+      range: [0, 50]
+      bins: 250
+
+    TauVisP:
+      type: "1D"
+      name: TauVisPMatched
+      range: [0, 50]
+      bins: 250
+
+    TauPt:
+      type: "1D"
+      name: TauPtMatched
+      range: [0, 50]
+      bins: 250
+
+    TauVisPt:
+      type: "1D"
+      name: TauVisPtMatched
+      range: [0, 50]
+      bins: 250
+
+    HadronTauP:
+      type: "1D"
+      name: HadronTauPMatched
+      range: [0, 50]
+      bins: 12
+
+    TauType:
+      type: "1D"
+      name: TauTypeMatched
+      range: [-1, 20]
+      bins: 21
+
+    TauVisMass:
+      type: "1D"
+      name: TauVisMassMatched
+      range: [0, 10]
+      bins: 500
+
+    TauQ:
+      type: "1D"
+      name: TauQMatched
+      range: [-1.5, 1.5]
+      bins: 3
+
+    TauEta:
+      type: "1D"
+      name: TauEtaMatched
+      range: [-5, 5]
+      bins: 100
+
+    TauTheta:
+      type: "1D"
+      name: TauThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauDR:
+      type: "1D"
+      name: TauDRMatched
+      range: [0, 1]
+      bins: 100
+
+    ConstPi0Mass:
+      type: "1D"
+      name: ConstPi0MassMatched
+      range: [0, 0.5]
+      bins: 100
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0Matched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1Matched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2Matched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10Matched
+      range: [0, 3.15]
+      bins: 100
+
+    PhotonTheta:
+      type: "1D"
+      name: PhotonThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    PionTheta:
+      type: "1D"
+      name: PionThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    PionsP:
+      type: "2D"
+      name: PionsPMatched
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    AllPhotonsP:
+      type: "1D"
+      name: AllPhotonsPMatched
+      range: [0, 50]
+      bins: 100
+
+    AllPhotonsTheta:
+      type: "1D"
+      name: AllPhotonsThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsP:
+      type: "1D"
+      name: AllPionsPMatched
+      range: [0, 50]
+      bins: 250
+
+    AllPionsTheta:
+      type: "1D"
+      name: AllPionsThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsPCut:
+      type: "1D"
+      name: AllPionsPCutMatched
+      range: [0, 50]
+      bins: 100
+
+    AllPionsThetaCut:
+      type: "1D"
+      name: AllPionsThetaCutMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauP0:
+      type: "1D"
+      name: TauP0Matched
+      range: [0, 50]
+      bins: 12
+
+    TauP1:
+      type: "1D"
+      name: TauP1Matched
+      range: [0, 50]
+      bins: 12
+
+    TauP2:
+      type: "1D"
+      name: TauP2Matched
+      range: [0, 50]
+      bins: 12
+
+    TauP10:
+      type: "1D"
+      name: TauP10Matched
+      range: [0, 50]
+      bins: 12
+
+    TauVisP0:
+      type: "1D"
+      name: TauVisP0Matched
+      range: [0, 50]
+      bins: 12
+
+    TauVisP1:
+      type: "1D"
+      name: TauVisP1Matched
+      range: [0, 50]
+      bins: 12
+
+    TauVisP2:
+      type: "1D"
+      name: TauVisP2Matched
+      range: [0, 50]
+      bins: 12
+
+    TauVisP10:
+      type: "1D"
+      name: TauVisP10Matched
+      range: [0, 50]
+      bins: 12
+
+    TauP1Correct:
+      type: "1D"
+      name: TauP1CorrectMatched
+      range: [0, 50]
+      bins: 12
+    
+    TauP0Correct:
+      type: "1D"
+      name: TauP0CorrectMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2Correct:
+      type: "1D"
+      name: TauP2CorrectMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10Correct:
+      type: "1D"
+      name: TauP10CorrectMatched
+      range: [0, 50]
+      bins: 12
+
+
+    PhotonP:
+      type: "1D"
+      name: PhotonPMatched
+      range: [0, 25]
+      bins: 100
+
+    PionP:
+      type: "1D"
+      name: PionPMatched
+      range: [0, 50]
+      bins: 100
+
+    PionsTheta:
+      type: "2D"
+      name: PionsThetaMatched
+      x_range: [0, 3.15]
+      x_bins: 100
+      y_range: [0, 3.15]
+      y_bins: 100
+
+  Resolution:
+    TauP:
+      type: "1D"
+      name: TauPResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauPt:
+      type: "1D"
+      name: TauPtResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauCharge:
+      type: "1D"
+      name: TauChargeResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauMaxAngle:
+      type: "1D"
+      name: TauMaxAngleResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauNComp:
+      type: "1D"
+      name: TauNCompResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    PionsPRes:
+      type: "1D"
+      name: PionsPResMatched
+      range: [-0.1, 0.1]
+      bins: 100
+
+    PhotonPRes:
+      type: "1D"
+      name: PhotonPResMatched
+      range: [-1, 1]
+      bins: 500
+
+    PionsThetaRes:
+      type: "1D"
+      name: PionsThetaResMatched
+      range: [-0.003, 0.003]
+      bins: 100
+
+    PhotonThetaRes:
+      type: "1D"
+      name: PhotonThetaResMatched
+      range: [-0.1, 0.1]
+      bins: 100
+
+    TauP0:
+      type: "1D"
+      name: TauP0ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauP1:
+      type: "1D"
+      name: TauP1ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauP2:
+      type: "1D"
+      name: TauP2ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauP10:
+      type: "1D"
+      name: TauP10ResMatched
+      range: [-1, 1]
+      bins: 500
+  
+  Effi:
+
+    Pi0Mass:
+      name: hEffiGenPi0Mass
+      numerator: Matched/ConstPi0Mass
+      denominator: Gen/ConstPi0Mass
+
+    TauPt:
+      name: hEffiGenTauPt
+      numerator: Matched/TauPt
+      denominator: Gen/TauPt
+
+    VisTauPt:
+      name: hEffiGenVisTauPt
+      numerator: Matched/TauVisPt
+      denominator: Gen/TauVisPt
+
+    TauP:
+      name: hEffiGenTauP
+      numerator: Matched/TauP
+      denominator: Gen/TauP
+
+    VisTauP:
+      name: hEffiGenVisTauP
+      numerator: Matched/TauVisP
+      denominator: Gen/TauVisP
+
+    VisTauMass:
+      name: hEffiGenVisTauMass
+      numerator: Matched/TauVisMass
+      denominator: Gen/TauVisMass
+
+    TauEta:
+      name: hEffiGenTauEta
+      numerator: Matched/TauEta
+      denominator: Gen/TauEta
+
+    TauTheta:
+      name: hEffiGenTauTheta
+      numerator: Matched/TauTheta
+      denominator: Gen/TauTheta
+
+    TauType:
+      name: hEffiGenTauType
+      numerator: Matched/TauType
+      denominator: Gen/TauType
+
+    PhotonP:
+      name: hEffiGenPhotonP
+      numerator: Matched/PhotonP
+      denominator: Gen/PhotonP
+
+    PhotonTheta:
+      name: hEffiGenPhotonTheta
+      numerator: Matched/PhotonTheta
+      denominator: Gen/PhotonTheta
+
+    PionP:
+      name: hEffiGenTauPionP
+      numerator: Matched/PionP
+      denominator: Gen/PionP
+
+    PionTheta:
+      name: hEffiGenTauPionTheta
+      numerator: Matched/PionTheta
+      denominator: Gen/PionTheta
+
+    AllPionsP:
+      name: hEffiGenAllPionsP
+      numerator: Matched/AllPionsP
+      denominator: Gen/AllPionsP
+
+    AllPionsP_check:
+      name: eff_PionP_Pion
+      numerator: Matched/AllPionsP
+      denominator: Gen/AllPionsP
+
+    AllPionsTheta:
+      name: hEffiGenAllPionsTheta
+      numerator: Matched/AllPionsTheta
+      denominator: Gen/AllPionsTheta
+
+    AllPhotonsP:
+      name: hEffiGenAllPhotonsP
+      numerator: Matched/AllPhotonsP
+      denominator: Gen/AllPhotonsP
+
+    AllPhotonsTheta:
+      name: hEffiGenAllPhotonsTheta
+      numerator: Matched/AllPhotonsTheta
+      denominator: Gen/AllPhotonsTheta
+
+    HadronTauP:
+      name: hEffiGenHadronTauP
+      numerator: Matched/HadronTauP
+      denominator: Gen/HadronTauP
+
+    AllPionsPCut:
+      name: hEffiGenAllPionsPCut
+      numerator: Matched/AllPionsPCut
+      denominator: Gen/AllPionsPCut
+
+    AllPionsThetaCut:
+      name: hEffiGenAllPionsPionThetaCut
+      numerator: Matched/AllPionsThetaCut
+      denominator: Gen/AllPionsThetaCut
+
+    TauTheta0:
+      name: hEffiGenTauTheta0
+      numerator: Matched/TauTheta0
+      denominator: Gen/TauTheta0
+
+    TauTheta1:
+      name: hEffiGenTauTheta1
+      numerator: Matched/TauTheta1
+      denominator: Gen/TauTheta1
+
+    TauTheta2:
+      name: hEffiGenTauTheta2
+      numerator: Matched/TauTheta2
+      denominator: Gen/TauTheta2
+
+    TauTheta10:
+      name: hEffiGenTauTheta10
+      numerator: Matched/TauTheta10
+      denominator: Gen/TauTheta10
+
+    TauP0:
+      name: hEffiGenTauP0
+      numerator: Matched/TauP0
+      denominator: Gen/TauP0
+
+    TauP1:
+      name: hEffiGenTauP1
+      numerator: Matched/TauP1
+      denominator: Gen/TauP1
+
+    TauP0Correct:
+      name: hEffiGenTauP0Correct
+      numerator: Matched/TauP0Correct
+      denominator: Gen/TauP0
+    
+    TauP1Correct:
+      name: hEffiGenTauP1Correct
+      numerator: Matched/TauP1Correct
+      denominator: Gen/TauP1
+    
+    TauP2Correct:
+      name: hEffiGenTauP2Correct
+      numerator: Matched/TauP2Correct
+      denominator: Gen/TauP2
+    
+    TauP10Correct:
+      name: hEffiGenTauP10Correct
+      numerator: Matched/TauP10Correct
+      denominator: Gen/TauP10
+
+    TauP2:
+      name: hEffiGenTauP2
+      numerator: Matched/TauP2
+      denominator: Gen/TauP2
+
+    TauP10:
+      name: hEffiGenTauP10
+      numerator: Matched/TauP10
+      denominator: Gen/TauP10
+
+    TauVisP0:
+      name: hEffiGenTauVisP0
+      numerator: Matched/TauVisP0
+      denominator: Gen/TauVisP0
+
+    TauVisP1:
+      name: hEffiGenTauVisP1
+      numerator: Matched/TauVisP1
+      denominator: Gen/TauVisP1
+
+    TauVisP2:
+      name: hEffiGenTauVisP2
+      numerator: Matched/TauVisP2
+      denominator: Gen/TauVisP2
+
+    TauVisP10:
+      name: hEffiGenTauVisP10
+      numerator: Matched/TauVisP10
+      denominator: Gen/TauVisP10
+
+
+Reco:
+  Events:
+    ZMass:
+      type: "1D"
+      name: ZMassReco
+      range: [0, 100]
+      bins: 100
+
+    TauPairAngle:
+      type: "1D"
+      name: TauPairAngleReco
+      range: [2, 4.5]
+      bins: 250
+
+    TauPt:
+      type: "1D"
+      name: TauPtReco
+      range: [0, 50]
+      bins: 250
+
+    TauP:
+      type: "1D"
+      name: TauPReco
+      range: [0, 50]
+      bins: 250
+
+    TauMass:
+      type: "1D"
+      name: TauMassReco
+      range: [0, 10]
+      bins: 500
+
+    TauType:
+      type: "1D"
+      name: TauTypeReco
+      range: [-1, 20]
+      bins: 21
+
+    TauQ:
+      type: "1D"
+      name: TauQReco
+      range: [-1.5, 1.5]
+      bins: 3
+
+    TauEta:
+      type: "1D"
+      name: TauEtaReco
+      range: [-5, 5]
+      bins: 100
+
+    TauTheta:
+      type: "1D"
+      name: TauThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    TauDR:
+      type: "1D"
+      name: TauDRReco
+      range: [0, 1]
+      bins: 100
+
+    a1OnePionMass:
+      type: "1D"
+      name: a1OnePionMassReco
+      range: [0, 2.5]
+      bins: 100
+
+    a1ThreePionMass:
+      type: "1D"
+      name: a1ThreePionMassReco
+      range: [0, 2.5]
+      bins: 100
+
+    RhoMass:
+      type: "1D"
+      name: RhoMassReco
+      range: [0, 2.5]
+      bins: 100
+
+    ConstPi0MassRhoGen:
+      type: "1D"
+      name: ConstPi0MassRhoGenReco
+      range: [0, 0.5]
+      bins: 100
+
+    ConstPi0MassRhoReco:
+      type: "1D"
+      name: ConstPi0MassRhoRecoReco
+      range: [0, 0.5]
+      bins: 100
+
+    ConstTwoPhotonAngDist:
+      type: "1D"
+      name: ConstTwoPhotonAngDistReco
+      range: [0, 2]
+      bins: 100
+
+    ConstPi0MassFromPhotonMass:
+      type: "1D"
+      name: ConstPi0MassFromPhotonMassReco
+      range: [0, 0.5]
+      bins: 100
+
+    ConstPi0MassFromPhotonDist:
+      type: "1D"
+      name: ConstPi0MassFromPhotonDistReco
+      range: [0, 0.5]
+      bins: 100
+
+    Pi0MassOverNPhoton:
+      type: "2D"
+      name: Pi0MassOverNPhotonReco
+      x_range: [0, 2]
+      x_bins: 100
+      y_range: [0, 20]
+      y_bins: 20
+
+    ConstlessPhotonPa1strMass:
+      type: "1D"
+      name: ConstlessPhotonPa1strMassReco
+      range: [0, 50]
+      bins: 100
+
+    ConstlessPhotonPa1strMassZoom:
+      type: "1D"
+      name: ConstlessPhotonPa1strMassZoomReco
+      range: [0, 2]
+      bins: 100
+
+    ConstlessPhotonPa1strDist:
+      type: "1D"
+      name: ConstlessPhotonPa1strDistReco
+      range: [0, 50]
+      bins: 100
+
+    ConstxtraPhotonPrhostrMass:
+      type: "1D"
+      name: ConstxtraPhotonPrhostrMassReco
+      range: [0, 50]
+      bins: 100
+
+    ConstxtraPhotonPrhostrMassZoom:
+      type: "1D"
+      name: ConstxtraPhotonPrhostrMassZoomReco
+      range: [0, 2]
+      bins: 100
+
+    ConstxtraPhotonPrhostrDist:
+      type: "1D"
+      name: ConstxtraPhotonPrhostrDistReco
+      range: [0, 50]
+      bins: 100
+
+    ConstlessPhotonPrho:
+      type: "1D"
+      name: ConstlessPhotonPrhoReco
+      range: [0, 50]
+      bins: 100
+
+    ConstxtraPhotonPi:
+      type: "1D"
+      name: ConstxtraPhotonPiReco
+      range: [0, 50]
+      bins: 100
+
+    ConstlessPhotonPrhoZoom:
+      type: "1D"
+      name: ConstlessPhotonPrhoZoomReco
+      range: [0, 2]
+      bins: 100
+
+    ConstxtraPhotonPiZoom:
+      type: "1D"
+      name: ConstxtraPhotonPiZoomReco
+      range: [0, 2]
+      bins: 100
+
+    ThreePhotonMatchOnestrMassP:
+      type: "1D"
+      name: ThreePhotonMatchOnestrMassPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonMatchOnestrDistP:
+      type: "1D"
+      name: ThreePhotonMatchOnestrDistPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonMatchTwostrMassP:
+      type: "1D"
+      name: ThreePhotonMatchTwostrMassPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonMatchTwostrDistP:
+      type: "1D"
+      name: ThreePhotonMatchTwostrDistPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonNoMatchstrMassP:
+      type: "1D"
+      name: ThreePhotonNoMatchstrMassPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonNoMatchstrDistP:
+      type: "1D"
+      name: ThreePhotonNoMatchstrDistPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoPiDecayP:
+      type: "1D"
+      name: RhoPiDecayPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecayP:
+      type: "1D"
+      name: RhoTwoPhotonDecayPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecaySumP:
+      type: "1D"
+      name: RhoTwoPhotonDecaySumPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecayPiPhotonSumP:
+      type: "2D"
+      name: RhoTwoPhotonDecayPiPhotonSumPReco
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    RhoOnePhotonDecayPiP:
+      type: "1D"
+      name: RhoOnePhotonDecayPiPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPhotonP:
+      type: "1D"
+      name: RhoOnePhotonDecayPhotonPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPiPhotonP:
+      type: "2D"
+      name: RhoOnePhotonDecayPiPhotonPReco
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    NTaus:
+      type: "1D"
+      name: NTausReco
+      range: [0, 6]
+      bins: 6
+
+    NTausType:
+      type: "1D"
+      name: NTausTypeReco
+      range: [0, 6]
+      bins: 6
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0Reco
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1Reco
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2Reco
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10Reco
+      range: [0, 3.15]
+      bins: 100
+
+    NeutralHadronP:
+      type: "1D"
+      name: NeutralHadronPReco
+      range: [0, 50]
+      bins: 100
+
+    NeutralHadronTauP:
+      type: "1D"
+      name: NeutralHadronTauPReco
+      range: [0, 50]
+      bins: 100
+
+    PhotonTheta:
+      type: "1D"
+      name: PhotonThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    PionTheta:
+      type: "1D"
+      name: PionThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    AllPhotonsTheta:
+      type: "1D"
+      name: AllPhotonsThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    AllPhotonsP:
+      type: "1D"
+      name: AllPhotonsPReco
+      range: [0, 50]
+      bins: 100
+
+    AllPionsTheta:
+      type: "1D"
+      name: AllPionsThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsP:
+      type: "1D"
+      name: AllPionsPReco
+      range: [0, 50]
+      bins: 100
+
+    DuplicatePionMatch:
+      type: "1D"
+      name: DuplicatePionMatchReco
+      range: [0, 10]
+      bins: 10
+
+    UnmatchedPionsP:
+      type: "1D"
+      name: UnmatchedPionsPReco
+      range: [0, 50]
+      bins: 100
+
+    UnmatchedPionsTheta:
+      type: "1D"
+      name: UnmatchedPionsThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    UnmatchedPhotonsP:
+      type: "1D"
+      name: UnmatchedPhotonsPReco
+      range: [0, 50]
+      bins: 100
+
+    UnmatchedPhotonsTheta:
+      type: "1D"
+      name: UnmatchedPhotonsThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    TauP0:
+      type: "1D"
+      name: TauP0Reco
+      range: [0, 50]
+      bins: 12
+
+    TauP1:
+      type: "1D"
+      name: TauP1Reco
+      range: [0, 50]
+      bins: 12
+
+    TauP2:
+      type: "1D"
+      name: TauP2Reco
+      range: [0, 50]
+      bins: 12
+
+    TauP10:
+      type: "1D"
+      name: TauP10Reco
+      range: [0, 50]
+      bins: 12
+
+    PhotonP:
+      type: "1D"
+      name: PhotonPReco
+      range: [0, 25]
+      bins: 100
+
+    PionP:
+      type: "1D"
+      name: PionPReco
+      range: [0, 50]
+      bins: 100
+
+  Resolution:
+    TauPt:
+      type: "1D"
+      name: TauPtResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauP:
+      type: "1D"
+      name: TauPResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauMass:
+      type: "1D"
+      name: TauMassResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0ResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1ResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2ResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10ResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauP0:
+      type: "1D"
+      name: TauP0ResReco
+      range: [-1, 1]
+      bins: 100
+
+    TauP1:
+      type: "1D"
+      name: TauP1ResReco
+      range: [-1, 1]
+      bins: 100
+
+    TauP2:
+      type: "1D"
+      name: TauP2ResReco
+      range: [-1, 1]
+      bins: 100
+
+    TauP10:
+      type: "1D"
+      name: TauP10ResReco
+      range: [-1, 1]
+      bins: 100
+
+
+GenVSReco:
+  Events:
+    TauPt:
+      type: "2D"
+      name: TauPtGenVsReco
+      x_range: [0, 50]
+      x_bins: 250
+      y_range: [0, 50]
+      y_bins: 250
+
+    TauP:
+      type: "2D"
+      name: TauPGenVsReco
+      x_range: [0, 50]
+      x_bins: 250
+      y_range: [0, 50]
+      y_bins: 250
+
+    TauDR:
+      type: "2D"
+      name: TauDRGenVsReco
+      x_range: [0, 1]
+      x_bins: 100
+      y_range: [0, 1]
+      y_bins: 100
+
+    TauMass:
+      type: "2D"
+      name: TauMassGenVsReco
+      x_range: [0, 10]
+      x_bins: 500
+      y_range: [0, 10]
+      y_bins: 500
+
+    TauType:
+      type: "2D"
+      name: TauTypeGenVsReco
+      x_range: [-1, 20]
+      x_bins: 21
+      y_range: [-1, 20]
+      y_bins: 21
+
+    TauQ:
+      type: "2D"
+      name: TauQGenVsReco
+      x_range: [-2, 2]
+      x_bins: 4
+      y_range: [-2, 2]
+      y_bins: 4
