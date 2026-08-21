@@ -1,6 +1,8 @@
 import ROOT
 import math
 
+from modules import genDecayModes
+
 def dRAngle(p1,p2):
     """
     Calculate the angle between two particles in the eta-phi plane
@@ -257,6 +259,31 @@ class GenParticle(Particle):
         PDGID (int):  PDG ID of the particle.
         mcp (MCParticle): Original MCParticle object from the simulation.
         idx (int): Unique identificator for the particle (per event).
+        constOrigin (dict): Origin code per constituent, keyed like ``const``
+            (see the PHOTON_ORIGIN_* constants in ``modules.tauReco``).
+        extraNeutrals (dict): Neutral decay products that no counter of
+            ``visTauGen`` registers (K0_L, neutrons, Lambdas…). They are also
+            part of ``const`` and of the visible momentum: this is a tag only,
+            the decay-mode ID is left untouched.
+        hasExtraNeutrals (bool): Whether ``extraNeutrals`` is non-empty.
+        neutrinos (dict): Neutrinos of the decay, keyed like ``const``. Purely
+            additive: they are *not* part of ``const``, of ``nConst`` nor of
+            the visible momentum, so the visible quantities keep their meaning.
+            In a leptonic decay both the nu_tau and the nu_l are stored, which
+            is the only way to tell them apart (``genP4 - visP4`` gives only
+            their sum).
+        mcIdx (int): Object index of the particle in the MCParticles collection.
+        originPDG (int): PDG of the first non-tau ancestor (23, 22…).
+        isSecondary (bool): Tau produced by radiation (tau -> gamma -> tau tau).
+        motherTauMCIdx (int): MCParticles index of the mother tau (-1 if primary).
+        motherTauKey (int): Key of the mother tau within the same genTaus dict.
+        radPhotonMCIdx (int): MCParticles index of the intermediate photon.
+        decayDaughterPDG (tuple): Canonical PDG codes of the tau's direct
+            daughters (see ``modules.genDecayModes``). Unlike ``ID``, this is
+            the *true* decay, so it separates channels that the visible
+            topology merges (K0 pi, omega K…).
+        trueMode (int): ``MODE_*`` code of ``decayDaughterPDG``, ``-1`` if the
+            label is not in ``genDecayModes.MODE_TABLE``.
     """
 
     def __init__(
@@ -272,8 +299,26 @@ class GenParticle(Particle):
         mcp=None,
         idx=-1,
         helicity=None,
+        constOrigin=None,
+        extraNeutrals=None,
+        hasExtraNeutrals=False,
+        mcIdx=-1,
+        originPDG=0,
+        isSecondary=False,
+        motherTauMCIdx=-1,
+        motherTauKey=-1,
+        radPhotonMCIdx=-1,
+        decayDaughterPDG=None,
+        trueMode=-1,
+        neutrinos=None,
     ):
-        """Constructor of the Particle class."""
+        """Constructor of the Particle class.
+
+        Note: the provenance arguments are kept at the end of the signature on
+        purpose — ``GenParticle`` is also built positionally (see
+        ``modules/particleMatch.py``), so inserting them earlier would silently
+        shift those calls.
+        """
         # Initialize the parent class
         super(GenParticle, self).__init__(genP4, PDGID, ID, charge, idx)
 
@@ -283,6 +328,19 @@ class GenParticle(Particle):
         self.const = const if const is not None else {}
         self.mcp = mcp
         self.helicity = helicity
+        self.constOrigin = constOrigin if constOrigin is not None else {}
+        self.extraNeutrals = extraNeutrals if extraNeutrals is not None else {}
+        self.hasExtraNeutrals = bool(hasExtraNeutrals)
+        self.mcIdx = mcIdx
+        self.originPDG = originPDG
+        self.isSecondary = bool(isSecondary)
+        self.motherTauMCIdx = motherTauMCIdx
+        self.motherTauKey = motherTauKey
+        self.radPhotonMCIdx = radPhotonMCIdx
+        # Tupla: la etiqueta es inmutable una vez construido el tau.
+        self.decayDaughterPDG = tuple(decayDaughterPDG) if decayDaughterPDG else ()
+        self.trueMode = int(trueMode)
+        self.neutrinos = neutrinos if neutrinos is not None else {}
 
     def copy(self):
         """Create a copy of the GenParticle."""
@@ -298,9 +356,88 @@ class GenParticle(Particle):
             mcp=self.mcp,
             idx=self.idx,
             helicity=self.helicity,
+            constOrigin=self.constOrigin.copy(),
+            extraNeutrals=self.extraNeutrals.copy(),
+            hasExtraNeutrals=self.hasExtraNeutrals,
+            mcIdx=self.mcIdx,
+            originPDG=self.originPDG,
+            isSecondary=self.isSecondary,
+            motherTauMCIdx=self.motherTauMCIdx,
+            motherTauKey=self.motherTauKey,
+            radPhotonMCIdx=self.radPhotonMCIdx,
+            decayDaughterPDG=self.decayDaughterPDG,
+            trueMode=self.trueMode,
+            neutrinos=self.neutrinos.copy(),
         )
         return new_particle
-    
+
+    def getConstOrigin(self):
+        """Origin code per constituent, keyed like getDaughters()."""
+        return self.constOrigin
+
+    def getExtraNeutrals(self):
+        """Neutral products ignored by the decay-mode classification."""
+        return self.extraNeutrals
+
+    def getNExtraNeutrals(self):
+        return len(self.extraNeutrals)
+
+    def getNeutrinos(self):
+        """Neutrinos of the decay, excluded from const and from visp4."""
+        return self.neutrinos
+
+    def getNNeutrinos(self):
+        return len(self.neutrinos)
+
+    def getHasExtraNeutrals(self):
+        return self.hasExtraNeutrals
+
+    def getMCIdx(self):
+        return self.mcIdx
+
+    def getOriginPDG(self):
+        return self.originPDG
+
+    def getIsSecondary(self):
+        """True for taus coming from radiation (tau -> gamma -> tau tau)."""
+        return self.isSecondary
+
+    def getMotherTauMCIdx(self):
+        return self.motherTauMCIdx
+
+    def getMotherTauKey(self):
+        """Key of the mother tau inside the same genTaus dict (-1 if primary)."""
+        return self.motherTauKey
+
+    def getRadPhotonMCIdx(self):
+        return self.radPhotonMCIdx
+
+    def getDecayDaughterPDG(self):
+        """Canonical PDG codes of the tau's direct daughters."""
+        return self.decayDaughterPDG
+
+    def getNDecayDaughters(self):
+        return len(self.decayDaughterPDG)
+
+    def getTrueMode(self):
+        """MODE_* code of the true decay mode (-1 if not catalogued)."""
+        return self.trueMode
+
+    def getDecayLabel(self):
+        """Canonical string label of the true decay mode ('' if unavailable)."""
+        return genDecayModes.decay_label(self.decayDaughterPDG)
+
+    def getTrueModeName(self):
+        """Human-readable name of the true decay mode."""
+        return genDecayModes.mode_name(self.trueMode)
+
+    def setMotherTauKey(self, motherTauKey):
+        self.motherTauKey = motherTauKey
+
+    def setExtraNeutrals(self, extraNeutrals):
+        self.extraNeutrals = extraNeutrals
+        self.hasExtraNeutrals = bool(extraNeutrals)
+
     def getHelicity(self):
         return self.helicity
     
@@ -385,8 +522,19 @@ class GenParticle(Particle):
                 self.idx,
             )
         )
+        print(
+            "  mcIdx: %d, originPDG: %d, secondary: %s, motherTauKey: %d, "
+            "extraNeutrals: %d"
+            % (
+                self.mcIdx,
+                self.originPDG,
+                self.isSecondary,
+                self.motherTauKey,
+                len(self.extraNeutrals),
+            )
+        )
         for i in range(self.nConst):
-            print("  Constituent %d:" % i)
+            print("  Constituent %d (origin %d):" % (i, self.constOrigin.get(i, -1)))
             print(self.const[i])
 
     def __str__(self):

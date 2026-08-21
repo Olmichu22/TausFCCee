@@ -63,7 +63,9 @@ def visTauZ(candZ):
   for dau in candZ.getDaughters():
     pre_decay_dau = getDefTau(dau) 
     visGenTau = tauReco.visTauGen(pre_decay_dau)
-    visGentauParticle = GenParticle(*visGenTau)
+    # visTauGen devuelve un dict: hay que desempaquetarlo por clave (con * se
+    # pasaban los nombres de las claves como argumentos posicionales).
+    visGentauParticle = GenParticle(**visGenTau)
     if visGentauParticle.getID() == -11:
       key += "electron"
     elif visGentauParticle.getID() == -13:

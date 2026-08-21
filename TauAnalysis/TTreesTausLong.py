@@ -20,6 +20,13 @@ from modules import tauReco, electronReco, muonReco, myutils
 
 _NEUTRINO_PDGS = {12, 14, 16}
 
+# Event-id encoding shared with ``myutils.get_root_trees_path``: the GATr/MLPF
+# predictions are keyed as ``file_position * _EVENTS_PER_FILE + local_event``.
+# Event ids in the tree use the same encoding, which keeps them unique across
+# workers without pre-scanning every file. The only requirement is that no file
+# holds more than _EVENTS_PER_FILE events — the worker checks this explicitly.
+_EVENTS_PER_FILE = 1000
+
 
 # ── File splitting helpers ─────────────────────────────────────────────────────
 
@@ -39,8 +46,8 @@ def split_mlpf(mlpf_results, file_chunks):
     mlpf_chunks = []
     file_offset = 0
     for chunk in file_chunks:
-        lo = file_offset * 1000
-        hi = (file_offset + len(chunk)) * 1000
+        lo = file_offset * _EVENTS_PER_FILE
+        hi = (file_offset + len(chunk)) * _EVENTS_PER_FILE
         sub = {k - lo: v for k, v in mlpf_results.items() if lo <= k < hi}
         mlpf_chunks.append(sub)
         file_offset += len(chunk)
@@ -49,17 +56,35 @@ def split_mlpf(mlpf_results, file_chunks):
 
 # ── Gen-level decay-tree helper ────────────────────────────────────────────────
 
+def mc_object_index(particle):
+    """Return the MCParticles object index of *particle* (-1 if unavailable)."""
+    try:
+        return int(particle.getObjectID().index)
+    except Exception:
+        return -1
+
+
 def get_final_state_constituents(gen_tau_consts):
     """Recursively traverse the decay tree from a gen tau's direct daughters.
 
     Takes the const dict from GenParticle.getDaughters() (raw MCParticle objects)
     and returns the final-state (generatorStatus==1, non-neutrino) leaves,
-    each tagged with the index of their pi0 ancestor within this tau (-1 if none).
+    each tagged with the index of their pi0 ancestor within this tau (-1 if none)
+    and with an origin code (see PHOTON_ORIGIN_* in modules.tauReco; -1 for
+    anything that is not a photon).
 
-    Returns: list of (MCParticle, pi0_ancestor_idx)
+    Returns: list of (MCParticle, pi0_ancestor_idx, origin_code)
     """
     results = []
     pi0_counter = [0]
+
+    def _origin_of(particle, pi0_idx):
+        if abs(particle.getPDG()) != 22:
+            return tauReco.PHOTON_ORIGIN_NOT_A_PHOTON
+        if pi0_idx >= 0:
+            # Ya sabemos el ancestro por construcción: no hace falta subir.
+            return tauReco.PHOTON_ORIGIN_PI0
+        return tauReco.classify_photon_origin(particle)
 
     def _recurse(particle, pi0_idx):
         pdg = abs(particle.getPDG())
@@ -68,7 +93,7 @@ def get_final_state_constituents(gen_tau_consts):
         daughters = list(particle.getDaughters())
         status = particle.getGeneratorStatus()
         if not daughters or status == 1:
-            results.append((particle, pi0_idx))
+            results.append((particle, pi0_idx, _origin_of(particle, pi0_idx)))
             return
         for d in daughters:
             if abs(d.getPDG()) == 111:
@@ -169,7 +194,7 @@ def build_truth_links(event, filter_gen_status=True, max_gen_pdg=10000,
 
 # ── Worker ─────────────────────────────────────────────────────────────────────
 
-def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
+def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
                   config_bundle, worker_id):
     """Process a chunk of ROOT files and write results to a temporary TFile.
 
@@ -219,6 +244,8 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
     numRecoTaus   = np.array([0], dtype=int)
     numGenPhotons = np.array([0], dtype=int)
     numRecoPhotons= np.array([0], dtype=int)
+    numGenExtraNeutrals = np.array([0], dtype=np.int32)
+    numGenNus     = np.array([0], dtype=np.int32)
     beamE         = np.array([0.0], dtype=np.float64)
 
     # Gen tau
@@ -248,6 +275,48 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
     GenConstPDG      = ROOT.std.vector("int")()
     GenConstPi0Key   = ROOT.std.vector("int")()
     GenConstPhi      = ROOT.std.vector("float")()
+    GenConstMCIdx    = ROOT.std.vector("int")()
+    GenConstOrigin   = ROOT.std.vector("int")()
+
+    # Gen tau provenance (per gen tau, aligned with GenTauNConstKey)
+    GenTauMCIdx            = ROOT.std.vector("int")()
+    GenTauOriginPDG        = ROOT.std.vector("int")()
+    GenTauIsSecondary      = ROOT.std.vector("int")()
+    GenTauMotherTauKey     = ROOT.std.vector("int")()
+    GenTauMotherTauMCIdx   = ROOT.std.vector("int")()
+    GenTauRadPhotonMCIdx   = ROOT.std.vector("int")()
+    GenTauHasExtraNeutrals = ROOT.std.vector("int")()
+    GenTauNExtraNeutrals   = ROOT.std.vector("int")()
+
+    # True decay mode from the tau's direct daughters (modules.genDecayModes).
+    # Complements GenTauType, which is a visible-topology label and merges
+    # channels an intermediate resonance makes different (K0 pi, omega K…).
+    GenTauTrueMode         = ROOT.std.vector("int")()
+    GenTauNDecayDaughters  = ROOT.std.vector("int")()
+
+    # Canonical direct-daughter PDGs, flattened over taus
+    GenDecayDaughterTauKey = ROOT.std.vector("int")()
+    GenDecayDaughterPDG    = ROOT.std.vector("int")()
+
+    # Extra neutrals: gen products the decay-mode ID does not count (K0_L, n…)
+    GenExtraNeutralTauKey = ROOT.std.vector("int")()
+    GenExtraNeutralMCIdx  = ROOT.std.vector("int")()
+    GenExtraNeutralPDG    = ROOT.std.vector("int")()
+    GenExtraNeutralP      = ROOT.std.vector("float")()
+    GenExtraNeutralTheta  = ROOT.std.vector("float")()
+    GenExtraNeutralEta    = ROOT.std.vector("float")()
+    GenExtraNeutralPhi    = ROOT.std.vector("float")()
+
+    # Neutrinos: bloque propio, fuera de los constituyentes y del 4-momento
+    # visible. En los canales leptónicos hay dos por tau (nu_tau y nu_l).
+    GenTauNNus     = ROOT.std.vector("int")()
+    GenNuTauKey    = ROOT.std.vector("int")()
+    GenNuMCIdx     = ROOT.std.vector("int")()
+    GenNuPDG       = ROOT.std.vector("int")()
+    GenNuP         = ROOT.std.vector("float")()
+    GenNuTheta     = ROOT.std.vector("float")()
+    GenNuEta       = ROOT.std.vector("float")()
+    GenNuPhi       = ROOT.std.vector("float")()
 
     # Reco tau
     RecoTauPt        = ROOT.std.vector("float")()
@@ -277,6 +346,9 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
     GenPhotonPhi     = ROOT.std.vector("float")()
     GenPhotonMCIdx   = ROOT.std.vector("int")()
     GenPhotonTauKey  = ROOT.std.vector("int")()
+    GenPhotonOrigin        = ROOT.std.vector("int")()
+    GenPhotonParentPDG     = ROOT.std.vector("int")()
+    GenPhotonAncestorMCIdx = ROOT.std.vector("int")()
 
     # Reco photons (event-level, from PandoraPFOs)
     RecoPhotonP            = ROOT.std.vector("float")()
@@ -292,6 +364,8 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
     tree.Branch("numRecoTaus",    numRecoTaus,    "numRecoTaus/I")
     tree.Branch("numGenPhotons",  numGenPhotons,  "numGenPhotons/I")
     tree.Branch("numRecoPhotons", numRecoPhotons, "numRecoPhotons/I")
+    tree.Branch("numGenExtraNeutrals", numGenExtraNeutrals, "numGenExtraNeutrals/I")
+    tree.Branch("numGenNus",      numGenNus,      "numGenNus/I")
     tree.Branch("beamE",          beamE,          "beamE/D")
     # Gen tau
     tree.Branch("GenEventId",      GenEventId)
@@ -320,6 +394,39 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
     tree.Branch("GenConstPDG",     GenConstPDG)
     tree.Branch("GenConstPi0Key",  GenConstPi0Key)
     tree.Branch("GenConstPhi",     GenConstPhi)
+    tree.Branch("GenConstMCIdx",   GenConstMCIdx)
+    tree.Branch("GenConstOrigin",  GenConstOrigin)
+    # Gen tau provenance
+    tree.Branch("GenTauMCIdx",            GenTauMCIdx)
+    tree.Branch("GenTauOriginPDG",        GenTauOriginPDG)
+    tree.Branch("GenTauIsSecondary",      GenTauIsSecondary)
+    tree.Branch("GenTauMotherTauKey",     GenTauMotherTauKey)
+    tree.Branch("GenTauMotherTauMCIdx",   GenTauMotherTauMCIdx)
+    tree.Branch("GenTauRadPhotonMCIdx",   GenTauRadPhotonMCIdx)
+    tree.Branch("GenTauHasExtraNeutrals", GenTauHasExtraNeutrals)
+    tree.Branch("GenTauNExtraNeutrals",   GenTauNExtraNeutrals)
+    # True decay mode
+    tree.Branch("GenTauTrueMode",         GenTauTrueMode)
+    tree.Branch("GenTauNDecayDaughters",  GenTauNDecayDaughters)
+    tree.Branch("GenDecayDaughterTauKey", GenDecayDaughterTauKey)
+    tree.Branch("GenDecayDaughterPDG",    GenDecayDaughterPDG)
+    # Extra neutrals
+    tree.Branch("GenExtraNeutralTauKey", GenExtraNeutralTauKey)
+    tree.Branch("GenExtraNeutralMCIdx",  GenExtraNeutralMCIdx)
+    tree.Branch("GenExtraNeutralPDG",    GenExtraNeutralPDG)
+    tree.Branch("GenExtraNeutralP",      GenExtraNeutralP)
+    tree.Branch("GenExtraNeutralTheta",  GenExtraNeutralTheta)
+    tree.Branch("GenExtraNeutralEta",    GenExtraNeutralEta)
+    tree.Branch("GenExtraNeutralPhi",    GenExtraNeutralPhi)
+    # Neutrinos
+    tree.Branch("GenTauNNus",  GenTauNNus)
+    tree.Branch("GenNuTauKey", GenNuTauKey)
+    tree.Branch("GenNuMCIdx",  GenNuMCIdx)
+    tree.Branch("GenNuPDG",    GenNuPDG)
+    tree.Branch("GenNuP",      GenNuP)
+    tree.Branch("GenNuTheta",  GenNuTheta)
+    tree.Branch("GenNuEta",    GenNuEta)
+    tree.Branch("GenNuPhi",    GenNuPhi)
     # Reco tau
     tree.Branch("RecoTauPt",        RecoTauPt)
     tree.Branch("RecoTauP",         RecoTauP)
@@ -348,6 +455,9 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
     tree.Branch("GenPhotonPhi",    GenPhotonPhi)
     tree.Branch("GenPhotonMCIdx",  GenPhotonMCIdx)
     tree.Branch("GenPhotonTauKey", GenPhotonTauKey)
+    tree.Branch("GenPhotonOrigin",         GenPhotonOrigin)
+    tree.Branch("GenPhotonParentPDG",      GenPhotonParentPDG)
+    tree.Branch("GenPhotonAncestorMCIdx",  GenPhotonAncestorMCIdx)
     # Reco photons
     tree.Branch("RecoPhotonP",           RecoPhotonP)
     tree.Branch("RecoPhotonPt",          RecoPhotonPt)
@@ -364,36 +474,66 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
         GenVisTauEta, GenVisTauTheta, GenVisTauPhi,
         GenTauDR, GenTauNConsts, GenTauNConstKey,
         GenTauConstKey, GenMatchedKey, GenConstP, GenConstTheta, GenConstEta, GenConstPDG, GenConstPhi,
-        GenConstPi0Key,
+        GenConstPi0Key, GenConstMCIdx, GenConstOrigin,
+        GenTauMCIdx, GenTauOriginPDG, GenTauIsSecondary, GenTauMotherTauKey,
+        GenTauMotherTauMCIdx, GenTauRadPhotonMCIdx,
+        GenTauHasExtraNeutrals, GenTauNExtraNeutrals,
+        GenTauTrueMode, GenTauNDecayDaughters,
+        GenDecayDaughterTauKey, GenDecayDaughterPDG,
+        GenExtraNeutralTauKey, GenExtraNeutralMCIdx, GenExtraNeutralPDG,
+        GenExtraNeutralP, GenExtraNeutralTheta, GenExtraNeutralEta, GenExtraNeutralPhi,
+        GenTauNNus, GenNuTauKey, GenNuMCIdx, GenNuPDG,
+        GenNuP, GenNuTheta, GenNuEta, GenNuPhi,
         RecoTauPt, RecoTauP, RecoTauMass, RecoTauType, RecoTauDM, RecoTauQ, RecoTauEta,
         RecoTauTheta, RecoTauPhi, RecoTauDR, RecoTauNConsts, RecoTauNConstKey, RecoTauConstKey,
         RecoMatchedKey, RecoConstP, RecoConstTheta, RecoConstEta, RecoConstPDG, RecoConstPhi,
         GenPhotonP, GenPhotonPt, GenPhotonEta, GenPhotonTheta, GenPhotonPhi,
         GenPhotonMCIdx, GenPhotonTauKey,
+        GenPhotonOrigin, GenPhotonParentPDG, GenPhotonAncestorMCIdx,
         RecoPhotonP, RecoPhotonPt, RecoPhotonEta, RecoPhotonTheta, RecoPhotonPhi,
         RecoPhotonPFOIdx, RecoPhotonTauKey, RecoPhotonGenMatchIdx,
     ]
 
     # ── Event loop ──────────────────────────────────────────────────────────
-    cumulative_local_eventid = 0
-    for filename in filenames_chunk:
+    use_mlpf = gatr_results_path is not None and not test_pfo
+    n_missing_mlpf = 0
+    for file_pos, filename in enumerate(filenames_chunk):
         file_reader = root_io.Reader([filename])
-        file_local_eventid = -1
 
-        for file_local_eventid, event in enumerate(file_reader.get("events")):
-            local_eventid = cumulative_local_eventid + file_local_eventid
-            event_id_global = global_event_offset + local_eventid
-            if local_eventid % 500 == 0:
-                logger.info("Worker %d: local event %d (global %d)",
-                            worker_id, local_eventid, event_id_global)
+        for local_event, event in enumerate(file_reader.get("events")):
+            if local_event >= _EVENTS_PER_FILE:
+                raise RuntimeError(
+                    f"{filename} holds more than {_EVENTS_PER_FILE} events: the "
+                    f"event-id / MLPF key encoding would collide across files. "
+                    f"Raise _EVENTS_PER_FILE here and in myutils.get_root_trees_path."
+                )
+            # Chunk-local key (matches the renormalized mlpf_chunk keys) and the
+            # globally unique id written to the tree.
+            local_eventid   = file_pos * _EVENTS_PER_FILE + local_event
+            event_id_global = (global_file_offset + file_pos) * _EVENTS_PER_FILE + local_event
+            if local_event % 500 == 0:
+                logger.info("Worker %d: file %d event %d (global id %d)",
+                            worker_id, file_pos, local_event, event_id_global)
 
             mc_particles = event.get(genparts)
             pfos = event.get(pfobjects)  # PandoraPFOs — always used for reco photons
             beamE[0] = mc_particles[0].getEnergy()
 
             # Reco tau reconstruction (MLPF or PFO)
-            if gatr_results_path is not None and not test_pfo:
-                particles = mlpf_chunk.get(local_eventid, {})
+            if use_mlpf:
+                particles = mlpf_chunk.get(local_eventid)
+                if particles is None:
+                    # No prediction for this event: usually a symptom of the key
+                    # encoding drifting, so make it visible instead of silently
+                    # reconstructing zero taus.
+                    n_missing_mlpf += 1
+                    if n_missing_mlpf <= 10 or n_missing_mlpf % 500 == 0:
+                        logger.warning(
+                            "Worker %d: no MLPF prediction for key %d (file %d, event %d); "
+                            "%d missing so far", worker_id, local_eventid, file_pos,
+                            local_event, n_missing_mlpf,
+                        )
+                    particles = {}
                 recoTau_raw = tauReco.findAllTaus(
                     particles, dRMax, minPTauPhoton, minPTauPion,
                     PNeutron, generalPCut, charge_condition=False
@@ -424,6 +564,8 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
                 v.clear()
             numGenTaus[0]  = nGenTaus
             numRecoTaus[0] = nRecoTaus
+            n_extra_neutrals = 0
+            n_neutrinos = 0
 
             # ── Pre-compute final-state constituents for all gen taus ──────
             # Cached to avoid double traversal (used both for branch filling
@@ -437,7 +579,7 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
             # Maps MCParticle object-index → gen tau array index
             tau_photon_mc_idx = {}
             for i, consts in tau_final_consts.items():
-                for (part, _) in consts:
+                for (part, _, _) in consts:
                     if abs(part.getPDG()) == 22:
                         try:
                             tau_photon_mc_idx[part.getObjectID().index] = i
@@ -487,9 +629,64 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
                 GenTauDR.push_back(genTaus[i].getMaxAngle())
                 GenTauNConstKey.push_back(i)
 
+                # Provenance: primary tau vs radiative tau -> gamma -> tau tau.
+                extra_neutrals = genTaus[i].getExtraNeutrals()
+                GenTauMCIdx.push_back(genTaus[i].getMCIdx())
+                GenTauOriginPDG.push_back(genTaus[i].getOriginPDG())
+                GenTauIsSecondary.push_back(int(genTaus[i].getIsSecondary()))
+                GenTauMotherTauKey.push_back(genTaus[i].getMotherTauKey())
+                GenTauMotherTauMCIdx.push_back(genTaus[i].getMotherTauMCIdx())
+                GenTauRadPhotonMCIdx.push_back(genTaus[i].getRadPhotonMCIdx())
+                GenTauHasExtraNeutrals.push_back(int(genTaus[i].getHasExtraNeutrals()))
+                GenTauNExtraNeutrals.push_back(len(extra_neutrals))
+
+                # Modo real (hijos directos), complementario a GenTauType.
+                decay_daughters = genTaus[i].getDecayDaughterPDG()
+                GenTauTrueMode.push_back(int(genTaus[i].getTrueMode()))
+                GenTauNDecayDaughters.push_back(len(decay_daughters))
+                for pdg in decay_daughters:
+                    GenDecayDaughterTauKey.push_back(i)
+                    GenDecayDaughterPDG.push_back(int(pdg))
+
+                # Neutros que no entran en el ID del decay (K0_L, n, Lambda…).
+                for key in sorted(extra_neutrals.keys()):
+                    neutral = extra_neutrals[key]
+                    neutralP4 = ROOT.TLorentzVector()
+                    neutralP4.SetXYZM(
+                        neutral.getMomentum().x, neutral.getMomentum().y,
+                        neutral.getMomentum().z, neutral.getMass(),
+                    )
+                    GenExtraNeutralTauKey.push_back(i)
+                    GenExtraNeutralMCIdx.push_back(mc_object_index(neutral))
+                    GenExtraNeutralPDG.push_back(neutral.getPDG())
+                    GenExtraNeutralP.push_back(neutralP4.P())
+                    GenExtraNeutralTheta.push_back(neutralP4.Theta())
+                    GenExtraNeutralEta.push_back(neutralP4.Eta())
+                    GenExtraNeutralPhi.push_back(neutralP4.Phi())
+                    n_extra_neutrals += 1
+
+                # Neutrinos del decay: no entran en const ni en el visible.
+                nus = genTaus[i].getNeutrinos()
+                GenTauNNus.push_back(len(nus))
+                for key in sorted(nus.keys()):
+                    nu = nus[key]
+                    nuP4 = ROOT.TLorentzVector()
+                    nuP4.SetXYZM(
+                        nu.getMomentum().x, nu.getMomentum().y,
+                        nu.getMomentum().z, nu.getMass(),
+                    )
+                    GenNuTauKey.push_back(i)
+                    GenNuMCIdx.push_back(mc_object_index(nu))
+                    GenNuPDG.push_back(nu.getPDG())
+                    GenNuP.push_back(nuP4.P())
+                    GenNuTheta.push_back(nuP4.Theta())
+                    GenNuEta.push_back(nuP4.Eta())
+                    GenNuPhi.push_back(nuP4.Phi())
+                    n_neutrinos += 1
+
                 final_consts = tau_final_consts[i]
                 GenTauNConsts.push_back(len(final_consts))
-                for (part, pi0_idx) in final_consts:
+                for (part, pi0_idx, origin) in final_consts:
                     constP4 = ROOT.TLorentzVector()
                     constP4.SetXYZM(
                         part.getMomentum().x, part.getMomentum().y,
@@ -502,6 +699,11 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
                     GenConstEta.push_back(constP4.Eta())
                     GenConstPhi.push_back(constP4.Phi())
                     GenConstPi0Key.push_back(pi0_idx)
+                    GenConstOrigin.push_back(origin)
+                    GenConstMCIdx.push_back(mc_object_index(part))
+
+            numGenExtraNeutrals[0] = n_extra_neutrals
+            numGenNus[0] = n_neutrinos
 
             # ── Fill reco tau branches ─────────────────────────────────────
             for i in range(nRecoTaus):
@@ -576,19 +778,24 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
                         continue
                     mc_idx  = mc_part.getObjectID().index
                     tau_key = tau_photon_mc_idx.get(mc_idx, -1)
+                    # De dónde sale el fotón: pi0, FSR del tau, radiación de un
+                    # cargado… El ancestro agrupa los dos gammas de un mismo pi0.
+                    origin, parent_pdg, ancestor_idx = tauReco.photon_origin_info(mc_part)
                     p4 = ROOT.TLorentzVector()
                     p4.SetXYZM(
                         mc_part.getMomentum().x, mc_part.getMomentum().y,
                         mc_part.getMomentum().z, mc_part.getMass(),
                     )
-                    gen_photon_list.append((mc_idx, tau_key, p4))
+                    gen_photon_list.append(
+                        (mc_idx, tau_key, p4, origin, parent_pdg, ancestor_idx)
+                    )
                 except Exception:
                     continue
 
             # mc_obj_index → position in GenPhoton* arrays (for reco→gen lookup)
-            gen_mc_to_pos = {mc_idx: pos for pos, (mc_idx, _, _) in enumerate(gen_photon_list)}
+            gen_mc_to_pos = {row[0]: pos for pos, row in enumerate(gen_photon_list)}
 
-            for (mc_idx, tau_key, p4) in gen_photon_list:
+            for (mc_idx, tau_key, p4, origin, parent_pdg, ancestor_idx) in gen_photon_list:
                 GenPhotonP.push_back(p4.P())
                 GenPhotonPt.push_back(p4.Pt())
                 GenPhotonEta.push_back(p4.Eta())
@@ -596,6 +803,9 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
                 GenPhotonPhi.push_back(p4.Phi())
                 GenPhotonMCIdx.push_back(mc_idx)
                 GenPhotonTauKey.push_back(tau_key)
+                GenPhotonOrigin.push_back(origin)
+                GenPhotonParentPDG.push_back(parent_pdg)
+                GenPhotonAncestorMCIdx.push_back(ancestor_idx)
             numGenPhotons[0] = len(gen_photon_list)
 
             # ── Reco photons (from PandoraPFOs — consistent with TruthLink) ─
@@ -640,12 +850,11 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
 
             tree.Fill()
 
-        if file_local_eventid >= 0:
-            cumulative_local_eventid += file_local_eventid + 1
-
     outfile_tmp.cd()
     tree.Write()
     outfile_tmp.Close()
+    if n_missing_mlpf:
+        logger.warning("Worker %d: %d event(s) without MLPF prediction", worker_id, n_missing_mlpf)
     logger.info("Worker %d finished → %s", worker_id, tmp_path)
     return tmp_path
 
@@ -694,7 +903,20 @@ def main():
     minPTauPhoton = run_config["cuts"]["TauPhotonPCut"]
     minPTauPion   = run_config["cuts"]["TauPionPCut"]
     PNeutron      = run_config["cuts"]["NeutronCut"]
-    dRMatch       = run_config["cuts"]["MatchedGenMinDR"]
+    # Las configs del repo alternan entre MatchedGenMinDR (taurecolong_CLD, …) y
+    # MatchedGenMaxDR (config/default/taurecolong.yaml): aceptamos ambas.
+    _cuts_cfg     = run_config["cuts"]
+    dRMatch       = _cuts_cfg.get("MatchedGenMinDR")
+    if dRMatch is None:
+        dRMatch = _cuts_cfg.get("MatchedGenMaxDR")
+    if isinstance(dRMatch, list):
+        dRMatch = dRMatch[0]
+    if dRMatch is None:
+        logger_config.error(
+            "No matching cut found in the config: set MatchedGenMinDR (or "
+            "MatchedGenMaxDR) in the YAML, or pass -r/--MatchedGenMinDR."
+        )
+        sys.exit(1)
     generalPCut   = run_config["cuts"]["generalPCut"]
     selectDecay   = general_configs["decay"]
     cut_string    = general_configs["decay_str"]
@@ -746,15 +968,17 @@ def main():
     file_chunks = split_filenames(filenames, n_workers)
     mlpf_chunks = split_mlpf(mlpf_results, file_chunks)
 
-    event_offsets = []
+    # Offset of each chunk in the global file list: the worker turns it into
+    # event ids as (global_file_offset + file_pos) * _EVENTS_PER_FILE + event.
+    file_offsets = []
     acc = 0
     for chunk in file_chunks:
-        event_offsets.append(acc)
-        acc += len(chunk) * 1000
+        file_offsets.append(acc)
+        acc += len(chunk)
 
     logger_io.info("Launching %d workers over %d files", n_workers, len(filenames))
     for i, chunk in enumerate(file_chunks):
-        logger_io.info("  Worker %d: %d files, event offset %d", i, len(chunk), event_offsets[i])
+        logger_io.info("  Worker %d: %d files, file offset %d", i, len(chunk), file_offsets[i])
 
     # Fork before any TFile is created in main to avoid ROOT state issues
     ctx = multiprocessing.get_context("fork")
@@ -762,12 +986,14 @@ def main():
     t_start = time.time()
     n_chunks = len(file_chunks)
 
+    failed_workers = []
+
     with ProcessPoolExecutor(max_workers=n_workers, mp_context=ctx) as executor:
         futures = {
             executor.submit(
                 process_chunk,
                 file_chunks[i], mlpf_chunks[i],
-                event_offsets[i], config_bundle, i,
+                file_offsets[i], config_bundle, i,
             ): i
             for i in range(n_chunks)
         }
@@ -781,7 +1007,8 @@ def main():
                     "Worker %d done (%d/%d) | %.0fs elapsed", wid, n_done, n_chunks, elapsed
                 )
             except Exception as exc:
-                logger_process.error("Worker %d raised: %s", wid, exc)
+                failed_workers.append(wid)
+                logger_process.error("Worker %d raised: %s", wid, exc, exc_info=True)
             bar_len = 30
             filled  = int(bar_len * n_done / n_chunks)
             bar     = "█" * filled + "░" * (bar_len - filled)
@@ -793,6 +1020,24 @@ def main():
     print()
     total_elapsed = time.time() - t_start
     print(f"All workers done in {total_elapsed:.1f}s ({total_elapsed/60:.1f} min)")
+
+    # A partial merge would look like a successful run while silently missing
+    # events: abort instead, keeping the temp files of the workers that did
+    # finish so the run can be recovered by hand.
+    if failed_workers:
+        msg = (
+            f"{len(failed_workers)}/{n_chunks} worker(s) failed: "
+            f"{sorted(failed_workers)}. Not merging — the output would be "
+            f"incomplete. See worker_<id>.log in {outputpath}; the temp files of "
+            f"the successful workers are kept there."
+        )
+        logger_io.error(msg)
+        print(f"ERROR: {msg}")
+        sys.exit(1)
+
+    if not tmp_paths:
+        logger_io.error("No temp files produced. Aborting.")
+        sys.exit(1)
 
     # Merge temporary files into the final output using hadd (fork-safe).
     # TChain::Merge from Python crashes after fork due to ROOT's Cling state

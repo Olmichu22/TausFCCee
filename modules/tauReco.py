@@ -4,6 +4,7 @@ from modules.ParticleObjects import GenParticle, RecoParticle
 import warnings
 warnings.filterwarnings("once", category=UserWarning)
 from modules import myutils
+from modules import genDecayModes
 
 import logging
 try:
@@ -85,8 +86,187 @@ def get_visible_final_state(particle, exclude_neutrinos=True):
         result.extend(get_visible_final_state(d, exclude_neutrinos))
     return result
 
-# Check a generator level tau candidate, find the decay, 
-# and compute visible (meson) variables 
+# ── Gen-level provenance helpers ──────────────────────────────────────────────
+
+# Origin codes for a gen photon. Shared by GenParticle.constOrigin and by the
+# GenConstOrigin / GenPhotonOrigin branches of the tau tree.
+PHOTON_ORIGIN_NOT_A_PHOTON = -1
+PHOTON_ORIGIN_PI0          = 0   # gamma from a pi0 decay
+PHOTON_ORIGIN_TAU_FSR      = 1   # radiated by the tau itself
+PHOTON_ORIGIN_CHARGED_RAD  = 2   # radiated by a charged decay product (pi, K, e, mu)
+PHOTON_ORIGIN_OTHER        = 3   # any other generator-level ancestor
+PHOTON_ORIGIN_SIMULATION   = 4   # secondary created by the detector simulation
+
+# PDGs que la clasificación de visTauGen sí registra, más neutrinos y fotones
+# (que llevan su propio marcado de origen). Todo neutro fuera de este conjunto
+# queda sin contar en el ID del decay y por eso se etiqueta como "neutro extra".
+_TAGGED_OR_COUNTED_PDGS = {22, 111, 12, 14, 16}
+
+# Partículas cargadas de las que un fotón puede radiar dentro del decay.
+_RADIATING_CHARGED_PDGS = {11, 13, 211, 321, 323}
+
+_MAX_ANCESTOR_DEPTH = 200
+
+
+def _mc_index(mcp):
+   """Return the per-event object index of an MCParticle (-1 if unavailable)."""
+   try:
+      return int(mcp.getObjectID().index)
+   except Exception:
+      return -1
+
+
+def _walk_ancestors(mcp, max_depth=_MAX_ANCESTOR_DEPTH):
+   """Yield the ancestors of *mcp*, following the first parent at each step.
+
+   Guards against cycles and against runaway chains, so it is safe to call on
+   arbitrary MCParticle collections.
+   """
+   seen = set()
+   cur = mcp
+   for _ in range(max_depth):
+      try:
+         parents = list(cur.getParents())
+      except Exception:
+         return
+      if not parents:
+         return
+      cur = parents[0]
+      idx = _mc_index(cur)
+      if idx in seen:
+         return
+      seen.add(idx)
+      yield cur
+
+
+def _is_simulation_secondary(mcp):
+   """True when the particle was created by the simulation, not the generator."""
+   try:
+      status = int(mcp.getGeneratorStatus())
+   except Exception:
+      status = -1
+   if status == 0:
+      return True
+   if status == 1:
+      return False
+   try:
+      return bool(mcp.isCreatedInSimulation())
+   except Exception:
+      return False
+
+
+def photon_origin_info(mcp):
+   """Classify where a gen photon comes from.
+
+   Returns:
+      tuple: ``(origin_code, parent_pdg, ancestor_mc_idx)`` where *origin_code*
+      is one of the PHOTON_ORIGIN_* constants, *parent_pdg* the signed PDG of
+      the first non-photon ancestor and *ancestor_mc_idx* its object index
+      (which groups together the two photons of the same pi0).
+   """
+   try:
+      if abs(int(mcp.getPDG())) != 22:
+         return (PHOTON_ORIGIN_NOT_A_PHOTON, 0, -1)
+   except Exception:
+      return (PHOTON_ORIGIN_NOT_A_PHOTON, 0, -1)
+
+   if _is_simulation_secondary(mcp):
+      return (PHOTON_ORIGIN_SIMULATION, 0, -1)
+
+   for anc in _walk_ancestors(mcp):
+      try:
+         anc_pdg = int(anc.getPDG())
+      except Exception:
+         break
+      abs_pdg = abs(anc_pdg)
+      if abs_pdg == 22:
+         continue          # copia del propio fotón, sigue subiendo
+      idx = _mc_index(anc)
+      if abs_pdg == 111:
+         return (PHOTON_ORIGIN_PI0, anc_pdg, idx)
+      if abs_pdg == 15:
+         return (PHOTON_ORIGIN_TAU_FSR, anc_pdg, idx)
+      if abs_pdg in _RADIATING_CHARGED_PDGS:
+         return (PHOTON_ORIGIN_CHARGED_RAD, anc_pdg, idx)
+      return (PHOTON_ORIGIN_OTHER, anc_pdg, idx)
+
+   return (PHOTON_ORIGIN_OTHER, 0, -1)
+
+
+def classify_photon_origin(mcp):
+   """Return only the origin code of :func:`photon_origin_info`."""
+   return photon_origin_info(mcp)[0]
+
+
+def classify_tau_origin(mcp):
+   """Trace where a gen tau comes from, separating primary from radiative taus.
+
+   A tau produced through ``e+e- -> gamma*/Z -> tau tau`` also hangs from a
+   photon, so the parent PDG alone cannot flag a secondary tau. The chain is
+   therefore followed past the first non-tau ancestor: only if another tau shows
+   up above it (``tau -> gamma -> tau tau``) is the candidate secondary.
+
+   Returns:
+      tuple: ``(origin_pdg, is_secondary, mother_tau_mc_idx, rad_photon_mc_idx)``.
+      The two indices are -1 for a primary tau.
+   """
+   origin_pdg = 0
+   is_secondary = False
+   mother_idx = -1
+   photon_idx = -1
+   passed_non_tau = False
+
+   for anc in _walk_ancestors(mcp):
+      try:
+         abs_pdg = abs(int(anc.getPDG()))
+      except Exception:
+         break
+
+      if not passed_non_tau:
+         if abs_pdg == 15:
+            continue       # copia del propio tau
+         passed_non_tau = True
+         try:
+            origin_pdg = int(anc.getPDG())
+         except Exception:
+            origin_pdg = 0
+         if abs_pdg == 22:
+            photon_idx = _mc_index(anc)
+         continue
+
+      if abs_pdg == 22 and photon_idx < 0:
+         photon_idx = _mc_index(anc)
+      if abs_pdg == 15:
+         # Hay un tau por encima del primer ancestro no-tau: radiación secundaria.
+         is_secondary = True
+         mother_idx = _mc_index(anc)
+         break
+
+   if not is_secondary:
+      photon_idx = -1
+
+   return origin_pdg, is_secondary, mother_idx, photon_idx
+
+
+def is_extra_neutral(mcp):
+   """True for neutral decay products that no visTauGen counter registers.
+
+   Covers K0_L, neutrons, Lambdas… — particles that end up in ``const`` and in
+   the visible 4-momentum but leave the decay-mode ID untouched. Photons and
+   pi0s are excluded on purpose: they carry their own origin tagging. K0_S is
+   never seen here because it decays in the generator and its charged pions are
+   counted as prongs.
+   """
+   try:
+      if float(mcp.getCharge()) != 0.0:
+         return False
+      return abs(int(mcp.getPDG())) not in _TAGGED_OR_COUNTED_PDGS
+   except Exception:
+      return False
+
+
+# Check a generator level tau candidate, find the decay,
+# and compute visible (meson) variables
 def visTauGen(candTau, getHelicity=False):
    """ Check a generator level tau candidate, find the decay, and compute visible (meson) variables.
 
@@ -95,6 +275,11 @@ def visTauGen(candTau, getHelicity=False):
        getHelicity (bool): Whether to compute the helicity of the tau.
    Returns:
        Tuple: Tuple with the visible 4-momentum, the tau ID, the charge, the true 4-momentum, the maximum angle between constituents, the number of constituents, and the constituents.
+
+   Besides the visible-topology ``ID``, the returned dict also carries the
+   *true* decay mode taken from the tau's direct daughters
+   (``decayDaughterPDG`` / ``trueMode``, see :mod:`modules.genDecayModes`).
+   That label is purely additive: it never feeds back into ``ID``.
    """
    countPionsTauGen=0
    countPi0TauGen=0
@@ -116,6 +301,13 @@ def visTauGen(candTau, getHelicity=False):
    maxAngleConsts=0
    nConsts=0
    const={}
+   # Etiquetado adicional: no altera el ID del decay ni el 4-momento visible.
+   constOrigin={}
+   extraNeutrals={}
+   nExtraNeutrals=0
+   # Neutrinos: se guardan aparte, no entran en const ni en visTauP4.
+   neutrinos={}
+   nNeutrinos=0
    if getHelicity:
       try:
          helicity = candTau.getHelicity()
@@ -132,7 +324,9 @@ def visTauGen(candTau, getHelicity=False):
    # loop over daughter particles of the tau
    
    # IMPORTANT CHANGE -> First identify the final state products, then clasify
-   final_daughters = get_visible_final_state(candTau) 
+   # exclude_neutrinos=False: los neutrinos se recogen aparte más abajo, el
+   # bucle los sigue saltando antes de tocar visTauP4 / const / maxAngle.
+   final_daughters = get_visible_final_state(candTau, exclude_neutrinos=False)
    for dTau in final_daughters:
          if dTau.getGeneratorStatus() == 0:
          # Secondary, not a real product
@@ -147,6 +341,10 @@ def visTauGen(candTau, getHelicity=False):
          # PDG ID of Neutrinos
 
          if (dauPDG==12 or dauPDG==14 or dauPDG==16):
+            # En un decay leptónico hay dos: el nu_tau y el nu_l. Guardarlos
+            # es la única forma de separarlos, porque genP4-visP4 solo da la suma.
+            neutrinos[nNeutrinos]=dTau
+            nNeutrinos+=1
             continue 
 
          # lepton decays 
@@ -179,6 +377,18 @@ def visTauGen(candTau, getHelicity=False):
          if maxAngleConsts<dR:
                maxAngleConsts=dR
 
+         # Neutros que ningún contador de arriba registra (K0_L, n, Lambda...).
+         # Siguen entrando en const y en el 4-momento visible: solo se etiquetan,
+         # para poder saber a posteriori que un ID=0 "en realidad" traía un K0.
+         if is_extra_neutral(dTau):
+            extraNeutrals[nExtraNeutrals]=dTau
+            nExtraNeutrals+=1
+            logger.debug(
+               f"Extra neutral in the tau decay: PDG {dTau.getPDG()}, "
+               f"P {dauP4.P():.3f} GeV (not counted in the decay-mode ID)."
+            )
+
+         constOrigin[nConsts]=classify_photon_origin(dTau)
          const[nConsts]=dTau
          nConsts+=1
 
@@ -212,7 +422,20 @@ def visTauGen(candTau, getHelicity=False):
          cum_momentum += daup4
          logger.debug(f"Constituent {const_key} PDG {const[const_key].getPDG()}: {daup4.P()}")
          logger.debug(f"Total Visible Momentum: {cum_momentum.P()}")
-   return {"visP4": visTauP4, "ID": tauID, "charge": chargeTau, "genP4": genTauP4, "maxAngleConsts": maxAngleConsts, "nConsts": nConsts, "const": const, "helicity": helicity}                 
+   # Modo real a partir de los hijos directos: complementa al ID de topología
+   # visible, no lo modifica.
+   decayDaughterPDG = genDecayModes.canonical_daughters(candTau)
+   trueMode         = genDecayModes.true_mode(decayDaughterPDG)
+   if trueMode == genDecayModes.MODE_UNKNOWN and decayDaughterPDG:
+      logger.debug(
+         "Gen decay label not in MODE_TABLE: %s",
+         genDecayModes.decay_label(decayDaughterPDG)
+      )
+
+   return {"visP4": visTauP4, "ID": tauID, "charge": chargeTau, "genP4": genTauP4, "maxAngleConsts": maxAngleConsts, "nConsts": nConsts, "const": const, "helicity": helicity,
+           "constOrigin": constOrigin, "extraNeutrals": extraNeutrals,
+           "hasExtraNeutrals": nExtraNeutrals > 0, "neutrinos": neutrinos,
+           "decayDaughterPDG": decayDaughterPDG, "trueMode": trueMode}
 
 # Reversed procedure for reconstructed pfos
 # Starting from a pion, find particles in a cone around it, and 
@@ -456,12 +679,18 @@ def buildTauFromPion(lead, allPfs, DRCone=1, minP_photon=0, minP_pion=0, PNeutro
          # if countPhotons>4:
                # tauID=5
 
-      elif (countPions==3): 
+      elif (countPions==3 and countNeutrons==0): 
          tauID = countPhotons+10 # 3 pions + photons
             # if countPhotons<=2:
             #    tauID=countPhotons+10 # more or less copied from the CMS convention for tauDecay
             # if countPhotons>2:
             #    tauID=countPhotons+10 # capping the number of photons
+
+      elif (countPions==3 and countNeutrons>0): # Pandora FIXME: pion -> neutron misID
+         # Mismo caso que el -20 pero con 3 prongs: el neutron se suma al P4 del
+         # tau, asi que estos eventos sesgaban la resolucion de la DM10 al colarse
+         # como ID 10. Id propio para poder verlos como categoria aparte.
+         tauID = -21
 
       elif (countPions==1 and countNeutrons>0): # Future FIXME: Pandora pion->neutron misID issue 
          # tauID=15
@@ -520,9 +749,17 @@ def findAllGenTaus(mc_particles, getHelicity=False):
        
    Returns:
       genTaus (dict): Dictionary with the generator level taus containing tuples with the visible 4-momentum, the tau ID, and the charge.
+
+   Each tau also carries its provenance (``originPDG``, ``isSecondary``,
+   ``motherTauKey``…) so radiative ``tau -> gamma -> tau tau`` chains can be
+   told apart from the primary pair and linked back to their mother.
    """
    genTaus={}
    nGenTaus=0
+   # mc_idx de cada tau y de todas sus copias -> clave en genTaus. Necesario
+   # porque el ancestro que se encuentra subiendo suele ser una copia (status
+   # 3/1) de la madre, mientras que en genTaus solo están las de status 2.
+   tau_copy_key={}
    for particle in mc_particles:
       # only taus
       if abs(particle.getPDG()) != 15:
@@ -539,8 +776,16 @@ def findAllGenTaus(mc_particles, getHelicity=False):
       # tauP4.SetXYZM(particle.getMomentum().x,particle.getMomentum().y,particle.getMomentum().z,particle.getMass())
 
       genTau_data=visTauGen(particle, getHelicity=getHelicity)
+
+      origin_pdg, is_secondary, mother_mc_idx, rad_photon_mc_idx = classify_tau_origin(particle)
+      genTau_data["mcIdx"]          = _mc_index(particle)
+      genTau_data["originPDG"]      = origin_pdg
+      genTau_data["isSecondary"]    = is_secondary
+      genTau_data["motherTauMCIdx"] = mother_mc_idx
+      genTau_data["radPhotonMCIdx"] = rad_photon_mc_idx
+
       genTau = GenParticle(**genTau_data)
-      
+
       if genTau.getCharge()<0:
          genTau.setPDG(15)
       else:
@@ -548,8 +793,21 @@ def findAllGenTaus(mc_particles, getHelicity=False):
       # visTauP4=genTau[0]
       # genTauId=genTau[1]
 
+      # Registra el tau y su cadena de copias para poder resolver la madre.
+      tau_copy_key[_mc_index(particle)] = nGenTaus
+      for anc in _walk_ancestors(particle):
+         if abs(int(anc.getPDG())) != 15:
+            break
+         tau_copy_key[_mc_index(anc)] = nGenTaus
+
       genTaus[nGenTaus]=genTau
       nGenTaus+=1
+
+   # Se resuelve al final: la madre puede aparecer después que la hija.
+   for genTau in genTaus.values():
+      mother_mc_idx = genTau.getMotherTauMCIdx()
+      if mother_mc_idx >= 0:
+         genTau.setMotherTauKey(tau_copy_key.get(mother_mc_idx, -1))
 
    return genTaus
 
