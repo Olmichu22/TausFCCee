@@ -489,6 +489,8 @@ def id_to_key_root(event_id, photons=False):
         key = f"{RMU}"
       elif event_id == -11:
         key = f"{RE}"
+      elif event_id == -21:
+        key = f"3h{RN}"
       elif event_id <= -20:
         key = f"h{RN}"
       elif event_id == -1:
@@ -512,6 +514,8 @@ def id_to_key_root(event_id, photons=False):
         key = f"{RTAU} \\rightarrow {RMU}2{RNEUTRINO}"
       elif event_id == -11:
         key = f"{RTAU} \\rightarrow {RE}2{RNEUTRINO}"
+      elif event_id == -21:
+        key = f"3{RPI}{RN}"
       elif event_id <= -20:
         key = f"{RPI}{RN}"
       elif event_id == -1:
@@ -543,6 +547,8 @@ def id_to_key(event_id, photons=False):
         key = f"{MU}"
       elif event_id == -11:
         key = f"{E}"
+      elif event_id == -21:
+        key = f"3h{N}"
       elif event_id <= -20:
         key = f"h{N}"
       elif event_id == -1:
@@ -568,6 +574,8 @@ def id_to_key(event_id, photons=False):
         key = f"{TAU} → {MU}2{NEUTRINO}"
       elif event_id == -11:
         key = f"{TAU} → {E}2{NEUTRINO}"
+      elif event_id == -21:
+        key = f"3{PI}{N}"
       elif event_id <= -20:
         key = f"{PI}{N}"
       elif event_id == -1:
@@ -1335,7 +1343,12 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
     else:
         y_pred = results_df['Predicted']
         suffix = ""
-    
+
+    # Filas = eje gen. `genDecays` (opcional) permite mostrar un subconjunto de
+    # filas —p.ej. sin Unmatched (-2) ni πn (-20)— manteniendo todas las
+    # columnas; sin ella, filas y columnas usan la misma lista `decays`.
+    row_decays = plot_config.get("genDecays", plot_config.get("decays"))
+
     # Compute the confusion matrix:
     if plotphotons:
         # Use pandas crosstab to allow a rectangular matrix
@@ -1350,7 +1363,7 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
           # Select only the decays in the config file
           decays = plot_config["decays"]
           photondecays = plot_config["photonDecays"]
-          cm = cm_df.loc[decays, photondecays].copy()
+          cm = cm_df.reindex(index=row_decays, columns=photondecays, fill_value=0).copy()
           classes_true = cm.index.values
           classes_pred = cm.columns.values
           cm = cm.values
@@ -1366,12 +1379,15 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
         if "decays" in plot_config:
           # Select only the decays in the config file
           decays = plot_config["decays"]
-          cm = cm_df.loc[decays, decays].copy()
+          cm = cm_df.reindex(index=row_decays, columns=decays, fill_value=0).copy()
           cm = cm.values
-          classes = decays
-        mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes]
-        mapped_classes_pred = mapped_classes_true  # Same for both axes
-    
+          classes_true = row_decays
+          classes_pred = decays
+        else:
+          classes_true = classes
+          classes_pred = classes
+        mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes_true]
+        mapped_classes_pred = [id_to_key(cls, photons=False) for cls in classes_pred]
     # Create output directory if it doesn't exist
     cm_dir = os.path.join(outputpath, "CM")
     if not os.path.exists(cm_dir):
@@ -1379,11 +1395,12 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
 
     # --- Absolute values plot ---
     if "decays" in plot_config:
-      plt.figure(figsize=(8, 6))
-      fontsize = 10
+      plt.figure(figsize=(10, 7.5))
+      fontsize = 12
     else:
-      plt.figure(figsize=(12, 8))
-      fontsize = 8
+      plt.figure(figsize=(15, 10))
+      fontsize = 10
+    tick_fontsize = fontsize + 1
     plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title("Confusion Matrix (Absolute Values)")
     if plot_config.get("colorbar", True):
@@ -1391,12 +1408,11 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
     if plotphotons:
         xtick_marks = np.arange(len(mapped_classes_pred))
         ytick_marks = np.arange(len(mapped_classes_true))
-        plt.xticks(xtick_marks, mapped_classes_pred, rotation=45)
-        plt.yticks(ytick_marks, mapped_classes_true)
+        plt.xticks(xtick_marks, mapped_classes_pred, rotation=45, fontsize=tick_fontsize)
+        plt.yticks(ytick_marks, mapped_classes_true, fontsize=tick_fontsize)
     else:
-        tick_marks = np.arange(len(mapped_classes_true))
-        plt.xticks(tick_marks, mapped_classes_true, rotation=45)
-        plt.yticks(tick_marks, mapped_classes_true)
+        plt.xticks(np.arange(len(mapped_classes_pred)), mapped_classes_pred, rotation=45, fontsize=tick_fontsize)
+        plt.yticks(np.arange(len(mapped_classes_true)), mapped_classes_true, fontsize=tick_fontsize)
     
     thresh = cm.max() / 2.
     # Annotate each cell with the absolute value
@@ -1413,13 +1429,15 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
     plt.close()
     
     # --- Normalized values plot (per actual label) ---    
-    cm_normalized = cm_df.to_numpy().astype('float') / cm_df.to_numpy().sum(axis=1)[:, np.newaxis]
+    with np.errstate(invalid='ignore', divide='ignore'):
+        cm_normalized = cm_df.to_numpy().astype('float') / cm_df.to_numpy().sum(axis=1)[:, np.newaxis]
     cm_normalized = np.nan_to_num(cm_normalized)  # Replace NaN with 0 for rows with zero sum
     cm_normalized = pd.DataFrame(cm_normalized, index=cm_df.index, columns=cm_df.columns)
     if "decays" in plot_config:
       # Select only the decays in the config file
       if plotphotons:
-        cm_normalized = cm_normalized.loc[decays, photondecays].copy()
+        cm_normalized = cm_normalized.reindex(
+            index=row_decays, columns=photondecays, fill_value=0.0).copy()
         classes_true = cm_normalized.index.values
         classes_pred = cm_normalized.columns.values
         cm_normalized = cm_normalized.values
@@ -1427,29 +1445,30 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
         mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes_true]
         mapped_classes_pred = [id_to_key(cls, photons=True) for cls in classes_pred]
       else:
-        cm_normalized = cm_normalized.loc[decays, decays].copy()
+        cm_normalized = cm_normalized.reindex(
+            index=row_decays, columns=decays, fill_value=0.0).copy()
         classes_true = cm_normalized.index.values
         classes_pred = cm_normalized.columns.values
         cm_normalized = cm_normalized.values
 
         mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes_true]
         mapped_classes_pred = [id_to_key(cls, photons=False) for cls in classes_pred]
-      plt.figure(figsize=(8, 6))
-      fontsize = 10
+      plt.figure(figsize=(10, 7.5))
+      fontsize = 12
     else:
-      plt.figure(figsize=(12, 8))
-      fontsize = 8
+      plt.figure(figsize=(15, 10))
+      fontsize = 10
+    tick_fontsize = fontsize + 1
     plt.imshow(cm_normalized, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title("Confusion Matrix (Normalized)")
     if plot_config.get("colorbar", True):
       plt.colorbar()
     if plotphotons:
-        plt.xticks(np.arange(len(mapped_classes_pred)), mapped_classes_pred, rotation=45)
-        plt.yticks(np.arange(len(mapped_classes_true)), mapped_classes_true)
+        plt.xticks(np.arange(len(mapped_classes_pred)), mapped_classes_pred, rotation=45, fontsize=tick_fontsize)
+        plt.yticks(np.arange(len(mapped_classes_true)), mapped_classes_true, fontsize=tick_fontsize)
     else:
-        tick_marks = np.arange(len(mapped_classes_true))
-        plt.xticks(tick_marks, mapped_classes_true, rotation=45)
-        plt.yticks(tick_marks, mapped_classes_true)
+        plt.xticks(np.arange(len(mapped_classes_pred)), mapped_classes_pred, rotation=45, fontsize=tick_fontsize)
+        plt.yticks(np.arange(len(mapped_classes_true)), mapped_classes_true, fontsize=tick_fontsize)
     # cm_normalized = cm_normalized.to_numpy()
     thresh_norm = cm_normalized.max() / 2.
     # Annotate each cell with the percentage
@@ -1659,7 +1678,12 @@ def _apply_style_1d(obj, color, linestyle, markerstyle, markersize, linewidth,
     obj.SetMarkerSize(markersize)
     obj.SetLineWidth(linewidth)
     
-    # Aplicar fill si está habilitado y el objeto es TH1
+    # Aplicar fill si está habilitado y el objeto es TH1.
+    # Si no se pide relleno, se fuerza FillStyle=0: los TH1 leídos de un ROOT
+    # llegan con el 1001 por defecto y ROOT acaba pintando un patrón espurio
+    # bajo la curva (y añade la 'f' a la leyenda).
+    if not fill and isinstance(obj, ROOT.TH1):
+        obj.SetFillStyle(0)
     if fill and isinstance(obj, ROOT.TH1):
         if fillalpha < 1.0:
             # Usar transparencia (requiere ROOT >= 6)
@@ -2238,6 +2262,9 @@ def plot_compare_1D_across_files(files_info, plots, outdir):
                 if isinstance(o, ROOT.TGraphAsymmErrors):
                     o.GetXaxis().SetTitle(cfg.get("x", ""))
                     o.GetYaxis().SetTitle(cfg.get("y", ""))
+                    # Rango X (zoom opcional; el primer objeto fija el marco)
+                    if "x_range" in cfg:
+                        o.GetXaxis().SetRangeUser(float(cfg["x_range"][0]), float(cfg["x_range"][1]))
                     # Rango Y
                     if "y_range" in cfg:
                         ymin, ymax = cfg["y_range"]
@@ -2261,6 +2288,9 @@ def plot_compare_1D_across_files(files_info, plots, outdir):
                 else:
                     o.SetXTitle(cfg.get("x", ""))
                     o.SetYTitle(cfg.get("y", ""))
+                    # Rango X (zoom opcional; el primer objeto fija el marco)
+                    if "x_range" in cfg:
+                        o.GetXaxis().SetRangeUser(float(cfg["x_range"][0]), float(cfg["x_range"][1]))
                     if "y_range" in cfg:
                         ymin, ymax = cfg["y_range"]
                         o.GetYaxis().SetRangeUser(ymin, ymax)

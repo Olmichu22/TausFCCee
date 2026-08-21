@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from dataclasses import asdict
 import numpy as np
 
@@ -18,10 +19,11 @@ def parse_args():
     ap.add_argument("--signal-root",
                     default="Results/RhoAnalysis/tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecay2_0.4_tph0.35_tpi0_n3_g0.0.root"
                     , help="ROOT con la señal (contiene señal+migraciones)")
-    ap.add_argument("--bg-root",default=["Results/RhoAnalysis/Zee_sample_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecay2_0.4_tph0.35_tpi0_n3_g0.0.root",
-                                         "Results/RhoAnalysis/Zqq_sampletau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecay2_0.4_tph0.35_tpi0_n3_g0.0.root",
-                                         "Results/RhoAnalysis/bhabha_sample_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecay2_0.4_tph0.35_tpi0_n3_g0.0.root"],
-                     nargs=3, help="3 ROOT de fondo externo")
+    ap.add_argument("--bg-root", default=[], nargs="*",
+                    help="ROOT de fondo externo (0 o más). Sin ellos el fondo son "
+                         "solo las migraciones dentro del fichero de señal.")
+    ap.add_argument("--bg-names", default=None, nargs="*",
+                    help="Etiquetas para --bg-root (default: BG0, BG1, …)")
     ap.add_argument("--tree", default="outtree_original")
     ap.add_argument("--tauPcut", type=float, default=5, help="Corte fijo mínimo de recoMesonP (tauPCut)")
     ap.add_argument("--selectGEN", type=int, default=2, help="genTauID considerado señal (selectGEN)")
@@ -37,9 +39,11 @@ def parse_args():
     ap.add_argument("--use-s-over-b", action="store_true", help="Si se activa: score = S/(B+eps). Si no: S/sqrt(S+B)")
     ap.add_argument(
     "--compare-yaml",
-    default="config/plots/Optimal_Variable/Rho Decay/OptimalVariableBK_vals.yaml",
-    help="YAML con luminosidad, xsec y n_events"
+    default=None,
+    help="YAML con luminosidad, xsec y n_events por dataset (sin él, peso 1)"
     )
+    ap.add_argument("--outdir", default="validation_plots_d0/",
+                    help="Directorio de salida de los plots de validación y del CSV")
     # PSO
     ap.add_argument("--particles", type=int, default=500)
     ap.add_argument("--iters", type=int, default=1000)
@@ -57,27 +61,34 @@ def parse_args():
 def main():
     args = parse_args()
 
-    if args.selectGEN == 2:
-        samples = [
-            RootSample(name="signal", path=args.signal_root, tree=args.tree, is_signal_file=True),
-            RootSample(name="Zee", path=args.bg_root[0], tree=args.tree, is_signal_file=False),
-            RootSample(name="Zqq", path=args.bg_root[1], tree=args.tree, is_signal_file=False),
-            RootSample(name="Bhabha", path=args.bg_root[2], tree=args.tree, is_signal_file=False),
-        ]
-    elif args.selectGEN == 0:
-        samples = [
-            RootSample(name="signal", path=args.signal_root.replace("decay2", "decay0"), tree=args.tree, is_signal_file=True),
-            RootSample(name="Zee", path=args.bg_root[0].replace("decay2", "decay0"), tree=args.tree, is_signal_file=False),
-            RootSample(name="Zqq", path=args.bg_root[1].replace("decay2", "decay0"), tree=args.tree, is_signal_file=False),
-            RootSample(name="Bhabha", path=args.bg_root[2].replace("decay2", "decay0"), tree=args.tree, is_signal_file=False),
-        ]
+    # Un fichero de señal (señal + migraciones) + N ficheros de fondo externo.
+    # Los nombres legacy Zee/Zqq/Bhabha se mantienen si se pasan 3 fondos sin
+    # --bg-names, para no romper los comandos antiguos.
+    bg_names = args.bg_names
+    if bg_names is None:
+        bg_names = (["Zee", "Zqq", "Bhabha"] if len(args.bg_root) == 3
+                    else [f"BG{i}" for i in range(len(args.bg_root))])
+    if len(bg_names) != len(args.bg_root):
+        raise ValueError("--bg-names debe tener tantos elementos como --bg-root")
+    samples = [RootSample(name="signal", path=args.signal_root, tree=args.tree,
+                          is_signal_file=True)]
+    samples += [RootSample(name=n, path=p, tree=args.tree, is_signal_file=False)
+                for n, p in zip(bg_names, args.bg_root)]
+
     if args.use_styler:
         plt.style.use("/nfs/cms/arqolmo/SDHCAL_Energy/utils/newams.mplstyle")
     branches = BranchMap(
         # si tienes una rama de pesos (p.ej. "weight" o "genWeight") ponla aquí:
         weight=None
     )
-    dataset_weights = load_dataset_weights(args.compare_yaml, args.selectGEN)
+    if args.compare_yaml:
+        dataset_weights = load_dataset_weights(args.compare_yaml, args.selectGEN)
+    else:
+        # Sin YAML de luminosidad todos los sucesos pesan 1. OJO: el score
+        # S/sqrt(S+B) escala como sqrt(w), así que el peso relativo de la
+        # penalización de eficiencia (eff_lambda) cambia con la normalización;
+        # para un resultado escalado a luminosidad, pasa --compare-yaml.
+        dataset_weights = {s.path: 1.0 for s in samples}
     loaded = load_samples(samples, branches=branches, tauP_min_fixed=args.tauPcut, dataset_weights=dataset_weights)
 
     loss_cfg = LossConfig(
@@ -166,7 +177,8 @@ def main():
     print("\n=== PSO ===")
     print({"best_f": res.best_f, "n_steps": len(res.history_best)})
     print("\nPlotting validation histograms...")
-    outdir = "validation_plots_d0/"
+    outdir = args.outdir if args.outdir.endswith("/") else args.outdir + "/"
+    os.makedirs(outdir, exist_ok=True)
     plot_variable_with_cuts(
         loaded, branches, selectGEN, best,
         var="dR", bins=60, outpath=outdir

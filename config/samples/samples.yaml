@@ -42,6 +42,11 @@ samples:
       - ZTauTau_PolSM_March24_2M_3
       - ZTauTau_PolSM_March24_2M_4
     has_gen_taus: true
+  
+  ztt_2M:
+    folders:
+      - ZTauTau_PolSM_March24_2M_4
+    has_gen_taus: true
 
   zqq:
     folder: Zqq_1M
@@ -70,10 +75,21 @@ samples:
 
   # Muestra ILD: ruta absoluta y prefijo de fichero distinto
   ild:
-    path: /pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztt_ILD_ILC
+    path: /pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztt_ILD_ILC/
     file_prefix: out_reco_edm4hep
     has_gen_taus: true
-
+  ild_fcc:
+    path:
+      - /pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztt_ILD_FCC/1M_sample_1/
+      - /pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztt_ILD_FCC/1M_sample_2/
+    file_prefix: out_reco_edm4hep
+    has_gen_taus: true
+  
+  ild_fcc_irles:
+    path:
+      - /pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztt_ILD_FCC_AIrles/20260801/
+    file_glob: "events_*_REC.edm4hep.root"
+    has_gen_taus: true
   p1:
     path: [/pnfs/ciemat.es/data/calice/local/arqolmo/CLDFCCFullSim/ZtautauPolP1/,/pnfs/ciemat.es/data/calice/local/arqolmo/CLDFCCFullSim/ZtautauPolP1_1M/]
     file_prefix: out_reco_edm4hep

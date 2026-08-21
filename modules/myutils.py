@@ -5,6 +5,7 @@ import yaml
 import os
 import shutil
 import argparse
+import glob
 import copy
 import logging
 import pandas as pd
@@ -583,6 +584,15 @@ def setup_analysis_config(
         default=None,
         help="Uno o varios ficheros ROOT (rutas absolutas). Omite el escaneo de directorio.",
     )
+    parser.add_argument(
+        "--shard",
+        type=str,
+        metavar="I/N",
+        default=None,
+        help="Procesa solo el shard I de N (0-indexado). Reparte los ficheros de "
+             "entrada en N grupos estriados; pensado para lanzar N procesos en "
+             "paralelo y fusionar la salida después (ver runShardedPlots.py).",
+    )
 
     if parser_hook is not None:
         parser_hook(parser)
@@ -753,9 +763,67 @@ def setup_analysis_config(
     }
 
 
+def parse_shard_spec(shard):
+    """Parse a ``--shard I/N`` string into the tuple ``(I, N)``.
+
+    Returns ``None`` when *shard* is None/empty (sharding disabled).
+    """
+    if not shard:
+        return None
+    try:
+        index_str, total_str = str(shard).split("/")
+        shard_index, n_shards = int(index_str), int(total_str)
+    except ValueError:
+        raise ValueError(f"--shard debe tener el formato I/N (recibido: {shard!r})")
+    if n_shards < 1:
+        raise ValueError(f"--shard N debe ser >= 1 (recibido: {shard!r})")
+    if not 0 <= shard_index < n_shards:
+        raise ValueError(f"--shard I debe cumplir 0 <= I < N (recibido: {shard!r})")
+    return shard_index, n_shards
+
+
+def apply_shard(filenames, mlpf_results, shard, loggers):
+    """Keep only the files belonging to one shard, remapping the GATr predictions.
+
+    Files are split with a stride (``filenames[I::N]``) so the shards stay
+    balanced even when file sizes vary.
+
+    ``mlpf_results`` is keyed as ``file_position * 1000 + local_event`` — the
+    same convention the event loop relies on when it looks up predictions by a
+    running event id over ``root_io.Reader(filenames)``. Dropping files shifts
+    every position, so the keys are rebuilt against the new positions.
+    """
+    spec = parse_shard_spec(shard)
+    if spec is None:
+        return filenames, mlpf_results
+
+    shard_index, n_shards = spec
+    if n_shards == 1:
+        return filenames, mlpf_results
+
+    kept = [(pos, name) for pos, name in enumerate(filenames) if pos % n_shards == shard_index]
+
+    if mlpf_results:
+        new_pos_of = {old_pos: new_pos for new_pos, (old_pos, _) in enumerate(kept)}
+        remapped = {}
+        for key, value in mlpf_results.items():
+            old_pos, local = divmod(key, 1000)
+            new_pos = new_pos_of.get(old_pos)
+            if new_pos is not None:
+                remapped[new_pos * 1000 + local] = value
+        mlpf_results = remapped
+
+    filenames = [name for _, name in kept]
+    loggers["io"].info(
+        "Shard %d/%d: %d file(s) of the original list, %d prediction(s).",
+        shard_index, n_shards, len(filenames), len(mlpf_results),
+    )
+    return filenames, mlpf_results
+
+
 def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, skip_root_validation: bool = False):
     """
-    Loads ROOT file paths and associated GATr (Graph Analysis Training results) predictions 
+    Loads ROOT file paths and associated GATr (Graph Analysis Training results) predictions
     for a given sample. Handles both local GATr result files and simulation-only workflows.
 
     Depending on whether `gatr_results_path` is provided, it either:
@@ -865,14 +933,22 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
             sys.exit(1)
 
         entry_prefix = entry.get("file_prefix", default_prefix)
+        entry_glob = entry.get("file_glob", samples_db.get("default_file_glob"))
 
         # Resolve one or more source directories for this sample.
         # Supported keys (singular = 1 dir, plural = list of dirs; can be combined):
         #   path  / paths   -> absolute directory path(s)
         #   folder/ folders -> name(s) relative to default_base
-        # List elements may be plain strings or dicts {path|folder, file_prefix}
-        # to give a given directory its own file prefix.
-        dir_specs = []  # list of (dir_path, file_prefix)
+        # List elements may be plain strings or dicts {path|folder, file_prefix,
+        # file_glob} to give a given directory its own prefix/glob.
+        #
+        # Two ways of naming the input files:
+        #   * file_prefix -> files are numbered sequentially: "<prefix>_<i>.root"
+        #   * file_glob   -> shell pattern matched inside the directory, for
+        #                    samples whose file names carry arbitrary run ids
+        #                    (e.g. "events_*_REC.edm4hep.root"). Takes priority
+        #                    over file_prefix when both are given.
+        dir_specs = []  # list of (dir_path, file_prefix, file_glob)
 
         def _add_dir(value, is_folder):
             if isinstance(value, (list, tuple)):
@@ -880,15 +956,16 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
                     _add_dir(v, is_folder)
             elif isinstance(value, dict):
                 sub_prefix = value.get("file_prefix", entry_prefix)
+                sub_glob = value.get("file_glob", entry_glob)
                 if "path" in value:
-                    dir_specs.append((value["path"], sub_prefix))
+                    dir_specs.append((value["path"], sub_prefix, sub_glob))
                 elif "folder" in value:
-                    dir_specs.append((os.path.join(default_base, value["folder"]), sub_prefix))
+                    dir_specs.append((os.path.join(default_base, value["folder"]), sub_prefix, sub_glob))
                 else:
                     loggers["io"].warning("Ignoring dir spec without 'path'/'folder': %r", value)
             else:
                 dp = os.path.join(default_base, value) if is_folder else value
-                dir_specs.append((dp, entry_prefix))
+                dir_specs.append((dp, entry_prefix, entry_glob))
 
         for v in entry.get("paths", []):
             _add_dir(v, is_folder=False)
@@ -912,27 +989,44 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
 
         filenames = []
         remaining = 100 if test else None  # --test caps the total number of files
-        for dir_path, file_prefix in dir_specs:
+        for dir_path, file_prefix, file_glob in dir_specs:
             if remaining is not None and remaining <= 0:
                 break
             if not os.path.isdir(dir_path):
                 loggers["io"].warning("Directory %s not found, skipping.", dir_path)
                 continue
 
-            nfiles = sum(
-                1
-                for fname in os.listdir(dir_path)
-                if fname.endswith(".root") and os.path.isfile(os.path.join(dir_path, fname))
-            )
-            if remaining is not None:
-                nfiles = min(nfiles, remaining)
+            if file_glob:
+                # Glob mode: candidate names come from the directory listing.
+                candidates = sorted(
+                    f for f in glob.glob(os.path.join(dir_path, file_glob))
+                    if os.path.isfile(f)
+                )
+                if not candidates:
+                    loggers["io"].warning(
+                        "Pattern '%s' matched no file in %s.", file_glob, dir_path
+                    )
+            else:
+                # Sequential mode: names are rebuilt as "<prefix>_<i>.root".
+                nfiles = sum(
+                    1
+                    for fname in os.listdir(dir_path)
+                    if fname.endswith(".root") and os.path.isfile(os.path.join(dir_path, fname))
+                )
+                candidates = [
+                    os.path.join(dir_path, f"{file_prefix}_{i}.root")
+                    for i in range(1, nfiles + 1)
+                ]
 
-            loggers["io"].info("Reading files from %s (%d files)", dir_path, nfiles)
-            for i in range(1, nfiles + 1):
+            if remaining is not None:
+                candidates = candidates[:remaining]
+
+            loggers["io"].info("Reading files from %s (%d files)", dir_path, len(candidates))
+            # bad_file_indices son 1-based sobre esta lista de candidatos
+            for i, filename in enumerate(candidates, start=1):
                 if i in bad_indices:
-                    loggers["io"].debug("Skipping bad file index %d", i)
+                    loggers["io"].debug("Skipping bad file index %d (%s)", i, filename)
                     continue
-                filename = os.path.join(dir_path, f"{file_prefix}_{i}.root")
                 loggers["io"].debug("Reading file %s", filename)
                 my_file = Path(filename)
                 if my_file.is_file():
@@ -944,9 +1038,14 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
                     filenames.append(filename)
 
             if remaining is not None:
-                remaining = 10 - len(filenames)
+                remaining = 100 - len(filenames)
 
         loggers["io"].info("Total files to process for sample '%s': %d", sample, len(filenames))
+
+    if args is not None:
+        filenames, mlpf_results = apply_shard(
+            filenames, mlpf_results, getattr(args, "shard", None), loggers
+        )
     return filenames, mlpf_results
 
 

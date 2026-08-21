@@ -1549,6 +1549,9 @@ plot_titles_config_2d:
 
 
 cm_config:
-  decays: [-20, -2, -1, 1, 2, 3, 4, 10, 11, 12]
-  # photonDecays : [0, 1, 2, 3, 4, 10, 11]
+  # -21 = 3 prongs + hadron neutro absorbido (antes se colaba como id 10)
+  decays: [-21, -20, -2, -1, -13, -11, 0, 1, 2, 10, 11, 12]
+  # filas (eje gen): sin Unmatched (-2) ni pi n (-20/-21)
+  genDecays: [-1, -13, -11, 0, 1, 2, 10, 11, 12]
+  photonDecays : [-21, 0, 1, 2, 3, 4, 10, 11, 12, 13]
   colorbar: false

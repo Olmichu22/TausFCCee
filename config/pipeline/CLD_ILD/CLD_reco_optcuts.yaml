@@ -1,0 +1,68 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Estudio CLD vs ILD — etapa 2 con los CORTES OPTIMIZADOS por PSO
+# (RhoAnalysis/optimize_cuts.py, ver Results/CutOptimization_CLD_ILD/).
+# Generado por RhoAnalysis/scripts_CLD_ILD/03b_make_optcut_configs.py: no editar
+# a mano, se regenera al relanzar la optimización.
+# ═══════════════════════════════════════════════════════════════════════════
+
+pipeline:
+
+  tree:
+    enabled: false
+    mode: reco
+    prefix: PolAnalysis_RECO_CLD_ztt2M_
+    config: config/default/taurecolong_optimal.yaml
+
+  tree_file: Results/RhoAnalysis/PolAnalysis_RECO_CLD_ztt2M_tau_trained0.4_tph0.35_tpi0_n3_g0.0/TTree_MDecs_0_1_2_10_-11_-13_tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+
+  hist_common:
+    hist_config_mdecs: config/histograms/rho_analysis_config_mdecs.yml
+    config: config/default/taurecolong_optimal.yaml
+    n_workers: 16
+    only_gen: false
+    compute_weights: false
+    no_omega_weights: false
+    sin_eff: 0.2312
+    cos_acceptance: null
+    omega_border_cut: false
+    cut: []
+    verbose: 1
+
+  hist_runs:
+    - name: pion_incl
+      single_decay: 0
+      vism_cut: 0.
+      ang: [0.0135, 5.9882]
+      meson_cut: [2.4960, 50.0000]
+      zmass_cut: [1.9033, 100.0000]
+
+    - name: rho_incl
+      single_decay: 2
+      vism_cut: 0.
+      ang: [0.0000, 6.0000]
+      meson_cut: [3.4545, 49.3501]
+      zmass_cut: [0.0000, 100.0000]
+
+    - name: rho_el
+      decay_pair: [2, -11]
+      vism_cut: 0.
+      ang: [0.0000, 6.0000]
+      meson_cut: [3.4545, 49.3501]
+      lepton_cut: [0.0000, 50.0000]
+      zmass_cut: [0.0000, 100.0000]
+
+    - name: rho_mu
+      decay_pair: [2, -13]
+      vism_cut: 0.
+      ang: [0.0000, 6.0000]
+      meson_cut: [3.4545, 49.3501]
+      lepton_cut: [0.0000, 50.0000]
+      zmass_cut: [0.0000, 100.0000]
+
+    - name: ele_incl
+      single_decay: -11
+      vism_cut: 0.
+      ang: [0.0218, 6.0000]
+      meson_cut: [0.9693, 50.0000]
+      zmass_cut: [0.0000, 99.4699]
+

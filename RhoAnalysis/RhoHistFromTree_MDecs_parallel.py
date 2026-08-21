@@ -68,7 +68,8 @@ _TAU_KEYS_MDECS = [
     "cos_theta_tau", "optimalVar", "isElectron", "nPhotons",
     "recoVisP", "recoVisE", "recoVisM", "recoVisTheta", "recoVisPhi",
     "recoPionP", "recoPionE", "recoPionM", "recoPionTheta", "recoPionPhi",
-    "recoTauID", "recoLepP", "recoLepE", "recoLepTheta", "recoLepPhi", "recoLepPDG",
+    "recoTauID", "recoCharge",
+    "recoLepP", "recoLepE", "recoLepTheta", "recoLepPhi", "recoLepPDG",
 ]
 
 # Mapa de decayID a nombre de categoría BG
@@ -103,6 +104,50 @@ WEIGHT_VALUES_MDECS = {
 # El nombre real en el YAML es base_name + "_dec0" o "_dec1".
 
 # Predicados de carga del tau de ESTE hemisferio (PDG: 15 = τ⁻, −15 = τ⁺).
+def _has_gen_tau(v):
+    """True if this hemisphere has a matched gen tau (tauPDG == +-15).
+
+    Hemispheres without one carry the -999 sentinel written by
+    analysisRHOTree_MDecs_parallel.py (events with fewer than 2 gen taus, i.e.
+    non-tautau backgrounds). Nothing gen-level can be computed for them.
+    """
+    return abs(int(v.get("tauPDG", 0))) == 15
+
+
+def _gen_tau_pdg(v):
+    """PDG (15 / -15) of the gen tau of this hemisphere, for the sign of z.
+
+    P(z) is always defined with z = cos(theta_tau-), so every weight needs the
+    hemisphere charge; see weightsPol._z_taum and docs/plan_signo_costheta_taum.md.
+
+    Raises on anything that is not +-15 instead of defaulting to a charge: an
+    unmatched hemisphere silently read as a tau+ is the exact failure mode this
+    convention removes. Guard the call with _has_gen_tau.
+    """
+    pdg = int(v.get("tauPDG", 0))
+    if abs(pdg) != 15:
+        raise ValueError(
+            f"tauPDG={pdg} is not +-15: this hemisphere has no matched gen tau, "
+            "so the sign of z = cos(theta_tau-) is undefined. Guard with "
+            "_has_gen_tau before asking for it."
+        )
+    return pdg
+
+
+def _reco_tau_sign(v):
+    """+1 if this hemisphere is a tau- (charge < 0), -1 if it is a tau+.
+
+    Multiplies cos(theta_vis_reco) to build z = cos(theta_tau-) at reco level.
+    |q| != 1 is assumed not to happen (docs plan, 4.3); q >= 0 reads as tau+.
+    """
+    return 1.0 if v.get("recoCharge", -1.0) < 0 else -1.0
+
+
+def _reco_tau_pdg(v):
+    """PDG (15 / -15) of the tau of this reco hemisphere, from recoCharge."""
+    return 15 if v.get("recoCharge", -1.0) < 0 else -15
+
+
 def _is_taup(v):  # τ⁺  (carga +1)
     return int(v.get("tauPDG", 0)) == -15
 def _is_taum(v):  # τ⁻  (carga −1)
@@ -168,14 +213,14 @@ FILL_RULES_PER_DEC = [
     # X = variable óptima reco del canal (ω reco para ρ; x reco para π/lep); Y = cosθ visible reco.
     ("Reco",    "OptimalReco_vs_CosThetaVis",
                                        lambda v, sh: v.get("_optimal_unified_reco", -999.0),
-                                       lambda v, sh: math.cos(v["recoVisTheta"])),
+                                       lambda v, sh: _reco_tau_sign(v) * math.cos(v["recoVisTheta"])),
     # Variable óptima del ρ vía red neuronal (modelo v2), salida ∈[0,1]. Solo se
     # llena en el hemisferio ρ de pares ρ-leptón (con --use-nn-optimal); en el
     # resto vale -999. NO se usa para repesado; los histogramas de ω no cambian.
     ("Reco",    "OptimalNN_Reco",     lambda v, sh: v.get("_optimal_nn", -999.0),  None),
     ("Reco",    "OptimalNN_vs_CosThetaVis",
                                        lambda v, sh: v.get("_optimal_nn", -999.0),
-                                       lambda v, sh: math.cos(v["recoVisTheta"])),
+                                       lambda v, sh: _reco_tau_sign(v) * math.cos(v["recoVisTheta"])),
     # ── Matched ───────────────────────────────────────────────────────────────
     ("Matched", "VisEOverBeamE",      lambda v, sh: v["visE"] / sh["beamE"]
                                                     if sh["beamE"] else 0.0,      None),
@@ -340,27 +385,34 @@ def _recompute_weights(tau_vars, beamE, sin_eff, use_omega=False, use_costheta_p
     Para pión con use_costheta_pion=True usa cos(θ*) geométrico recalculado al vuelo
     (boost exacto desde las cinemáticas gen — funciona también con árboles antiguos);
     en caso contrario usa newAtau con H_V/z_R (Alcaraz 2026 eq. 4-5).
+
+    With no matched gen tau (tauPDG = -999) there is nothing to recompute: the
+    weights are left exactly as the producer wrote them, rather than inventing a
+    sign for z.
     """
+    if not _has_gen_tau(tau_vars):
+        return
     decay_id = int(tau_vars.get("decayID", -999))
+    tau_pdg  = _gen_tau_pdg(tau_vars)
     if decay_id in (0, 1, 10):  # hadrónico (pion, rho, a1)
         tauP4 = make_p4(tau_vars["P"],    tau_vars["Theta"],    tau_vars["Phi"],    tau_vars["E"])
         visP4 = make_p4(tau_vars["visP"], tau_vars["visTheta"], tau_vars["visPhi"], tau_vars["visE"])
         if use_omega and decay_id == 1:
             omega = tau_vars.get("omega", -999.0)
-            w_P1  = weightsPol.newAtauFromH(tauP4, omega, +1, sin_eff=sin_eff)
-            w_M1  = weightsPol.newAtauFromH(tauP4, omega, -1, sin_eff=sin_eff)
+            w_P1  = weightsPol.newAtauFromH(tauP4, omega, +1, tau_pdg=tau_pdg, sin_eff=sin_eff)
+            w_M1  = weightsPol.newAtauFromH(tauP4, omega, -1, tau_pdg=tau_pdg, sin_eff=sin_eff)
         elif use_costheta_pion and decay_id == 0:
             cts   = weightsPol.cosThetaStar(tauP4, visP4)
-            w_P1  = weightsPol.newAtauFromH(tauP4, cts, +1, sin_eff=sin_eff)
-            w_M1  = weightsPol.newAtauFromH(tauP4, cts, -1, sin_eff=sin_eff)
+            w_P1  = weightsPol.newAtauFromH(tauP4, cts, +1, tau_pdg=tau_pdg, sin_eff=sin_eff)
+            w_M1  = weightsPol.newAtauFromH(tauP4, cts, -1, tau_pdg=tau_pdg, sin_eff=sin_eff)
         else:
-            w_P1  = weightsPol.newAtau(tauP4, visP4, decay_id, +1, sin_eff=sin_eff)
-            w_M1  = weightsPol.newAtau(tauP4, visP4, decay_id, -1, sin_eff=sin_eff)
+            w_P1  = weightsPol.newAtau(tauP4, visP4, decay_id, +1, tau_pdg=tau_pdg, sin_eff=sin_eff)
+            w_M1  = weightsPol.newAtau(tauP4, visP4, decay_id, -1, tau_pdg=tau_pdg, sin_eff=sin_eff)
     elif decay_id in (-11, -13):  # leptónico
         tauP4 = make_p4(tau_vars["P"],    tau_vars["Theta"],    tau_vars["Phi"],    tau_vars["E"])
         visP4 = make_p4(tau_vars["visP"], tau_vars["visTheta"], tau_vars["visPhi"], tau_vars["visE"])
-        w_P1  = weightsPol.newAtauLep(visP4, tauP4, beamE, +1, sin_eff=sin_eff)
-        w_M1  = weightsPol.newAtauLep(visP4, tauP4, beamE, -1, sin_eff=sin_eff)
+        w_P1  = weightsPol.newAtauLep(visP4, tauP4, beamE, +1, tau_pdg=tau_pdg, sin_eff=sin_eff)
+        w_M1  = weightsPol.newAtauLep(visP4, tauP4, beamE, -1, tau_pdg=tau_pdg, sin_eff=sin_eff)
     else:
         w_P1 = w_M1 = 1.0
     tau_vars["weight_P1"] = w_P1
@@ -374,12 +426,18 @@ def _recompute_optimal_var(tau_vars, beamE):
     Permite reutilizar árboles antiguos con la definición actual del observable (p.ej.
     el cambio del pión de E_π a E_vis). Puramente cinemático → no depende de sin_eff;
     para ρ/lep coincide con lo almacenado, para π corrige árboles previos.
+
+    With no matched gen tau (tauPDG = -999) the gen observable does not exist: -999.
     """
+    if not _has_gen_tau(tau_vars):
+        tau_vars["optimalVar"] = -999.0
+        return
     decay_id = int(tau_vars.get("decayID", -999))
     tauP4  = make_p4(tau_vars["P"],     tau_vars["Theta"],     tau_vars["Phi"],     tau_vars["E"])
     visP4  = make_p4(tau_vars["visP"],  tau_vars["visTheta"],  tau_vars["visPhi"],  tau_vars["visE"])
     pionP4 = make_p4(tau_vars["pionP"], tau_vars["pionTheta"], tau_vars["pionPhi"], tau_vars["pionE"])
-    tau_vars["optimalVar"] = optimalVariabRho.optimal_var(decay_id, tauP4, visP4, pionP4, beamE)
+    tau_vars["optimalVar"] = optimalVariabRho.optimal_var(
+        decay_id, tauP4, visP4, pionP4, beamE, tau_pdg=_gen_tau_pdg(tau_vars))
 
 
 def _reco_htype(reco_id):
@@ -403,7 +461,8 @@ def _recompute_reco_weights(tau_vars, beamE, sin_eff, use_omega=False):
     Con use_omega=True y rho reco: usa wVariabRECO para obtener ω y lo pasa a
     newAtauRhoOmega en lugar de H_V = alpha_V * z_R.
     """
-    reco_id = int(tau_vars.get("recoTauID", -999))
+    reco_id  = int(tau_vars.get("recoTauID", -999))
+    tau_pdg  = _reco_tau_pdg(tau_vars)
     if beamE <= 0:
         tau_vars["reco_weight_P1"] = 1.0
         tau_vars["reco_weight_M1"] = 1.0
@@ -422,17 +481,23 @@ def _recompute_reco_weights(tau_vars, beamE, sin_eff, use_omega=False):
             pion_P4 = make_p4(tau_vars["recoPionP"], tau_vars["recoPionTheta"],
                                tau_vars["recoPionPhi"], tau_vars["recoPionE"])
             _, _, _, omega_reco = optimalVariabRho.wVariabRECO(vis_P4, pion_P4, beamE)
-            w_P1 = weightsPol.newAtauRhoOmega(tau_proxy_P4, omega_reco, +1, sin_eff=sin_eff)
-            w_M1 = weightsPol.newAtauRhoOmega(tau_proxy_P4, omega_reco, -1, sin_eff=sin_eff)
+            w_P1 = weightsPol.newAtauRhoOmega(tau_proxy_P4, omega_reco, +1,
+                                              tau_pdg=tau_pdg, sin_eff=sin_eff)
+            w_M1 = weightsPol.newAtauRhoOmega(tau_proxy_P4, omega_reco, -1,
+                                              tau_pdg=tau_pdg, sin_eff=sin_eff)
         else:
             htype = _reco_htype(reco_id)
-            w_P1 = weightsPol.newAtau(tau_proxy_P4, vis_P4, htype, +1, sin_eff=sin_eff)
-            w_M1 = weightsPol.newAtau(tau_proxy_P4, vis_P4, htype, -1, sin_eff=sin_eff)
+            w_P1 = weightsPol.newAtau(tau_proxy_P4, vis_P4, htype, +1,
+                                      tau_pdg=tau_pdg, sin_eff=sin_eff)
+            w_M1 = weightsPol.newAtau(tau_proxy_P4, vis_P4, htype, -1,
+                                      tau_pdg=tau_pdg, sin_eff=sin_eff)
     elif reco_id in (-11, -13):  # leptónico reco
         lep_P4 = make_p4(tau_vars["recoLepP"], tau_vars["recoLepTheta"],
                           tau_vars["recoLepPhi"], tau_vars["recoLepE"])
-        w_P1 = weightsPol.newAtauLep(lep_P4, tau_proxy_P4, beamE, +1, sin_eff=sin_eff)
-        w_M1 = weightsPol.newAtauLep(lep_P4, tau_proxy_P4, beamE, -1, sin_eff=sin_eff)
+        w_P1 = weightsPol.newAtauLep(lep_P4, tau_proxy_P4, beamE, +1,
+                                     tau_pdg=tau_pdg, sin_eff=sin_eff)
+        w_M1 = weightsPol.newAtauLep(lep_P4, tau_proxy_P4, beamE, -1,
+                                     tau_pdg=tau_pdg, sin_eff=sin_eff)
     else:
         w_P1 = w_M1 = 1.0
     tau_vars["reco_weight_P1"] = w_P1
@@ -482,26 +547,36 @@ def _compute_joint_weights(vars_dec0, vars_dec1, beamE, sin_eff, use_omega=False
     id1 = int(vars_dec1.get("decayID", -999))
     is_had = lambda d: d in (0, 1, 10)
     is_lep = lambda d: d in (-11, -13)
+    # El peso joint necesita z = cos(θ_τ⁻), es decir el gen-tau de al menos un
+    # hemisferio. Sin él (fondos no-ττ: tauPDG = -999) se cae al producto de los
+    # pesos por-tau, igual que con los decays no soportados.
+    has_gen = _has_gen_tau(vars_dec0) and _has_gen_tau(vars_dec1)
 
     def p4(v):
         return make_p4(v["P"], v["Theta"], v["Phi"], v["E"])
 
     for New_Atau, suffix in [(+1.0, "P1"), (-1.0, "M1")]:
-        if is_had(id0) and (is_had(id1) or is_lep(id1)):
+        if not has_gen:
+            w = (vars_dec0.get(f"weight_{suffix}", 1.0) *
+                 vars_dec1.get(f"weight_{suffix}", 1.0))
+        elif is_had(id0) and (is_had(id1) or is_lep(id1)):
             H  = _get_H_for_joint(vars_dec0, beamE, use_omega, use_costheta_pion)
             Hp = _get_H_for_joint(vars_dec1, beamE, use_omega, use_costheta_pion)
-            w  = weightsPol.newAtauJoint(p4(vars_dec0), H, Hp, New_Atau, sin_eff=sin_eff)
+            w  = weightsPol.newAtauJoint(p4(vars_dec0), H, Hp, New_Atau,
+                                         tau_pdg=_gen_tau_pdg(vars_dec0), sin_eff=sin_eff)
         elif is_lep(id0) and is_had(id1):
             H  = _get_H_for_joint(vars_dec0, beamE, use_omega, use_costheta_pion)
             Hp = _get_H_for_joint(vars_dec1, beamE, use_omega, use_costheta_pion)
-            w  = weightsPol.newAtauJoint(p4(vars_dec1), Hp, H, New_Atau, sin_eff=sin_eff)
+            w  = weightsPol.newAtauJoint(p4(vars_dec1), Hp, H, New_Atau,
+                                         tau_pdg=_gen_tau_pdg(vars_dec1), sin_eff=sin_eff)
         elif is_lep(id0) and is_lep(id1):
             # lep-lep: fórmula joint general (Alcaraz eq. 16) con H = H_ell para ambos
             # τ. El término cruzado H·H' (correlación de espín) es físico también aquí;
             # el producto independiente sería incorrecto.
             H  = _get_H_for_joint(vars_dec0, beamE, use_omega, use_costheta_pion)
             Hp = _get_H_for_joint(vars_dec1, beamE, use_omega, use_costheta_pion)
-            w  = weightsPol.newAtauJoint(p4(vars_dec0), H, Hp, New_Atau, sin_eff=sin_eff)
+            w  = weightsPol.newAtauJoint(p4(vars_dec0), H, Hp, New_Atau,
+                                         tau_pdg=_gen_tau_pdg(vars_dec0), sin_eff=sin_eff)
         else:
             # Solo decays no soportados (p.ej. id -2): producto como último recurso.
             w = (vars_dec0.get(f"weight_{suffix}", 1.0) *
@@ -642,18 +717,21 @@ def _compute_reco_joint_weights(vars_dec0, vars_dec1, beamE, sin_eff, use_omega=
             H  = _get_H_for_joint_reco(vars_dec0, beamE, use_omega)
             Hp = _get_H_for_joint_reco(vars_dec1, beamE, use_omega)
             w  = weightsPol.newAtauJoint(_reco_tau_proxy(vars_dec0, beamE), H, Hp,
-                                         New_Atau, sin_eff=sin_eff)
+                                         New_Atau, tau_pdg=_reco_tau_pdg(vars_dec0),
+                                         sin_eff=sin_eff)
         elif is_lep(reco_id0) and is_had(reco_id1):
             H  = _get_H_for_joint_reco(vars_dec0, beamE, use_omega)
             Hp = _get_H_for_joint_reco(vars_dec1, beamE, use_omega)
             w  = weightsPol.newAtauJoint(_reco_tau_proxy(vars_dec1, beamE), Hp, H,
-                                         New_Atau, sin_eff=sin_eff)
+                                         New_Atau, tau_pdg=_reco_tau_pdg(vars_dec1),
+                                         sin_eff=sin_eff)
         elif is_lep(reco_id0) and is_lep(reco_id1):
             # lep-lep reco: fórmula joint general (eq. 16), H_ell para ambos.
             H  = _get_H_for_joint_reco(vars_dec0, beamE, use_omega)
             Hp = _get_H_for_joint_reco(vars_dec1, beamE, use_omega)
             w  = weightsPol.newAtauJoint(_reco_tau_proxy(vars_dec0, beamE), H, Hp,
-                                         New_Atau, sin_eff=sin_eff)
+                                         New_Atau, tau_pdg=_reco_tau_pdg(vars_dec0),
+                                         sin_eff=sin_eff)
         else:
             # Solo decays no soportados: producto como último recurso.
             w = (vars_dec0.get(f"reco_weight_{suffix}", 1.0) *
@@ -874,6 +952,30 @@ def _fill_zvismassbins(hists, vars_dec0, vars_dec1, shared_vars,
 
 # ── Función principal de llenado por rango ────────────────────────────────────
 
+_REQUIRED_CHARGE_BRANCHES = ["tau1_tauPDG", "tau2_tauPDG", "tau1_recoCharge", "tau2_recoCharge"]
+
+
+def _require_charge_branches(trees):
+    """Abort if the input trees predate the z = cos(theta_tau-) convention.
+
+    The per-hemisphere charge fixes the sign of z in every polarization weight and
+    in the fit axis. Branch reading falls back to 0.0 for missing branches, which
+    would silently tag every hemisphere as a tau+ — the exact silent-failure mode
+    this convention was introduced to remove. Fail loudly instead: such trees have
+    to be regenerated (see docs/plan_signo_costheta_taum.md, phase 2).
+    """
+    for tree_key, tree in trees.items():
+        present = {b.GetName() for b in tree.GetListOfBranches()}
+        missing = [b for b in _REQUIRED_CHARGE_BRANCHES if b not in present]
+        if missing:
+            raise RuntimeError(
+                f"Tree '{tree_key}' is missing the charge branches {missing}. "
+                "It was produced before the z = cos(theta_tau-) convention and "
+                "must be regenerated with analysisRHOTree_MDecs_parallel.py / "
+                "genOnlyRHOTree_MDecs_parallel.py."
+            )
+
+
 def process_tree_range_mdecs(trees, root_histograms_super,
                               weight, decay_pair,
                               cuts_cfg, logger_process, other_BG_id,
@@ -912,6 +1014,8 @@ def process_tree_range_mdecs(trees, root_histograms_super,
         if int(vd.get("decayID", -999)) != 0:
             return True
         return vd.get("visM", 0.0) < vism_cut
+
+    _require_charge_branches(trees)
 
     totalEvents    = 0
     selectedEvents = 0
@@ -1479,6 +1583,11 @@ def main():
         out_prefix = f"HistosMDecs_single{single_decay_id}_"
     else:
         out_prefix = f"HistosMDecs_{decay_pair[0]}_{decay_pair[1]}_"
+    # Marca de versión del convenio de signo de z. Con zTaum (z = cos θ_τ⁻ referido
+    # SIEMPRE al τ⁻) los resultados dejan de ser comparables con los anteriores,
+    # que usaban el cos θ del hemisferio: la marca evita pisarlos. Va DESPUÉS de los
+    # ids del par para no romper _parse_pair_ids de makeCosBins_MDecs.py.
+    out_prefix += "zTaum_"
     if angle_sep[0] > 0:
         out_prefix += f"dRgt{angle_sep[0]}_{angle_sep[1]}_"
     if meson_cut[0] > 0 or meson_cut[1] < 100:

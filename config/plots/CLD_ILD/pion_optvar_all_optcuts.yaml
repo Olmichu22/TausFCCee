@@ -1,0 +1,53 @@
+datasets:
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/CLD_reco_pion_optcuts.root
+    label: CLD reco
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/ILD_reco_pion_optcuts.root
+    label: ILD reco
+    color: ROOT.kBlue
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/CLD_gen_pion_nocuts.root
+    label: CLD gen
+    color: ROOT.kOrange+7
+    linestyle: 1
+    markerstyle: 24
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/ILD_gen_pion_nocuts.root
+    label: ILD gen
+    color: ROOT.kAzure+7
+    linestyle: 1
+    markerstyle: 25
+    markersize: 1.0
+    linewidth: 3
+
+plots:
+  optvar_all_signal:
+    per_dataset:
+      'CLD reco': Optimal_X_dec0_SIGNAL_BG
+      'ILD reco': Optimal_X_dec0_SIGNAL_BG
+      'CLD gen': Optimal_X_dec0_SIGNAL_BG
+      'ILD gen': Optimal_X_dec0_SIGNAL_BG
+    title: '\text{Optimal variable, } \pi^{\pm} + X \text{ (signal)}'
+    x: 'z_{\pi}'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]
+  optvar_all_allall:
+    per_dataset:
+      'CLD reco': Optimal_X_dec0_ALL_ALL
+      'ILD reco': Optimal_X_dec0_ALL_ALL
+      'CLD gen': Optimal_X_dec0_ALL_ALL
+      'ILD gen': Optimal_X_dec0_ALL_ALL
+    title: '\text{Optimal variable, } \pi^{\pm} + X \text{ (all selected)}'
+    x: 'z_{\pi}'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]

@@ -5,6 +5,8 @@ cuts:
   dRMax: 0.4
   MatchedGenMinDR: 1
   generalPCut: 0.
+  # Cono de la asociación gen-reco por dR (get_reco_mc_links_by_dR).
+  AssocMaxDR: 0.1
 general:
   decay:
   - -777

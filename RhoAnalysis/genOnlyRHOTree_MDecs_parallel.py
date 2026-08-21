@@ -69,6 +69,7 @@ _TAU_SCALAR_SUFFIXES = [
     "recoVisP", "recoVisE", "recoVisM", "recoVisTheta", "recoVisPhi",
     "recoPionP", "recoPionE", "recoPionM", "recoPionTheta", "recoPionPhi",
     "recoTauID",
+    "recoCharge",
     "recoLepP", "recoLepE", "recoLepTheta", "recoLepPhi", "recoLepPDG",
 ]
 
@@ -139,8 +140,11 @@ def _fill_tau_branches(branches, prefix, tauObj, beamE, sin_eff):
 
     # ── Decay ID ──────────────────────────────────────────────────────────────
     branches[f"{prefix}_decayID"].value   = float(decayID)
-    branches[f"{prefix}_tauPDG"].value    = float(tauObj.getPDG())
+    tau_pdg = int(tauObj.getPDG())
+    branches[f"{prefix}_tauPDG"].value    = float(tau_pdg)
     branches[f"{prefix}_recoTauID"].value = float(decayID)
+    # Espejo reco de la carga (árbol gen-only): tau⁻ (PDG 15) tiene carga −1.
+    branches[f"{prefix}_recoCharge"].value = -1.0 if tau_pdg == 15 else 1.0
     hel = tauObj.getHelicity()
     branches[f"{prefix}_genHelicity"].value = float(hel) if hel is not None else -999.0
 
@@ -203,7 +207,7 @@ def _fill_tau_branches(branches, prefix, tauObj, beamE, sin_eff):
     if decayID == 1:  # ρ: fórmula completa con ángulos + ω
         (cos_theta, cos_psi, cos_beta, gen_w,
          weight_P1, weight_M1) = optimalVariabRho.wVariab(
-            tauP4, visP4, pionP4, beamE, sin_eff=sin_eff)
+            tauP4, visP4, pionP4, beamE, sin_eff=sin_eff, tau_pdg=tau_pdg)
         branches[f"{prefix}_cos_theta"].value  = cos_theta
         branches[f"{prefix}_cos_psi"].value    = cos_psi
         branches[f"{prefix}_cos_beta"].value   = cos_beta
@@ -213,8 +217,8 @@ def _fill_tau_branches(branches, prefix, tauObj, beamE, sin_eff):
 
     elif decayID == 0:  # π: peso gen con cos(θ*) geométrico (boost exacto, α=1)
         cts = weightsPol.cosThetaStar(tauP4, visP4)
-        weight_P1 = weightsPol.newAtauFromH(tauP4, cts, +1, sin_eff=sin_eff)
-        weight_M1 = weightsPol.newAtauFromH(tauP4, cts, -1, sin_eff=sin_eff)
+        weight_P1 = weightsPol.newAtauFromH(tauP4, cts, +1, tau_pdg=tau_pdg, sin_eff=sin_eff)
+        weight_M1 = weightsPol.newAtauFromH(tauP4, cts, -1, tau_pdg=tau_pdg, sin_eff=sin_eff)
         branches[f"{prefix}_cos_theta"].value  = cts
         branches[f"{prefix}_cos_psi"].value    = 0.0
         branches[f"{prefix}_cos_beta"].value   = 0.0
@@ -223,8 +227,8 @@ def _fill_tau_branches(branches, prefix, tauObj, beamE, sin_eff):
         branches[f"{prefix}_weight_M1"].value  = weight_M1
 
     elif decayID == 10:  # a1: sólo pesos (z_R vía newAtau), sin ángulos ρ
-        weight_P1 = weightsPol.newAtau(tauP4, visP4, decayID, +1, sin_eff=sin_eff)
-        weight_M1 = weightsPol.newAtau(tauP4, visP4, decayID, -1, sin_eff=sin_eff)
+        weight_P1 = weightsPol.newAtau(tauP4, visP4, decayID, +1, tau_pdg=tau_pdg, sin_eff=sin_eff)
+        weight_M1 = weightsPol.newAtau(tauP4, visP4, decayID, -1, tau_pdg=tau_pdg, sin_eff=sin_eff)
         branches[f"{prefix}_cos_theta"].value  = 0.0
         branches[f"{prefix}_cos_psi"].value    = 0.0
         branches[f"{prefix}_cos_beta"].value   = 0.0
@@ -233,8 +237,8 @@ def _fill_tau_branches(branches, prefix, tauObj, beamE, sin_eff):
         branches[f"{prefix}_weight_M1"].value  = weight_M1
 
     elif decayID in (-11, -13):  # leptónico
-        weight_P1 = weightsPol.newAtauLep(visP4, tauP4, beamE, +1, sin_eff=sin_eff)
-        weight_M1 = weightsPol.newAtauLep(visP4, tauP4, beamE, -1, sin_eff=sin_eff)
+        weight_P1 = weightsPol.newAtauLep(visP4, tauP4, beamE, +1, tau_pdg=tau_pdg, sin_eff=sin_eff)
+        weight_M1 = weightsPol.newAtauLep(visP4, tauP4, beamE, -1, tau_pdg=tau_pdg, sin_eff=sin_eff)
         branches[f"{prefix}_cos_theta"].value  = 0.0
         branches[f"{prefix}_cos_psi"].value    = 0.0
         branches[f"{prefix}_cos_beta"].value   = 0.0
@@ -253,7 +257,7 @@ def _fill_tau_branches(branches, prefix, tauObj, beamE, sin_eff):
     # Variable óptima (observable): definición ÚNICA vía helper compartido
     # (π/a1/lep = E_vis/E_τ, ρ = ω). Evita drift con el hist stage.
     branches[f"{prefix}_optimalVar"].value = optimalVariabRho.optimal_var(
-        decayID, tauP4, visP4, pionP4, beamE)
+        decayID, tauP4, visP4, pionP4, beamE, tau_pdg=tau_pdg)
 
     # ── Leptón visible (solo para decays leptónicos) ──────────────────────────
     if decayID in (-11, -13):

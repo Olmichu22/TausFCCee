@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import logging
 import math
 import multiprocessing
@@ -19,14 +20,28 @@ from ROOT import TH1F, TH2F, TFile, TTree
 import edm4hep
 
 from modules.TauDecays import extractTauDecays
-from modules.NeutralRecover import debug_reco_tau, plot_debug_reco_tau, get_reco_mc_links_by_dR
-from modules.ConfusionMatrixParticleLevel import plot_confusion_matrices, plot_energy_distributions, plot_efficiency_vs_momentum
+from modules.NeutralRecover import (debug_reco_tau, plot_debug_reco_tau, get_reco_mc_links_by_dR,
+                                    DEFAULT_ASSOC_MAX_DR)
+from modules.ConfusionMatrixParticleLevel import (plot_confusion_matrices, plot_energy_distributions,
+                                                  plot_efficiency_vs_momentum, plot_fake_rate_vs_momentum,
+                                                  plot_momentum_resolution)
 from modules import (ParticleObjects, electronReco, muonReco, myutils, pi0Reco,
                      tauReco, particleMatch)
 from modules.ParticleObjects import RecoParticle
 
 
 # ── Helpers (module-level, usados tanto en main como en workers) ──────────────
+
+@contextlib.contextmanager
+def stage(logger, description):
+    """
+    Acota una etapa de la fase serie posterior a los workers, que puede durar
+    minutos sin escribir nada: loguea al entrar y al salir con el tiempo.
+    """
+    logger.info("[etapa] %s ...", description)
+    t0 = time.time()
+    yield
+    logger.info("[etapa] %s: hecho en %.1fs", description, time.time() - t0)
 
 def write_histograms_recursive(obj):
     """Recorre un dict anidado y llama .Write() en cada histograma ROOT."""
@@ -127,7 +142,7 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
     test_pfo            = config_bundle["test_pfo"]
     gatr_results_path   = config_bundle["gatr_results_path"]
     pfobjects           = config_bundle["pfobjects"]
-    dedup_mode          = config_bundle.get("dedup_mode", "reco")
+    dedup_mode          = config_bundle.get("dedup_mode", "gen")
     filter_gen_status   = config_bundle.get("filter_gen_status", True)
     max_gen_pdg         = config_bundle.get("max_gen_pdg", None)
     weight_mode         = config_bundle.get("weight_mode", "decoded")
@@ -438,7 +453,9 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
                     # Sin MLPF: matching por dR entre MCParticles y PandoraPFOs.
                     # Se pasan mapas de hits vacíos → no hay filtrado por señal en detector.
                     df_reco_mc_links_dr = get_reco_mc_links_by_dR(
-                        event, {}, {}, logger_process=logger
+                        event, {}, {}, logger_process=logger,
+                        max_dR=cuts.get("assocMaxDR", DEFAULT_ASSOC_MAX_DR),
+                        dedup_mode=dedup_mode,
                     )
 
                 df_reco_mc_links_truth = _get_reco_mc_links_truth(
@@ -512,9 +529,58 @@ def merge_results(partial_dfs):
                                   "source_file", "event_in_file"])
 
 
+def _parquet_engine():
+    """Devuelve el motor parquet disponible, o None si no hay ninguno."""
+    for engine in ("pyarrow", "fastparquet"):
+        try:
+            __import__(engine)
+            return engine
+        except ImportError:
+            continue
+    return None
+
+
+def save_dataframe(df, outputpath, basename):
+    """
+    Guarda el DataFrame de asociaciones en formato binario columnar.
+
+    Escribe parquet (key4hep trae pyarrow); si no hubiera motor disponible cae a
+    pickle comprimido. Ambos son mucho más rápidos y pequeños que to_csv sobre
+    NFS para ~10^7 filas.
+
+    Devuelve la ruta escrita.
+    """
+    if "source_file" in df.columns:
+        # una entrada por fichero de entrada repetida en millones de filas
+        df = df.astype({"source_file": "category"})
+
+    engine = _parquet_engine()
+    if engine is not None:
+        path = os.path.join(outputpath, basename + ".parquet")
+        df.to_parquet(path, engine=engine, index=False, compression="snappy")
+    else:
+        path = os.path.join(outputpath, basename + ".pkl.gz")
+        df.to_pickle(path, compression="gzip")
+    return path
+
+
 # ── Estructuras de asociación (vectorizado) ───────────────────────────────────
 
-def build_association_structures(full_df, bins, e_bins):
+def _binning_codes(values, bins):
+    """
+    Binea `values` y devuelve (codes, labels) en lugar de las etiquetas string
+    fila a fila: labels[codes[i]] es exactamente lo que daba
+    pd.cut(values, bins=bins).astype(str) para la fila i, incluido el "nan" de
+    los valores fuera de rango.
+    """
+    categorical = pd.cut(values, bins=bins)
+    labels = [str(interval) for interval in categorical.categories] + ["nan"]
+
+    codes = categorical.codes.astype(np.int64)
+    codes[codes < 0] = len(labels) - 1
+    return codes, labels
+
+def build_association_structures(full_df, bins, e_bins, fake_bin_by_reco=False):
     """
     Calcula association_results_df y energy_distribution_results a partir del
     DataFrame global usando operaciones vectorizadas sobre pandas.
@@ -523,38 +589,108 @@ def build_association_structures(full_df, bins, e_bins):
     - key       = "{|gen_pid|}_{|reco_pid|}_{ebin_coarse}"
     - key_dist  = "{|gen_pid|}_{|reco_pid|}_{ebin_fine}"
 
+    Trabaja sobre arrays numpy extraídos de full_df: no copia el DataFrame ni
+    materializa las claves string fila a fila. Los pid y el bin de energía se
+    codifican como enteros, se agrupa sobre esos códigos y solo se formatean las
+    claves de los grupos resultantes (cientos, no millones).
+
     Devuelve
     --------
     association_results_df : dict  {key: count}
-    energy_distribution_results : dict  {key: [(E_true, E_reco), ...]}
+    energy_distribution_results : dict  {key: ndarray (N, 2) [E_true, E_reco]}
     """
     if full_df.empty:
         return {}, {}
 
-    df = full_df.copy()
-    df["_gen_pid_abs"]  = df["Gen_pid"].abs().astype(int).astype(str)
-    df["_reco_pid_abs"] = df["Reco_pid"].abs().astype(int).astype(str)
-    df["_pid_key"]      = df["_gen_pid_abs"] + "_" + df["_reco_pid_abs"]
+    gen_pid_abs  = full_df["Gen_pid"].abs().astype(np.int64).to_numpy()
+    reco_pid_abs = full_df["Reco_pid"].abs().astype(np.int64).to_numpy()
+    gen_energy   = full_df["Gen_energy"].to_numpy(dtype=float)
+    reco_energy  = full_df["Reco_energy"].to_numpy(dtype=float)
 
-    df["_ebin"]      = pd.cut(df["Gen_energy"], bins=bins).astype(str)
-    df["_ebin_dist"] = pd.cut(df["Gen_energy"], bins=e_bins).astype(str)
+    # códigos compactos por pid: unos pocos valores distintos
+    gen_codes, gen_values   = pd.factorize(gen_pid_abs)
+    reco_codes, reco_values = pd.factorize(reco_pid_abs)
+    pid_codes = gen_codes.astype(np.int64) * len(reco_values) + reco_codes
 
-    # key replica: "{pid}_{ebin_coarse}"
-    df["_assoc_key"] = df["_pid_key"] + "_" + df["_ebin"]
+    def _pid_key(pid_code):
+        gen_idx, reco_idx = divmod(int(pid_code), len(reco_values))
+        return f"{gen_values[gen_idx]}_{reco_values[reco_idx]}"
 
-    association_results_df = df.groupby("_assoc_key").size().to_dict()
+    # ── association_results_df: cuentas por (pid_key, ebin_coarse) ────────────
+    # Las filas fake (Gen_pid == -999) tienen Gen_energy = NaN y caen todas en
+    # la etiqueta "nan": la fila 999 de la matriz de confusión queda apelmazada
+    # en un único bin espurio y las purities por bin ignoran los fakes.  Con
+    # fake_bin_by_reco se binean por Reco_energy y se reparten por bin, a costa
+    # de romper la comparabilidad con resultados producidos antes del cambio.
+    assoc_bin_var = gen_energy
+    if fake_bin_by_reco:
+        assoc_bin_var = np.where(gen_pid_abs == 999, reco_energy, gen_energy)
+    ebin_codes, ebin_labels = _binning_codes(assoc_bin_var, bins)
+    assoc_codes = pid_codes * len(ebin_labels) + ebin_codes
 
-    df_dist = df[np.isfinite(df["Gen_energy"]) & np.isfinite(df["Reco_energy"]) & (df["Gen_energy"] != 0)].copy()
-    df_dist["_energy_pair"] = list(zip(df_dist["Gen_energy"], df_dist["Reco_energy"]))
-    df_dist["_dist_key"] = df_dist["_pid_key"] + "_" + df_dist["_ebin_dist"]
+    unique_codes, counts = np.unique(assoc_codes, return_counts=True)
+    association_results_df = {}
+    for code, count in zip(unique_codes, counts):
+        pid_code, ebin_idx = divmod(int(code), len(ebin_labels))
+        association_results_df[f"{_pid_key(pid_code)}_{ebin_labels[ebin_idx]}"] = int(count)
 
-    energy_distribution_results = (
-        df_dist.groupby("_dist_key")["_energy_pair"]
-        .apply(list)
-        .to_dict()
-    )
+    # ── energy_distribution_results: pares (E_true, E_reco) por clave ─────────
+    dist_bin_codes, dist_bin_labels = _binning_codes(gen_energy, e_bins)
+    dist_codes = pid_codes * len(dist_bin_labels) + dist_bin_codes
+
+    keep = np.isfinite(gen_energy) & np.isfinite(reco_energy) & (gen_energy != 0)
+    dist_codes = dist_codes[keep]
+
+    # ordenar por clave permite cortar el array de pares en vistas contiguas
+    order = np.argsort(dist_codes, kind="stable")
+    dist_codes = dist_codes[order]
+    pairs = np.column_stack((gen_energy[keep][order], reco_energy[keep][order]))
+
+    unique_codes, starts = np.unique(dist_codes, return_index=True)
+    energy_distribution_results = {}
+    for code, chunk in zip(unique_codes, np.split(pairs, starts[1:])):
+        pid_code, ebin_idx = divmod(int(code), len(dist_bin_labels))
+        energy_distribution_results[f"{_pid_key(pid_code)}_{dist_bin_labels[ebin_idx]}"] = chunk
 
     return association_results_df, energy_distribution_results
+
+
+def energy_cut_label(threshold):
+    """Directory-friendly label for an energy threshold: 2.5 → 'Emin_2p5GeV'."""
+    return f"Emin_{f'{threshold:g}'.replace('.', 'p').replace('-', 'm')}GeV"
+
+
+def apply_min_energy_cut(full_df, threshold, mode="auto"):
+    """
+    Keep only the rows whose particle energy is above `threshold` (GeV).
+
+    mode
+    ----
+    'auto' : Gen_energy for rows with a gen particle, Reco_energy for the fake
+             rows (Gen_pid == -999), which have no gen energy at all.  Sin esto
+             los fakes caerían todos por el NaN y la fila 999 de la matriz
+             desaparecería del recorte.
+    'gen'  : always Gen_energy   (drops the fake rows)
+    'reco' : always Reco_energy  (drops the rows without reco match)
+
+    Rows whose cut variable is NaN are dropped.
+    """
+    if full_df.empty:
+        return full_df
+
+    gen_energy  = pd.to_numeric(full_df["Gen_energy"], errors="coerce").to_numpy(dtype=float)
+    reco_energy = pd.to_numeric(full_df["Reco_energy"], errors="coerce").to_numpy(dtype=float)
+
+    if mode == "gen":
+        cut_var = gen_energy
+    elif mode == "reco":
+        cut_var = reco_energy
+    else:
+        is_fake = full_df["Gen_pid"].abs().to_numpy() == 999
+        cut_var = np.where(is_fake, reco_energy, gen_energy)
+
+    keep = np.isfinite(cut_var) & (cut_var > threshold)
+    return full_df.loc[keep].copy()
 
 
 # ── Placeholder: relleno de histogramas ROOT (implementación futura) ──────────
@@ -601,10 +737,12 @@ def main():
             choices=["gen", "reco"],
             default="reco",
             help=(
-                "Deduplication side for RecoMCTruthLink matching. "
-                "'gen' (default): one reco per gen, max weight — legacy behaviour. "
-                "'reco': one gen per reco, max weight — avoids duplicate PFOs "
-                "in photon-fusion cases."
+                "Deduplication side, applied to both matchings (RecoMCTruthLink "
+                "ranks by weight, dR ranks by dR). "
+                "'gen': one reco per gen — legacy behaviour, allows a PFO to be "
+                "counted in several cells of the confusion matrix. "
+                "'reco' (default): one gen per reco — avoids duplicate PFOs in "
+                "photon-fusion cases and keeps purity/fake-rate denominators sane."
             ),
         )
         parser.add_argument(
@@ -642,6 +780,44 @@ def main():
             ),
         )
         parser.add_argument(
+            "--fake-bin-by-reco",
+            action="store_true",
+            default=False,
+            help=(
+                "Bin the fake rows (Gen_pid == -999) of the confusion matrices by "
+                "Reco_energy instead of Gen_energy. By default those rows have "
+                "Gen_energy = NaN and all land in the 'nan' energy bin, so the "
+                "per-bin purities ignore fakes. Enabling this spreads them across "
+                "bins but breaks comparability with previously produced matrices."
+            ),
+        )
+        parser.add_argument(
+            "--min-energy-cuts",
+            type=float,
+            nargs="*",
+            default=[],
+            metavar="GEV",
+            help=(
+                "Extra energy thresholds (GeV). For each value, a second set of "
+                "confusion matrices and momentum-resolution distributions is "
+                "produced using only particles above that energy, in a "
+                "sub-directory Emin_<value>GeV. The matrices are integrated (a "
+                "single bin E > threshold), not split per energy bin. "
+                "E.g. --min-energy-cuts 10 20. Default: none."
+            ),
+        )
+        parser.add_argument(
+            "--min-energy-var",
+            choices=["auto", "gen", "reco"],
+            default="auto",
+            help=(
+                "Energy used by --min-energy-cuts. 'auto' (default): Gen_energy "
+                "for rows with a gen particle and Reco_energy for fake rows, so "
+                "fakes are not silently dropped. 'gen'/'reco': always that one "
+                "(rows without it are dropped)."
+            ),
+        )
+        parser.add_argument(
             "--all-plot",
             type=int,
             nargs="*",
@@ -675,6 +851,13 @@ def main():
     minPTauPion   = run_config["cuts"]["TauPionPCut"]
     PNeutron      = run_config["cuts"]["NeutronCut"]
     generalPCut   = run_config["cuts"]["generalPCut"]
+    # Cono de la asociación gen-reco por dR. Con fallback para las configs
+    # antiguas que no declaran la clave.
+    assocMaxDR    = run_config["cuts"].get("AssocMaxDR", DEFAULT_ASSOC_MAX_DR)
+    # Fuente única del cono: recover_pion_from_neutrals lo lee de su propia cfg,
+    # así que se propaga ahí salvo que se declare explícitamente en el YAML.
+    neutral_recover_cfg.setdefault("assoc_max_dR", assocMaxDR)
+    neutral_recover_cfg.setdefault("assoc_dedup_mode", args.dedup_mode)
 
     sys_errors    = run_config.get("systematics_errors", {})
     photon_config = sys_errors.get("photon_config", {})
@@ -720,6 +903,7 @@ def main():
             "minPTauPion":   minPTauPion,
             "PNeutron":      PNeutron,
             "generalPCut":   generalPCut,
+            "assocMaxDR":    assocMaxDR,
         },
         "photon_config":     photon_config,
         "test_extremes":     test_extremes,
@@ -819,56 +1003,158 @@ def main():
           f"({total_elapsed/60:.1f} min)")
 
     # ── Merge de resultados ───────────────────────────────────────────────────
-    full_df_dr = merge_results(partial_dfs_dr)
-    full_df_truth = merge_results(partial_dfs_truth)
+    with stage(logger_io, "Merge de los DataFrames parciales"):
+        full_df_dr = merge_results(partial_dfs_dr)
+        full_df_truth = merge_results(partial_dfs_truth)
     logger_io.info("Total filas tras merge (dR): %d", len(full_df_dr))
     logger_io.info("Total filas tras merge (RecoMCTruthLink): %d", len(full_df_truth))
 
     # ── Estructuras de asociación (vectorizado) ───────────────────────────────
-    association_results_df_dr, energy_distribution_results_dr = build_association_structures(
-        full_df_dr, bins, e_bins
+    with stage(logger_io, "Estructuras de asociación (dR)"):
+        association_results_df_dr, energy_distribution_results_dr = build_association_structures(
+            full_df_dr, bins, e_bins, fake_bin_by_reco=args.fake_bin_by_reco
+        )
+    with stage(logger_io, "Estructuras de asociación (truthlink)"):
+        association_results_df_truth, energy_distribution_results_truth = build_association_structures(
+            full_df_truth, bins, e_bins, fake_bin_by_reco=args.fake_bin_by_reco
+        )
+
+    # Nota de selección para los plots de fakes: sin ella es imposible saber a
+    # posteriori si un fake rate alto viene del detector o de los cortes sobre
+    # el conjunto gen (generatorStatus, max_gen_pdg, deduplicación...).
+    gen_status_note = "any" if args.skip_gen_status_filter else "1"
+    selection_note_common = (
+        f"gen sel: status={gen_status_note}, |PDG|<={args.max_gen_pdg}, sin neutrinos"
+        f"  |  dedup={args.dedup_mode}, weight={args.weight_mode}"
+        f"  |  reco={config_bundle['pfobjects']}"
+        f"{' + MLPF' if gatr_results_path is not None else ''}"
     )
-    association_results_df_truth, energy_distribution_results_truth = build_association_structures(
-        full_df_truth, bins, e_bins
+    selection_note_dr = (
+        f"matching dR (cono {assocMaxDR}, filtro de señal en detector)"
+        f"  |  {selection_note_common}"
     )
+    selection_note_truth = f"matching RecoMCTruthLink  |  {selection_note_common}"
+
+    n_events_dr = int(full_df_dr["event_id"].nunique()) if not full_df_dr.empty else 0
+    n_events_truth = int(full_df_truth["event_id"].nunique()) if not full_df_truth.empty else 0
 
     # ── Histogramas ROOT (creados DESPUÉS del fork, solo en main) ─────────────
-    histogram_config = general_configs.get("histograms_config", {})
-    root_histograms  = myutils.set_up_root_histograms(histogram_config)
+    with stage(logger_io, "Histogramas ROOT"):
+        histogram_config = general_configs.get("histograms_config", {})
+        root_histograms  = myutils.set_up_root_histograms(histogram_config)
 
-    fill_particle_level_histograms(full_df_dr, root_histograms, histogram_config)
+        fill_particle_level_histograms(full_df_dr, root_histograms, histogram_config)
 
     # ── Escritura de salidas ──────────────────────────────────────────────────
 
     # DataFrame completo de asociaciones
-    out_csv_dr = os.path.join(outputpath, "association_results_full_dR.csv")
-    full_df_dr.to_csv(out_csv_dr, index=False)
-    logger_io.info("DataFrame de asociaciones (dR) guardado en %s", out_csv_dr)
+    with stage(logger_io, "Escritura del DataFrame de asociaciones (dR)"):
+        out_dr = save_dataframe(full_df_dr, outputpath, "association_results_full_dR")
+    logger_io.info("DataFrame de asociaciones (dR) guardado en %s (%d filas)",
+                   out_dr, len(full_df_dr))
 
-    out_csv_truth = os.path.join(outputpath, "association_results_full_truthlink.csv")
-    full_df_truth.to_csv(out_csv_truth, index=False)
-    logger_io.info("DataFrame de asociaciones (RecoMCTruthLink) guardado en %s", out_csv_truth)
+    with stage(logger_io, "Escritura del DataFrame de asociaciones (truthlink)"):
+        out_truth = save_dataframe(full_df_truth, outputpath, "association_results_full_truthlink")
+    logger_io.info("DataFrame de asociaciones (RecoMCTruthLink) guardado en %s (%d filas)",
+                   out_truth, len(full_df_truth))
 
     # Matrices de confusión + resolución en energía
-    images_dir_dr = os.path.join(outputpath, "confusion_matrices_particle_level", "dR")
-    plot_confusion_matrices(association_results_df_dr, output_dir=images_dir_dr)
-    images_dir_truth = os.path.join(outputpath, "confusion_matrices_particle_level", "truthlink")
-    plot_confusion_matrices(association_results_df_truth, output_dir=images_dir_truth)
+    with stage(logger_io, "Matrices de confusión (dR)"):
+        images_dir_dr = os.path.join(outputpath, "confusion_matrices_particle_level", "dR")
+        plot_confusion_matrices(association_results_df_dr, output_dir=images_dir_dr)
+    with stage(logger_io, "Matrices de confusión (truthlink)"):
+        images_dir_truth = os.path.join(outputpath, "confusion_matrices_particle_level", "truthlink")
+        plot_confusion_matrices(association_results_df_truth, output_dir=images_dir_truth)
 
-    energy_dist_dir_dr = os.path.join(outputpath, "energy_distributions", "dR")
-    plot_energy_distributions(energy_distribution_results_dr, output_dir=energy_dist_dir_dr, all_plot_pdgs=args.all_plot)
-    energy_dist_dir_truth = os.path.join(outputpath, "energy_distributions", "truthlink")
-    plot_energy_distributions(energy_distribution_results_truth, output_dir=energy_dist_dir_truth, all_plot_pdgs=args.all_plot)
+    with stage(logger_io, "Distribuciones de energía (dR)"):
+        energy_dist_dir_dr = os.path.join(outputpath, "energy_distributions", "dR")
+        plot_energy_distributions(energy_distribution_results_dr, output_dir=energy_dist_dir_dr, all_plot_pdgs=args.all_plot)
+    with stage(logger_io, "Distribuciones de energía (truthlink)"):
+        energy_dist_dir_truth = os.path.join(outputpath, "energy_distributions", "truthlink")
+        plot_energy_distributions(energy_distribution_results_truth, output_dir=energy_dist_dir_truth, all_plot_pdgs=args.all_plot)
 
-    eff_dir_dr = os.path.join(outputpath, "efficiency_plots", "dR")
-    plot_efficiency_vs_momentum(full_df_dr, output_dir=eff_dir_dr)
-    eff_dir_truth = os.path.join(outputpath, "efficiency_plots", "truthlink")
-    plot_efficiency_vs_momentum(full_df_truth, output_dir=eff_dir_truth)
-    
-    eff_dir_dr_theta = os.path.join(outputpath, "efficiency_plots_theta", "dR")
-    plot_efficiency_vs_momentum(full_df_dr, output_dir=eff_dir_dr_theta, plot_type="theta")
-    eff_dir_truth_theta = os.path.join(outputpath, "efficiency_plots_theta", "truthlink", "theta")
-    plot_efficiency_vs_momentum(full_df_truth, output_dir=eff_dir_truth_theta, plot_type="theta")
+    with stage(logger_io, "Eficiencia vs momento (dR)"):
+        eff_dir_dr = os.path.join(outputpath, "efficiency_plots", "dR")
+        plot_efficiency_vs_momentum(full_df_dr, output_dir=eff_dir_dr)
+    with stage(logger_io, "Eficiencia vs momento (truthlink)"):
+        eff_dir_truth = os.path.join(outputpath, "efficiency_plots", "truthlink")
+        plot_efficiency_vs_momentum(full_df_truth, output_dir=eff_dir_truth)
+
+    with stage(logger_io, "Eficiencia vs theta (dR)"):
+        eff_dir_dr_theta = os.path.join(outputpath, "efficiency_plots_theta", "dR")
+        plot_efficiency_vs_momentum(full_df_dr, output_dir=eff_dir_dr_theta, plot_type="theta")
+    with stage(logger_io, "Eficiencia vs theta (truthlink)"):
+        eff_dir_truth_theta = os.path.join(outputpath, "efficiency_plots_theta", "truthlink", "theta")
+        plot_efficiency_vs_momentum(full_df_truth, output_dir=eff_dir_truth_theta, plot_type="theta")
+
+    # ── Fake rate (complemento reco-side de la eficiencia) ────────────────────
+    with stage(logger_io, "Fake rate vs momento (dR)"):
+        fake_dir_dr = os.path.join(outputpath, "fake_rate_plots", "dR")
+        plot_fake_rate_vs_momentum(full_df_dr, output_dir=fake_dir_dr,
+                                   selection_note=selection_note_dr, n_events=n_events_dr)
+    with stage(logger_io, "Fake rate vs momento (truthlink)"):
+        fake_dir_truth = os.path.join(outputpath, "fake_rate_plots", "truthlink")
+        plot_fake_rate_vs_momentum(full_df_truth, output_dir=fake_dir_truth,
+                                   selection_note=selection_note_truth, n_events=n_events_truth)
+
+    with stage(logger_io, "Fake rate vs theta (dR)"):
+        fake_dir_dr_theta = os.path.join(outputpath, "fake_rate_plots_theta", "dR")
+        plot_fake_rate_vs_momentum(full_df_dr, output_dir=fake_dir_dr_theta, plot_type="theta",
+                                   selection_note=selection_note_dr, n_events=n_events_dr)
+    with stage(logger_io, "Fake rate vs theta (truthlink)"):
+        fake_dir_truth_theta = os.path.join(outputpath, "fake_rate_plots_theta", "truthlink")
+        plot_fake_rate_vs_momentum(full_df_truth, output_dir=fake_dir_truth_theta, plot_type="theta",
+                                   selection_note=selection_note_truth, n_events=n_events_truth)
+
+    # ── Resolución relativa de momento (p_reco − p_gen)/p_gen ────────────────
+    with stage(logger_io, "Resolución de momento (dR)"):
+        res_dir_dr = os.path.join(outputpath, "momentum_resolution", "dR")
+        plot_momentum_resolution(full_df_dr, output_dir=res_dir_dr)
+    with stage(logger_io, "Resolución de momento (truthlink)"):
+        res_dir_truth = os.path.join(outputpath, "momentum_resolution", "truthlink")
+        plot_momentum_resolution(full_df_truth, output_dir=res_dir_truth)
+
+    # ── Variantes con corte mínimo en energía (--min-energy-cuts) ────────────
+    # Matrices integradas (un único bin E > umbral) y distribuciones de
+    # resolución sobre el mismo subconjunto, en Emin_<valor>GeV.
+    for threshold in (args.min_energy_cuts or []):
+        cut_label = energy_cut_label(threshold)
+        cut_note = f" | E > {threshold:g} GeV"
+        cut_bins = [threshold, np.inf]
+
+        for tag, df_all in (("dR", full_df_dr), ("truthlink", full_df_truth)):
+            df_cut = apply_min_energy_cut(df_all, threshold, mode=args.min_energy_var)
+            logger_io.info(
+                "Corte E > %g GeV (%s, var=%s): %d de %d filas",
+                threshold, tag, args.min_energy_var, len(df_cut), len(df_all),
+            )
+            if df_cut.empty:
+                logger_io.warning(
+                    "Corte E > %g GeV (%s): sin filas, se omiten los plots",
+                    threshold, tag,
+                )
+                continue
+
+            with stage(logger_io, f"Matriz de confusión E>{threshold:g} GeV ({tag})"):
+                # Aquí la matriz tiene un único bin, así que binear los fakes
+                # por Reco_energy no los reparte: solo evita que caigan en la
+                # etiqueta "nan" y generen una segunda matriz espuria.
+                assoc_cut, _ = build_association_structures(
+                    df_cut, cut_bins, e_bins, fake_bin_by_reco=True
+                )
+                plot_confusion_matrices(
+                    assoc_cut,
+                    output_dir=os.path.join(
+                        outputpath, "confusion_matrices_particle_level", tag, cut_label
+                    ),
+                )
+
+            with stage(logger_io, f"Resolución de momento E>{threshold:g} GeV ({tag})"):
+                plot_momentum_resolution(
+                    df_cut,
+                    output_dir=os.path.join(outputpath, "momentum_resolution", tag, cut_label),
+                    title_suffix=cut_note,
+                )
 
     # Fichero ROOT con histogramas (descomentar cuando fill_particle_level_histograms
     # esté implementado con las secciones histograms_config del YAML)

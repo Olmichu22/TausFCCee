@@ -1,0 +1,53 @@
+datasets:
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/CLD_reco_rho_nocuts.root
+    label: CLD reco
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/ILD_reco_rho_nocuts.root
+    label: ILD reco
+    color: ROOT.kBlue
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/CLD_gen_rho_nocuts.root
+    label: CLD gen
+    color: ROOT.kOrange+7
+    linestyle: 1
+    markerstyle: 24
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/ILD_gen_rho_nocuts.root
+    label: ILD gen
+    color: ROOT.kAzure+7
+    linestyle: 1
+    markerstyle: 25
+    markersize: 1.0
+    linewidth: 3
+
+plots:
+  optvar_all_signal:
+    per_dataset:
+      'CLD reco': Omega_Reco_dec0_SIGNAL_BG
+      'ILD reco': Omega_Reco_dec0_SIGNAL_BG
+      'CLD gen': Omega_Reco_dec0_SIGNAL_BG
+      'ILD gen': Omega_Reco_dec0_SIGNAL_BG
+    title: '\text{Optimal variable, } \rho^{\pm} + X \text{ (signal)}'
+    x: '\omega_{\rho}'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]
+  optvar_all_allall:
+    per_dataset:
+      'CLD reco': Omega_Reco_dec0_ALL_ALL
+      'ILD reco': Omega_Reco_dec0_ALL_ALL
+      'CLD gen': Omega_Reco_dec0_ALL_ALL
+      'ILD gen': Omega_Reco_dec0_ALL_ALL
+    title: '\text{Optimal variable, } \rho^{\pm} + X \text{ (all selected)}'
+    x: '\omega_{\rho}'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]

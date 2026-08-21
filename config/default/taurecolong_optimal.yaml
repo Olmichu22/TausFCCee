@@ -3,7 +3,7 @@ cuts:
   TauPhotonPCut: 0.35
   TauPionPCut: 0
   dRMax: 0.4
-  MatchedGenMinDR: 1
+  MatchedGenMaxDR: 1
   generalPCut: 0.
 general:
   decay:

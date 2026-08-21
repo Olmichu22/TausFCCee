@@ -4,10 +4,19 @@
 *.out
 Results/
 test/examples.py
-
+.claude/
 # Python cache / compiled files
 __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
 .ipynb_checkpoints/
+
+# Salidas de plots y artefactos de debug fuera de Results/
+CompareCLDILD/
+CompareCLDILD_tauRecoFix/
+Cases_more_mesons.csv
+
+# Salidas del pipeline CLD/ILD (histogramas binned y plots)
+Binned_histograms_MDecs/
+TauPolOutputs/

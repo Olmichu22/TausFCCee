@@ -213,6 +213,12 @@ def get_entry_vars(entry, proccesing_cfg, logger_process):
         v["leptonp4"] = make_p4(v["leptonP"],    v["leptonTheta"],    v["leptonPhi"],    v["leptonE"])
 
         if compute_weights:
+            # NOTA: esta rama de pesos es código muerto (get_entry_vars solo se usa
+            # más abajo en este mismo módulo y nadie lo importa). No se ha migrado
+            # al convenio z=cos(θ_τ⁻): las llamadas de abajo carecen del argumento
+            # obligatorio tau_pdg y lanzarán TypeError si se reviven. Para
+            # revivirla hace falta añadir genTauPDG a SCALAR_BRANCHES_WEIGHTS y
+            # pasarlo a wVariab/newAtau/newAtauLep.
             v.update(extract_scalars(entry, SCALAR_BRANCHES_WEIGHTS))
             v["genTauP4"]   = make_p4(v["gentauP"],   v["gentauTheta"],   v["gentauPhi"],   v["gentauE"])
             v["genMesonP4"] = make_p4(v["genMesonP"],  v["genMesonTheta"], v["genMesonPhi"],  v["genMesonE"])

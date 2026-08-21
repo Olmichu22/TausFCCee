@@ -59,12 +59,13 @@ _TAU_SCALAR_SUFFIXES = [
     "visP", "visE", "visM", "visTheta", "visPhi",
     "pionP", "pionE", "pionM", "pionTheta", "pionPhi",
     "lepP", "lepE", "lepTheta", "lepPhi", "lepPDG",
-    "decayID", "cos_theta", "cos_psi", "cos_beta",
+    "decayID", "tauPDG", "cos_theta", "cos_psi", "cos_beta",
     "omega", "weight_P1", "weight_M1",
     "cos_theta_tau", "optimalVar", "isElectron", "nPhotons",
     "recoVisP", "recoVisE", "recoVisM", "recoVisTheta", "recoVisPhi",
     "recoPionP", "recoPionE", "recoPionM", "recoPionTheta", "recoPionPhi",
-    "recoTauID", "recoLepP", "recoLepE", "recoLepTheta", "recoLepPhi", "recoLepPDG",
+    "recoTauID", "recoCharge",
+    "recoLepP", "recoLepE", "recoLepTheta", "recoLepPhi", "recoLepPDG",
     "reco_weight_P1", "reco_weight_M1",
 ]
 
@@ -116,6 +117,17 @@ def _extract_pion_p4(daughters):
     return pion
 
 
+def _tau_pdg_from_charge(charge):
+    """PDG (15 / -15) of the tau in a reco hemisphere, from its reconstructed charge.
+
+    The polarization P(z) is defined with z = cos(theta_tau-), so every weight
+    needs to know which hemisphere it is looking at. |q| != 1 is not expected
+    (see docs/plan_signo_costheta_taum.md, section 4.3); q >= 0 falls back to tau+
+    and is counted separately in the worker log.
+    """
+    return 15 if charge < 0 else -15
+
+
 def _build_reco_candidates(recoTaus, recoElectrons, recoMuons,
                             minPTauElectron, minPTauMuon):
     """
@@ -133,6 +145,7 @@ def _build_reco_candidates(recoTaus, recoElectrons, recoMuons,
             "lep_p4":      None,
             "is_electron": False,
             "consts":      consts,
+            "charge":      tau.getCharge(),
         })
 
     for mu_key in recoMuons:
@@ -142,6 +155,7 @@ def _build_reco_candidates(recoTaus, recoElectrons, recoMuons,
                 "tau_id": -13, "vis_p4": mu_p4,
                 "pion_p4": None, "lep_p4": mu_p4,
                 "is_electron": False, "consts": {},
+                "charge": recoMuons[mu_key].getCharge(),
             })
 
     for e_key in recoElectrons:
@@ -151,6 +165,7 @@ def _build_reco_candidates(recoTaus, recoElectrons, recoMuons,
                 "tau_id": -11, "vis_p4": e_p4,
                 "pion_p4": None, "lep_p4": e_p4,
                 "is_electron": True, "consts": {},
+                "charge": recoElectrons[e_key].getCharge(),
             })
 
     return candidates
@@ -232,9 +247,12 @@ def _match_gen_tau(vis_p4, genTaus, used_indices):
 
 def _fill_tau_branches_mdecs(branches, prefix, reco_cand, gen_tau_obj, beamE, sin_eff):
     """
-    Rellena las ramas {prefix}_* de un hemisferio.
-    Ramas gen  → de gen_tau_obj (si no es None).
-    Ramas reco → de reco_cand.
+    Fill the {prefix}_* branches of one hemisphere.
+    Gen branches  <- gen_tau_obj (if not None).
+    Reco branches <- reco_cand.
+
+    Returns 1 if the reconstructed charge of this hemisphere has |q| != 1, else 0,
+    so the caller can keep a running count for the log (see the docs plan, 4.3).
     """
     # ── Reco branches ────────────────────────────────────────────────────────
     vis_p4  = reco_cand["vis_p4"]
@@ -242,7 +260,12 @@ def _fill_tau_branches_mdecs(branches, prefix, reco_cand, gen_tau_obj, beamE, si
     lep_p4  = reco_cand["lep_p4"]  if reco_cand["lep_p4"]  is not None else ROOT.TLorentzVector()
     reco_id = reco_cand["tau_id"]
 
+    reco_charge = reco_cand.get("charge", -1.0)
+    reco_tau_pdg = _tau_pdg_from_charge(reco_charge)
+    anomalous_charge = 0 if abs(reco_charge) == 1 else 1
+
     branches[f"{prefix}_recoTauID"].value     = float(reco_id)
+    branches[f"{prefix}_recoCharge"].value    = float(reco_charge)
     branches[f"{prefix}_recoVisP"].value      = vis_p4.P()
     branches[f"{prefix}_recoVisE"].value      = vis_p4.E()
     branches[f"{prefix}_recoVisM"].value      = vis_p4.M()
@@ -289,29 +312,53 @@ def _fill_tau_branches_mdecs(branches, prefix, reco_cand, gen_tau_obj, beamE, si
             # ρ reco completo (2) y ρ sin un fotón (1) son ambos ρ: ESTÁNDAR = variable
             # óptima ω reco (wVariabRECO con cinemática reco), no la H simplificada.
             _, _, _, omega_reco = optimalVariabRho.wVariabRECO(vis_p4, pion_p4, beamE)
-            rw_P1 = weightsPol.newAtauRhoOmega(tau_proxy_p4, omega_reco, +1, sin_eff=sin_eff)
-            rw_M1 = weightsPol.newAtauRhoOmega(tau_proxy_p4, omega_reco, -1, sin_eff=sin_eff)
+            rw_P1 = weightsPol.newAtauRhoOmega(tau_proxy_p4, omega_reco, +1,
+                                               tau_pdg=reco_tau_pdg, sin_eff=sin_eff)
+            rw_M1 = weightsPol.newAtauRhoOmega(tau_proxy_p4, omega_reco, -1,
+                                               tau_pdg=reco_tau_pdg, sin_eff=sin_eff)
         elif reco_id in (0, 10):
             # π/a1: su observable óptimo ya es H (z para el π); no hay ω no trivial.
-            rw_P1 = weightsPol.newAtau(tau_proxy_p4, vis_p4, reco_id, +1, sin_eff=sin_eff)
-            rw_M1 = weightsPol.newAtau(tau_proxy_p4, vis_p4, reco_id, -1, sin_eff=sin_eff)
+            rw_P1 = weightsPol.newAtau(tau_proxy_p4, vis_p4, reco_id, +1,
+                                       tau_pdg=reco_tau_pdg, sin_eff=sin_eff)
+            rw_M1 = weightsPol.newAtau(tau_proxy_p4, vis_p4, reco_id, -1,
+                                       tau_pdg=reco_tau_pdg, sin_eff=sin_eff)
         elif reco_id in (-11, -13):
-            rw_P1 = weightsPol.newAtauLep(lep_p4, tau_proxy_p4, beamE, +1, sin_eff=sin_eff)
-            rw_M1 = weightsPol.newAtauLep(lep_p4, tau_proxy_p4, beamE, -1, sin_eff=sin_eff)
+            rw_P1 = weightsPol.newAtauLep(lep_p4, tau_proxy_p4, beamE, +1,
+                                          tau_pdg=reco_tau_pdg, sin_eff=sin_eff)
+            rw_M1 = weightsPol.newAtauLep(lep_p4, tau_proxy_p4, beamE, -1,
+                                          tau_pdg=reco_tau_pdg, sin_eff=sin_eff)
     branches[f"{prefix}_reco_weight_P1"].value = rw_P1
     branches[f"{prefix}_reco_weight_M1"].value = rw_M1
 
     # ── Gen branches ─────────────────────────────────────────────────────────
     if gen_tau_obj is None:
+        # tauPDG y decayID llevan centinela, NO 0.0. Pasa de verdad y en volumen:
+        # con menos de 2 gen-taus en el evento _select_decay_modes devuelve
+        # gen_idx = -1 y ambos hemisferios se quedan sin gen — el caso de las
+        # muestras con has_gen_taus: false (bhabha), donde es TODO el sample.
+        #   - tauPDG: es la fuente del signo de z = cos(θ_τ⁻); un 0 se leería como
+        #     τ⁺ en silencio en el hist stage, el modo de fallo que este convenio
+        #     elimina. _gen_tau_pdg lanza ante cualquier cosa que no sea ±15.
+        #   - decayID: un 0 es "pión gen", así que estos hemisferios se colaban
+        #     como SIGNAL en el canal del pión (_tau_category compara decayID con
+        #     el canal). Con -999 caen a BGOther, que es lo que son. -999 ya es el
+        #     valor "desconocido" en todo el hist stage (los .get(..., -999)).
+        #   - weight_P1/M1: 1.0, el neutro MULTIPLICATIVO, no 0.0. Sin gen-tau no
+        #     hay repesado posible, y lo correcto es dejar el evento inalterado, no
+        #     borrarlo del histograma. Además el hist stage cae a este producto para
+        #     el peso joint cuando falta el gen (_compute_joint_weights), así que un
+        #     0.0 aquí vaciaría en silencio las variantes corr_P1/corr_M1.
         _no_gen_defaults = {
             "omega": -999.0, "optimalVar": -999.0,
+            "tauPDG": -999.0, "decayID": -999.0,
+            "weight_P1": 1.0, "weight_M1": 1.0,
         }
         for sfx in _TAU_SCALAR_SUFFIXES:
             if sfx.startswith("reco"):
                 continue
             val = _no_gen_defaults.get(sfx, 0.0)
             branches[f"{prefix}_{sfx}"].value = val
-        return
+        return anomalous_charge
 
     decayID = gen_tau_obj.getID()
     tauP4   = gen_tau_obj.getMomentum()
@@ -329,6 +376,8 @@ def _fill_tau_branches_mdecs(branches, prefix, reco_cand, gen_tau_obj, beamE, si
     branches[f"{prefix}_visTheta"].value    = gen_vis.Theta()
     branches[f"{prefix}_visPhi"].value      = gen_vis.Phi()
     branches[f"{prefix}_decayID"].value     = float(decayID)
+    gen_tau_pdg = int(gen_tau_obj.getPDG())
+    branches[f"{prefix}_tauPDG"].value      = float(gen_tau_pdg)
 
     # Daughters: pion cargado + fotones gen
     daughters  = gen_tau_obj.getDaughters()
@@ -362,22 +411,22 @@ def _fill_tau_branches_mdecs(branches, prefix, reco_cand, gen_tau_obj, beamE, si
     if decayID == 1:
         (cos_theta, cos_psi, cos_beta, omega,
          w_P1, w_M1) = optimalVariabRho.wVariab(
-            tauP4, gen_vis, gen_pion, beamE, sin_eff=sin_eff)
+            tauP4, gen_vis, gen_pion, beamE, sin_eff=sin_eff, tau_pdg=gen_tau_pdg)
     elif decayID == 0:  # π gen: peso con cos(θ*) geométrico (boost exacto, α=1)
         cts = weightsPol.cosThetaStar(tauP4, gen_vis)
-        w_P1 = weightsPol.newAtauFromH(tauP4, cts, +1, sin_eff=sin_eff)
-        w_M1 = weightsPol.newAtauFromH(tauP4, cts, -1, sin_eff=sin_eff)
+        w_P1 = weightsPol.newAtauFromH(tauP4, cts, +1, tau_pdg=gen_tau_pdg, sin_eff=sin_eff)
+        w_M1 = weightsPol.newAtauFromH(tauP4, cts, -1, tau_pdg=gen_tau_pdg, sin_eff=sin_eff)
         cos_theta = cts
         cos_psi = cos_beta = 0.0
         omega = -999.0
     elif decayID == 10:  # a1 gen: z_R vía newAtau
-        w_P1 = weightsPol.newAtau(tauP4, gen_vis, decayID, +1, sin_eff=sin_eff)
-        w_M1 = weightsPol.newAtau(tauP4, gen_vis, decayID, -1, sin_eff=sin_eff)
+        w_P1 = weightsPol.newAtau(tauP4, gen_vis, decayID, +1, tau_pdg=gen_tau_pdg, sin_eff=sin_eff)
+        w_M1 = weightsPol.newAtau(tauP4, gen_vis, decayID, -1, tau_pdg=gen_tau_pdg, sin_eff=sin_eff)
         cos_theta = cos_psi = cos_beta = 0.0
         omega = -999.0
     elif decayID in (-11, -13):
-        w_P1 = weightsPol.newAtauLep(gen_vis, tauP4, beamE, +1, sin_eff=sin_eff)
-        w_M1 = weightsPol.newAtauLep(gen_vis, tauP4, beamE, -1, sin_eff=sin_eff)
+        w_P1 = weightsPol.newAtauLep(gen_vis, tauP4, beamE, +1, tau_pdg=gen_tau_pdg, sin_eff=sin_eff)
+        w_M1 = weightsPol.newAtauLep(gen_vis, tauP4, beamE, -1, tau_pdg=gen_tau_pdg, sin_eff=sin_eff)
         cos_theta = cos_psi = cos_beta = 0.0
         omega = -999.0
     else:
@@ -388,7 +437,8 @@ def _fill_tau_branches_mdecs(branches, prefix, reco_cand, gen_tau_obj, beamE, si
         w_P1 = w_M1 = 1.0
 
     # Variable óptima (observable): definición ÚNICA vía helper compartido.
-    opt_var = optimalVariabRho.optimal_var(decayID, tauP4, gen_vis, gen_pion, beamE)
+    opt_var = optimalVariabRho.optimal_var(decayID, tauP4, gen_vis, gen_pion, beamE,
+                                           tau_pdg=gen_tau_pdg)
 
     branches[f"{prefix}_cos_theta"].value  = cos_theta
     branches[f"{prefix}_cos_psi"].value    = cos_psi
@@ -406,6 +456,8 @@ def _fill_tau_branches_mdecs(branches, prefix, reco_cand, gen_tau_obj, beamE, si
     branches[f"{prefix}_lepPhi"].value    = gen_vis.Phi()   if is_lep_gen else 0.0
     branches[f"{prefix}_lepPDG"].value    = float(abs(decayID)) if is_lep_gen else 0.0
     branches[f"{prefix}_isElectron"].value = float(decayID == -11)
+
+    return anomalous_charge
 
 
 # ── Worker ────────────────────────────────────────────────────────────────────
@@ -452,6 +504,10 @@ def process_chunk_mdecs(filenames_chunk, mlpf_chunk, global_event_offset,
     selectedEvents = 0
     eventid        = global_event_offset
     skipped_files  = []
+    # Hemisferios con |q_reco| != 1: no se espera ninguno (el signo de z sale de la
+    # carga), pero se cuenta para que el caso no pase inadvertido si algún día
+    # aparece con estadística no despreciable. Ver docs/plan_signo_costheta_taum.md.
+    anomalousCharge = 0
 
     for filename in filenames_chunk:
         try:
@@ -534,8 +590,10 @@ def process_chunk_mdecs(filenames_chunk, mlpf_chunk, global_event_offset,
             branches["beamE"].value       = beamE
 
             # Fill per-tau branches
-            _fill_tau_branches_mdecs(branches, "tau1", tau1_cand, gen_tau1, beamE, sin_eff)
-            _fill_tau_branches_mdecs(branches, "tau2", tau2_cand, gen_tau2, beamE, sin_eff)
+            anomalousCharge += _fill_tau_branches_mdecs(
+                branches, "tau1", tau1_cand, gen_tau1, beamE, sin_eff)
+            anomalousCharge += _fill_tau_branches_mdecs(
+                branches, "tau2", tau2_cand, gen_tau2, beamE, sin_eff)
 
             selectedEvents += 1
             tree.Fill()
@@ -548,6 +606,10 @@ def process_chunk_mdecs(filenames_chunk, mlpf_chunk, global_event_offset,
     tree.Write()
     partial_outfile.Close()
 
+    if anomalousCharge:
+        logger_io.warning("Worker %d: %d reco hemisphere(s) with |q| != 1 "
+                          "(sign of z taken as tau+ for those)",
+                          worker_id, anomalousCharge)
     logger_io.info("Worker %d: done. Events=%d Selected=%d",
                    worker_id, totalEvents, selectedEvents)
     return partial_path, totalEvents, selectedEvents

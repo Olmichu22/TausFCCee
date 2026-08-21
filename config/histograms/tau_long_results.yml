@@ -1,0 +1,5634 @@
+Gen:
+  Events:
+    ZMass:
+      type: "1D"
+      name: ZMassGen
+      range: [0, 100]
+      bins: 100
+
+    ZVisMass:
+      type: "1D"
+      name: ZVisMassGen
+      range: [0, 100]
+      bins: 100
+
+    TauPairVisAngle:
+      type: "1D"
+      name: TauPairVisAngleGen
+      range: [2, 4.5]
+      bins: 250
+
+    TauPairAngle:
+      type: "1D"
+      name: TauPairAngleGen
+      range: [2, 4.5]
+      bins: 250
+
+    TauPt:
+      type: "1D"
+      name: TauPtGen
+      range: [0, 50]
+      bins: 250
+
+    TauVisPt:
+      type: "1D"
+      name: TauVisPtGen
+      range: [0, 50]
+      bins: 250
+
+    TauP:
+      type: "1D"
+      name: TauPGen
+      range: [0, 50]
+      bins: 250
+
+    HadronTauP:
+      type: "1D"
+      name: HadronTauPGen
+      range: [0, 50]
+      bins: 12
+
+    TauVisP:
+      type: "1D"
+      name: TauVisPGen
+      range: [0, 50]
+      bins: 250
+
+    TauType:
+      type: "1D"
+      name: TauTypeGen
+      range: [-1, 20]
+      bins: 21
+
+    TauVisMass:
+      type: "1D"
+      name: TauVisMassGen
+      range: [0, 10]
+      bins: 500
+
+    TauQ:
+      type: "1D"
+      name: TauQGen
+      range: [-1.5, 1.5]
+      bins: 3
+
+    TauEta:
+      type: "1D"
+      name: TauEtaGen
+      range: [-5, 5]
+      bins: 100
+
+    TauTheta:
+      type: "1D"
+      name: TauThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    TauDR:
+      type: "1D"
+      name: TauDRGen
+      range: [0, 1]
+      bins: 100
+
+    ConstPi0Mass:
+      type: "1D"
+      name: ConstPi0MassGen
+      range: [0, 0.5]
+      bins: 100
+
+    RhoPiDecayP:
+      type: "1D"
+      name: RhoPiDecayPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecayP:
+      type: "1D"
+      name: RhoTwoPhotonDecayPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecaySumP:
+      type: "1D"
+      name: RhoTwoPhotonDecaySumPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecayPiPhotonSumP:
+      type: "2D"
+      name: RhoTwoPhotonDecayPiPhotonSumPGen
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    RhoOnePhotonDecayPiP:
+      type: "1D"
+      name: RhoOnePhotonDecayPiPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPhotonP:
+      type: "1D"
+      name: RhoOnePhotonDecayPhotonPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPhotonSumP:
+      type: "1D"
+      name: RhoOnePhotonDecayPhotonSumPGen
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPhotonAng:
+      type: "1D"
+      name: RhoOnePhotonDecayPhotonAngGen
+      range: [0, 2]
+      bins: 100
+
+    RhoOnePhotonDecayPiPhotonSumP:
+      type: "2D"
+      name: RhoOnePhotonDecayPiPhotonSumPGen
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    PionPid:
+      type: "2D"
+      name: PionPidGen
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [-20, 20]
+      y_bins: 40
+
+    NTaus:
+      type: "1D"
+      name: NTausGen
+      range: [0, 6]
+      bins: 6
+
+    NTausType:
+      type: "1D"
+      name: NTausTypeGen
+      range: [0, 6]
+      bins: 6
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10Gen
+      range: [0, 3.15]
+      bins: 100
+
+    PhotonTheta:
+      type: "1D"
+      name: PhotonThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    PionTheta:
+      type: "1D"
+      name: PionThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    AllPhotonsP:
+      type: "1D"
+      name: AllPhotonsPGen
+      range: [0, 50]
+      bins: 100
+
+    AllPhotonsTheta:
+      type: "1D"
+      name: AllPhotonsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    MissmatchedPhotonsP:
+      type: "1D"
+      name: MissmatchedPhotonsPGen
+      range: [0, 50]
+      bins: 100
+
+    MissmatchedPhotonsTheta:
+      type: "1D"
+      name: MissmatchedPhotonsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    UnmatchedPhotonsP:
+      type: "1D"
+      name: UnmatchedPhotonsPGen
+      range: [0, 50]
+      bins: 100
+
+    UnmatchedPhotonsTheta:
+      type: "1D"
+      name: UnmatchedPhotonsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsP:
+      type: "1D"
+      name: AllPionsPGen
+      range: [0, 50]
+      bins: 250
+
+    AllPionsTheta:
+      type: "1D"
+      name: AllPionsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsPCut:
+      type: "1D"
+      name: AllPionsPCutGen
+      range: [0, 50]
+      bins: 100
+
+    AllPionsThetaCut:
+      type: "1D"
+      name: AllPionsThetaCutGen
+      range: [0, 3.15]
+      bins: 100
+
+    MissmatchedPionsP:
+      type: "1D"
+      name: MissmatchedPionsPGen
+      range: [0, 50]
+      bins: 100
+
+    MissmatchedPionsTheta:
+      type: "1D"
+      name: MissmatchedPionsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    UnmatchedPionsP:
+      type: "1D"
+      name: UnmatchedPionsPGen
+      range: [0, 50]
+      bins: 100
+
+    UnmatchedPionsTheta:
+      type: "1D"
+      name: UnmatchedPionsThetaGen
+      range: [0, 3.15]
+      bins: 100
+
+    TauP0:
+      type: "1D"
+      name: TauP0Gen
+      range: [0, 50]
+      bins: 12
+
+    TauP1:
+      type: "1D"
+      name: TauP1Gen
+      range: [0, 50]
+      bins: 12
+
+    TauP2:
+      type: "1D"
+      name: TauP2Gen
+      range: [0, 50]
+      bins: 12
+
+    TauP10:
+      type: "1D"
+      name: TauP10Gen
+      range: [0, 50]
+      bins: 12
+
+    # Gen decay-mode denominators for the migration plots.
+    # Elec/Muon are the leptonic gen modes (-11 / -13).
+    TauP3:
+      type: "1D"
+      name: TauP3Gen
+      range: [0, 50]
+      bins: 12
+
+    TauP4:
+      type: "1D"
+      name: TauP4Gen
+      range: [0, 50]
+      bins: 12
+
+    TauP11:
+      type: "1D"
+      name: TauP11Gen
+      range: [0, 50]
+      bins: 12
+
+    TauP12:
+      type: "1D"
+      name: TauP12Gen
+      range: [0, 50]
+      bins: 12
+
+    TauPElec:
+      type: "1D"
+      name: TauPElecGen
+      range: [0, 50]
+      bins: 12
+
+    TauPMuon:
+      type: "1D"
+      name: TauPMuonGen
+      range: [0, 50]
+      bins: 12
+
+    TauTheta3:
+      type: "1D"
+      name: TauTheta3Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4:
+      type: "1D"
+      name: TauTheta4Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11:
+      type: "1D"
+      name: TauTheta11Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12:
+      type: "1D"
+      name: TauTheta12Gen
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElec:
+      type: "1D"
+      name: TauThetaElecGen
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuon:
+      type: "1D"
+      name: TauThetaMuonGen
+      range: [0, 3.15]
+      bins: 100
+
+
+    TauVisP0:
+      type: "1D"
+      name: TauVisP0Gen
+      range: [0, 50]
+      bins: 12
+
+    TauVisP1:
+      type: "1D"
+      name: TauVisP1Gen
+      range: [0, 50]
+      bins: 12
+
+    TauVisP2:
+      type: "1D"
+      name: TauVisP2Gen
+      range: [0, 50]
+      bins: 12
+
+    TauVisP10:
+      type: "1D"
+      name: TauVisP10Gen
+      range: [0, 50]
+      bins: 12
+
+    PhotonP:
+      type: "1D"
+      name: PhotonPGen
+      range: [0, 25]
+      bins: 100
+
+    PionP:
+      type: "1D"
+      name: PionPGen
+      range: [0, 50]
+      bins: 100
+
+    PionP0:
+      type: "1D"
+      name: PionP0Gen
+      range: [0, 50]
+      bins: 100
+
+    PionP1:
+      type: "1D"
+      name: PionP1Gen
+      range: [0, 50]
+      bins: 100
+
+    PionP2:
+      type: "1D"
+      name: PionP2Gen
+      range: [0, 50]
+      bins: 100
+
+    PionP10:
+      type: "1D"
+      name: PionP10Gen
+      range: [0, 50]
+      bins: 100
+
+
+  
+  Effi:
+    UnmatchedPionsP:
+      name: hGenUnmatchedPionsPNorm
+      numerator: Gen/UnmatchedPionsP
+      denominator: Gen/AllPionsP
+
+    UnmatchedPionsTheta:
+      name: hGenUnmatchedPionsThetaNorm
+      numerator: Gen/UnmatchedPionsTheta
+      denominator: Gen/AllPionsTheta
+
+    MissmatchedPionsP:
+      name: hGenMissmatchedPionsPNorm
+      numerator: Gen/MissmatchedPionsP
+      denominator: Gen/AllPionsP
+
+    MissmatchedPionsTheta:
+      name: hGenMissmatchedPionsThetaNorm
+      numerator: Gen/MissmatchedPionsTheta
+      denominator: Gen/AllPionsTheta
+
+    UnmatchedPhotonsP:
+      name: hGenUnmatchedPhotonsPNorm
+      numerator: Gen/UnmatchedPhotonsP
+      denominator: Gen/AllPhotonsP
+
+    UnmatchedPhotonsTheta:
+      name: hGenUnmatchedPhotonsThetaNorm
+      numerator: Gen/UnmatchedPhotonsTheta
+      denominator: Gen/AllPhotonsTheta
+
+    MissmatchedPhotonsP:
+      name: hGenMissmatchedPhotonsPNorm
+      numerator: Gen/MissmatchedPhotonsP
+      denominator: Gen/AllPhotonsP
+
+    MissmatchedPhotonsTheta:
+      name: hGenMissmatchedPhotonsThetaNorm
+      numerator: Gen/MissmatchedPhotonsTheta
+      denominator: Gen/AllPhotonsTheta
+
+Matched:
+  Events:
+    TauP:
+      type: "1D"
+      name: TauPMatched
+      range: [0, 50]
+      bins: 250
+
+    TauVisP:
+      type: "1D"
+      name: TauVisPMatched
+      range: [0, 50]
+      bins: 250
+
+    TauPt:
+      type: "1D"
+      name: TauPtMatched
+      range: [0, 50]
+      bins: 250
+
+    TauVisPt:
+      type: "1D"
+      name: TauVisPtMatched
+      range: [0, 50]
+      bins: 250
+
+    HadronTauP:
+      type: "1D"
+      name: HadronTauPMatched
+      range: [0, 50]
+      bins: 12
+
+    TauType:
+      type: "1D"
+      name: TauTypeMatched
+      range: [-1, 20]
+      bins: 21
+
+    TauVisMass:
+      type: "1D"
+      name: TauVisMassMatched
+      range: [0, 10]
+      bins: 500
+
+    TauQ:
+      type: "1D"
+      name: TauQMatched
+      range: [-1.5, 1.5]
+      bins: 3
+
+    TauEta:
+      type: "1D"
+      name: TauEtaMatched
+      range: [-5, 5]
+      bins: 100
+
+    TauTheta:
+      type: "1D"
+      name: TauThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauDR:
+      type: "1D"
+      name: TauDRMatched
+      range: [0, 1]
+      bins: 100
+
+    ConstPi0Mass:
+      type: "1D"
+      name: ConstPi0MassMatched
+      range: [0, 0.5]
+      bins: 100
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0Matched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1Matched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2Matched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10Matched
+      range: [0, 3.15]
+      bins: 100
+
+    PhotonTheta:
+      type: "1D"
+      name: PhotonThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    PionTheta:
+      type: "1D"
+      name: PionThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    PionsP:
+      type: "2D"
+      name: PionsPMatched
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    AllPhotonsP:
+      type: "1D"
+      name: AllPhotonsPMatched
+      range: [0, 50]
+      bins: 100
+
+    AllPhotonsTheta:
+      type: "1D"
+      name: AllPhotonsThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsP:
+      type: "1D"
+      name: AllPionsPMatched
+      range: [0, 50]
+      bins: 250
+
+    AllPionsTheta:
+      type: "1D"
+      name: AllPionsThetaMatched
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsPCut:
+      type: "1D"
+      name: AllPionsPCutMatched
+      range: [0, 50]
+      bins: 100
+
+    AllPionsThetaCut:
+      type: "1D"
+      name: AllPionsThetaCutMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauP0:
+      type: "1D"
+      name: TauP0Matched
+      range: [0, 50]
+      bins: 12
+
+    TauP1:
+      type: "1D"
+      name: TauP1Matched
+      range: [0, 50]
+      bins: 12
+
+    TauP2:
+      type: "1D"
+      name: TauP2Matched
+      range: [0, 50]
+      bins: 12
+
+    TauP10:
+      type: "1D"
+      name: TauP10Matched
+      range: [0, 50]
+      bins: 12
+
+    TauVisP0:
+      type: "1D"
+      name: TauVisP0Matched
+      range: [0, 50]
+      bins: 12
+
+    TauVisP1:
+      type: "1D"
+      name: TauVisP1Matched
+      range: [0, 50]
+      bins: 12
+
+    TauVisP2:
+      type: "1D"
+      name: TauVisP2Matched
+      range: [0, 50]
+      bins: 12
+
+    TauVisP10:
+      type: "1D"
+      name: TauVisP10Matched
+      range: [0, 50]
+      bins: 12
+
+    TauP1Correct:
+      type: "1D"
+      name: TauP1CorrectMatched
+      range: [0, 50]
+      bins: 12
+    
+    TauP0Correct:
+      type: "1D"
+      name: TauP0CorrectMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2Correct:
+      type: "1D"
+      name: TauP2CorrectMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10Correct:
+      type: "1D"
+      name: TauP10CorrectMatched
+      range: [0, 50]
+      bins: 12
+
+    # Decay-mode migration: gen mode G reconstructed as R. The reco side is
+    # the raw reco id, which counts PHOTONS, not pi0s: h2g and h1g are kept
+    # apart instead of being merged into a single "one pi0" bucket.
+    # Unmatched = no reco tau found, NoTau = matched object is not a tau,
+    # Other = anything else (pi+neutron and the like).
+    TauP0Toh:
+      type: "1D"
+      name: TauP0TohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0Toh1g:
+      type: "1D"
+      name: TauP0Toh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0Toh2g:
+      type: "1D"
+      name: TauP0Toh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0Toh3g:
+      type: "1D"
+      name: TauP0Toh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0Toh4g:
+      type: "1D"
+      name: TauP0Toh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0Toh5gPlus:
+      type: "1D"
+      name: TauP0Toh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0To3h:
+      type: "1D"
+      name: TauP0To3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0To3h1g:
+      type: "1D"
+      name: TauP0To3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0To3h2g:
+      type: "1D"
+      name: TauP0To3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0To3h3g:
+      type: "1D"
+      name: TauP0To3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0To3h4g:
+      type: "1D"
+      name: TauP0To3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0To3h5gPlus:
+      type: "1D"
+      name: TauP0To3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0ToElec:
+      type: "1D"
+      name: TauP0ToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0ToMuon:
+      type: "1D"
+      name: TauP0ToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0ToUnmatched:
+      type: "1D"
+      name: TauP0ToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0ToNoTau:
+      type: "1D"
+      name: TauP0ToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0ToOther:
+      type: "1D"
+      name: TauP0ToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP0To3hNeutron:
+      type: "1D"
+      name: TauP0To3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1Toh:
+      type: "1D"
+      name: TauP1TohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1Toh1g:
+      type: "1D"
+      name: TauP1Toh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1Toh2g:
+      type: "1D"
+      name: TauP1Toh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1Toh3g:
+      type: "1D"
+      name: TauP1Toh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1Toh4g:
+      type: "1D"
+      name: TauP1Toh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1Toh5gPlus:
+      type: "1D"
+      name: TauP1Toh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1To3h:
+      type: "1D"
+      name: TauP1To3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1To3h1g:
+      type: "1D"
+      name: TauP1To3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1To3h2g:
+      type: "1D"
+      name: TauP1To3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1To3h3g:
+      type: "1D"
+      name: TauP1To3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1To3h4g:
+      type: "1D"
+      name: TauP1To3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1To3h5gPlus:
+      type: "1D"
+      name: TauP1To3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1ToElec:
+      type: "1D"
+      name: TauP1ToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1ToMuon:
+      type: "1D"
+      name: TauP1ToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1ToUnmatched:
+      type: "1D"
+      name: TauP1ToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1ToNoTau:
+      type: "1D"
+      name: TauP1ToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1ToOther:
+      type: "1D"
+      name: TauP1ToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP1To3hNeutron:
+      type: "1D"
+      name: TauP1To3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2Toh:
+      type: "1D"
+      name: TauP2TohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2Toh1g:
+      type: "1D"
+      name: TauP2Toh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2Toh2g:
+      type: "1D"
+      name: TauP2Toh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2Toh3g:
+      type: "1D"
+      name: TauP2Toh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2Toh4g:
+      type: "1D"
+      name: TauP2Toh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2Toh5gPlus:
+      type: "1D"
+      name: TauP2Toh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2To3h:
+      type: "1D"
+      name: TauP2To3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2To3h1g:
+      type: "1D"
+      name: TauP2To3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2To3h2g:
+      type: "1D"
+      name: TauP2To3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2To3h3g:
+      type: "1D"
+      name: TauP2To3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2To3h4g:
+      type: "1D"
+      name: TauP2To3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2To3h5gPlus:
+      type: "1D"
+      name: TauP2To3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2ToElec:
+      type: "1D"
+      name: TauP2ToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2ToMuon:
+      type: "1D"
+      name: TauP2ToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2ToUnmatched:
+      type: "1D"
+      name: TauP2ToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2ToNoTau:
+      type: "1D"
+      name: TauP2ToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2ToOther:
+      type: "1D"
+      name: TauP2ToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP2To3hNeutron:
+      type: "1D"
+      name: TauP2To3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3Toh:
+      type: "1D"
+      name: TauP3TohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3Toh1g:
+      type: "1D"
+      name: TauP3Toh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3Toh2g:
+      type: "1D"
+      name: TauP3Toh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3Toh3g:
+      type: "1D"
+      name: TauP3Toh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3Toh4g:
+      type: "1D"
+      name: TauP3Toh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3Toh5gPlus:
+      type: "1D"
+      name: TauP3Toh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3To3h:
+      type: "1D"
+      name: TauP3To3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3To3h1g:
+      type: "1D"
+      name: TauP3To3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3To3h2g:
+      type: "1D"
+      name: TauP3To3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3To3h3g:
+      type: "1D"
+      name: TauP3To3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3To3h4g:
+      type: "1D"
+      name: TauP3To3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3To3h5gPlus:
+      type: "1D"
+      name: TauP3To3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3ToElec:
+      type: "1D"
+      name: TauP3ToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3ToMuon:
+      type: "1D"
+      name: TauP3ToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3ToUnmatched:
+      type: "1D"
+      name: TauP3ToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3ToNoTau:
+      type: "1D"
+      name: TauP3ToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3ToOther:
+      type: "1D"
+      name: TauP3ToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP3To3hNeutron:
+      type: "1D"
+      name: TauP3To3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4Toh:
+      type: "1D"
+      name: TauP4TohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4Toh1g:
+      type: "1D"
+      name: TauP4Toh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4Toh2g:
+      type: "1D"
+      name: TauP4Toh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4Toh3g:
+      type: "1D"
+      name: TauP4Toh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4Toh4g:
+      type: "1D"
+      name: TauP4Toh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4Toh5gPlus:
+      type: "1D"
+      name: TauP4Toh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4To3h:
+      type: "1D"
+      name: TauP4To3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4To3h1g:
+      type: "1D"
+      name: TauP4To3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4To3h2g:
+      type: "1D"
+      name: TauP4To3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4To3h3g:
+      type: "1D"
+      name: TauP4To3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4To3h4g:
+      type: "1D"
+      name: TauP4To3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4To3h5gPlus:
+      type: "1D"
+      name: TauP4To3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4ToElec:
+      type: "1D"
+      name: TauP4ToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4ToMuon:
+      type: "1D"
+      name: TauP4ToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4ToUnmatched:
+      type: "1D"
+      name: TauP4ToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4ToNoTau:
+      type: "1D"
+      name: TauP4ToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4ToOther:
+      type: "1D"
+      name: TauP4ToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP4To3hNeutron:
+      type: "1D"
+      name: TauP4To3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10Toh:
+      type: "1D"
+      name: TauP10TohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10Toh1g:
+      type: "1D"
+      name: TauP10Toh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10Toh2g:
+      type: "1D"
+      name: TauP10Toh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10Toh3g:
+      type: "1D"
+      name: TauP10Toh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10Toh4g:
+      type: "1D"
+      name: TauP10Toh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10Toh5gPlus:
+      type: "1D"
+      name: TauP10Toh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10To3h:
+      type: "1D"
+      name: TauP10To3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10To3h1g:
+      type: "1D"
+      name: TauP10To3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10To3h2g:
+      type: "1D"
+      name: TauP10To3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10To3h3g:
+      type: "1D"
+      name: TauP10To3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10To3h4g:
+      type: "1D"
+      name: TauP10To3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10To3h5gPlus:
+      type: "1D"
+      name: TauP10To3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10ToElec:
+      type: "1D"
+      name: TauP10ToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10ToMuon:
+      type: "1D"
+      name: TauP10ToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10ToUnmatched:
+      type: "1D"
+      name: TauP10ToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10ToNoTau:
+      type: "1D"
+      name: TauP10ToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10ToOther:
+      type: "1D"
+      name: TauP10ToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP10To3hNeutron:
+      type: "1D"
+      name: TauP10To3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11Toh:
+      type: "1D"
+      name: TauP11TohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11Toh1g:
+      type: "1D"
+      name: TauP11Toh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11Toh2g:
+      type: "1D"
+      name: TauP11Toh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11Toh3g:
+      type: "1D"
+      name: TauP11Toh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11Toh4g:
+      type: "1D"
+      name: TauP11Toh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11Toh5gPlus:
+      type: "1D"
+      name: TauP11Toh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11To3h:
+      type: "1D"
+      name: TauP11To3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11To3h1g:
+      type: "1D"
+      name: TauP11To3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11To3h2g:
+      type: "1D"
+      name: TauP11To3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11To3h3g:
+      type: "1D"
+      name: TauP11To3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11To3h4g:
+      type: "1D"
+      name: TauP11To3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11To3h5gPlus:
+      type: "1D"
+      name: TauP11To3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11ToElec:
+      type: "1D"
+      name: TauP11ToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11ToMuon:
+      type: "1D"
+      name: TauP11ToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11ToUnmatched:
+      type: "1D"
+      name: TauP11ToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11ToNoTau:
+      type: "1D"
+      name: TauP11ToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11ToOther:
+      type: "1D"
+      name: TauP11ToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP11To3hNeutron:
+      type: "1D"
+      name: TauP11To3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12Toh:
+      type: "1D"
+      name: TauP12TohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12Toh1g:
+      type: "1D"
+      name: TauP12Toh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12Toh2g:
+      type: "1D"
+      name: TauP12Toh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12Toh3g:
+      type: "1D"
+      name: TauP12Toh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12Toh4g:
+      type: "1D"
+      name: TauP12Toh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12Toh5gPlus:
+      type: "1D"
+      name: TauP12Toh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12To3h:
+      type: "1D"
+      name: TauP12To3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12To3h1g:
+      type: "1D"
+      name: TauP12To3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12To3h2g:
+      type: "1D"
+      name: TauP12To3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12To3h3g:
+      type: "1D"
+      name: TauP12To3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12To3h4g:
+      type: "1D"
+      name: TauP12To3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12To3h5gPlus:
+      type: "1D"
+      name: TauP12To3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12ToElec:
+      type: "1D"
+      name: TauP12ToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12ToMuon:
+      type: "1D"
+      name: TauP12ToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12ToUnmatched:
+      type: "1D"
+      name: TauP12ToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12ToNoTau:
+      type: "1D"
+      name: TauP12ToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12ToOther:
+      type: "1D"
+      name: TauP12ToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauP12To3hNeutron:
+      type: "1D"
+      name: TauP12To3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToh:
+      type: "1D"
+      name: TauPElecTohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToh1g:
+      type: "1D"
+      name: TauPElecToh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToh2g:
+      type: "1D"
+      name: TauPElecToh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToh3g:
+      type: "1D"
+      name: TauPElecToh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToh4g:
+      type: "1D"
+      name: TauPElecToh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToh5gPlus:
+      type: "1D"
+      name: TauPElecToh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecTo3h:
+      type: "1D"
+      name: TauPElecTo3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecTo3h1g:
+      type: "1D"
+      name: TauPElecTo3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecTo3h2g:
+      type: "1D"
+      name: TauPElecTo3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecTo3h3g:
+      type: "1D"
+      name: TauPElecTo3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecTo3h4g:
+      type: "1D"
+      name: TauPElecTo3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecTo3h5gPlus:
+      type: "1D"
+      name: TauPElecTo3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToElec:
+      type: "1D"
+      name: TauPElecToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToMuon:
+      type: "1D"
+      name: TauPElecToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToUnmatched:
+      type: "1D"
+      name: TauPElecToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToNoTau:
+      type: "1D"
+      name: TauPElecToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecToOther:
+      type: "1D"
+      name: TauPElecToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPElecTo3hNeutron:
+      type: "1D"
+      name: TauPElecTo3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToh:
+      type: "1D"
+      name: TauPMuonTohMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToh1g:
+      type: "1D"
+      name: TauPMuonToh1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToh2g:
+      type: "1D"
+      name: TauPMuonToh2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToh3g:
+      type: "1D"
+      name: TauPMuonToh3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToh4g:
+      type: "1D"
+      name: TauPMuonToh4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToh5gPlus:
+      type: "1D"
+      name: TauPMuonToh5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonTo3h:
+      type: "1D"
+      name: TauPMuonTo3hMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonTo3h1g:
+      type: "1D"
+      name: TauPMuonTo3h1gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonTo3h2g:
+      type: "1D"
+      name: TauPMuonTo3h2gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonTo3h3g:
+      type: "1D"
+      name: TauPMuonTo3h3gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonTo3h4g:
+      type: "1D"
+      name: TauPMuonTo3h4gMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonTo3h5gPlus:
+      type: "1D"
+      name: TauPMuonTo3h5gPlusMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToElec:
+      type: "1D"
+      name: TauPMuonToElecMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToMuon:
+      type: "1D"
+      name: TauPMuonToMuonMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToUnmatched:
+      type: "1D"
+      name: TauPMuonToUnmatchedMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToNoTau:
+      type: "1D"
+      name: TauPMuonToNoTauMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonToOther:
+      type: "1D"
+      name: TauPMuonToOtherMatched
+      range: [0, 50]
+      bins: 12
+
+    TauPMuonTo3hNeutron:
+      type: "1D"
+      name: TauPMuonTo3hNeutronMatched
+      range: [0, 50]
+      bins: 12
+
+    TauTheta0Toh:
+      type: "1D"
+      name: TauTheta0TohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0Toh1g:
+      type: "1D"
+      name: TauTheta0Toh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0Toh2g:
+      type: "1D"
+      name: TauTheta0Toh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0Toh3g:
+      type: "1D"
+      name: TauTheta0Toh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0Toh4g:
+      type: "1D"
+      name: TauTheta0Toh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0Toh5gPlus:
+      type: "1D"
+      name: TauTheta0Toh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0To3h:
+      type: "1D"
+      name: TauTheta0To3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0To3h1g:
+      type: "1D"
+      name: TauTheta0To3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0To3h2g:
+      type: "1D"
+      name: TauTheta0To3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0To3h3g:
+      type: "1D"
+      name: TauTheta0To3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0To3h4g:
+      type: "1D"
+      name: TauTheta0To3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0To3h5gPlus:
+      type: "1D"
+      name: TauTheta0To3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0ToElec:
+      type: "1D"
+      name: TauTheta0ToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0ToMuon:
+      type: "1D"
+      name: TauTheta0ToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0ToUnmatched:
+      type: "1D"
+      name: TauTheta0ToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0ToNoTau:
+      type: "1D"
+      name: TauTheta0ToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0ToOther:
+      type: "1D"
+      name: TauTheta0ToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta0To3hNeutron:
+      type: "1D"
+      name: TauTheta0To3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1Toh:
+      type: "1D"
+      name: TauTheta1TohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1Toh1g:
+      type: "1D"
+      name: TauTheta1Toh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1Toh2g:
+      type: "1D"
+      name: TauTheta1Toh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1Toh3g:
+      type: "1D"
+      name: TauTheta1Toh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1Toh4g:
+      type: "1D"
+      name: TauTheta1Toh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1Toh5gPlus:
+      type: "1D"
+      name: TauTheta1Toh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1To3h:
+      type: "1D"
+      name: TauTheta1To3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1To3h1g:
+      type: "1D"
+      name: TauTheta1To3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1To3h2g:
+      type: "1D"
+      name: TauTheta1To3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1To3h3g:
+      type: "1D"
+      name: TauTheta1To3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1To3h4g:
+      type: "1D"
+      name: TauTheta1To3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1To3h5gPlus:
+      type: "1D"
+      name: TauTheta1To3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1ToElec:
+      type: "1D"
+      name: TauTheta1ToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1ToMuon:
+      type: "1D"
+      name: TauTheta1ToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1ToUnmatched:
+      type: "1D"
+      name: TauTheta1ToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1ToNoTau:
+      type: "1D"
+      name: TauTheta1ToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1ToOther:
+      type: "1D"
+      name: TauTheta1ToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1To3hNeutron:
+      type: "1D"
+      name: TauTheta1To3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2Toh:
+      type: "1D"
+      name: TauTheta2TohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2Toh1g:
+      type: "1D"
+      name: TauTheta2Toh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2Toh2g:
+      type: "1D"
+      name: TauTheta2Toh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2Toh3g:
+      type: "1D"
+      name: TauTheta2Toh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2Toh4g:
+      type: "1D"
+      name: TauTheta2Toh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2Toh5gPlus:
+      type: "1D"
+      name: TauTheta2Toh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2To3h:
+      type: "1D"
+      name: TauTheta2To3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2To3h1g:
+      type: "1D"
+      name: TauTheta2To3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2To3h2g:
+      type: "1D"
+      name: TauTheta2To3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2To3h3g:
+      type: "1D"
+      name: TauTheta2To3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2To3h4g:
+      type: "1D"
+      name: TauTheta2To3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2To3h5gPlus:
+      type: "1D"
+      name: TauTheta2To3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2ToElec:
+      type: "1D"
+      name: TauTheta2ToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2ToMuon:
+      type: "1D"
+      name: TauTheta2ToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2ToUnmatched:
+      type: "1D"
+      name: TauTheta2ToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2ToNoTau:
+      type: "1D"
+      name: TauTheta2ToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2ToOther:
+      type: "1D"
+      name: TauTheta2ToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2To3hNeutron:
+      type: "1D"
+      name: TauTheta2To3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3Toh:
+      type: "1D"
+      name: TauTheta3TohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3Toh1g:
+      type: "1D"
+      name: TauTheta3Toh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3Toh2g:
+      type: "1D"
+      name: TauTheta3Toh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3Toh3g:
+      type: "1D"
+      name: TauTheta3Toh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3Toh4g:
+      type: "1D"
+      name: TauTheta3Toh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3Toh5gPlus:
+      type: "1D"
+      name: TauTheta3Toh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3To3h:
+      type: "1D"
+      name: TauTheta3To3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3To3h1g:
+      type: "1D"
+      name: TauTheta3To3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3To3h2g:
+      type: "1D"
+      name: TauTheta3To3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3To3h3g:
+      type: "1D"
+      name: TauTheta3To3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3To3h4g:
+      type: "1D"
+      name: TauTheta3To3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3To3h5gPlus:
+      type: "1D"
+      name: TauTheta3To3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3ToElec:
+      type: "1D"
+      name: TauTheta3ToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3ToMuon:
+      type: "1D"
+      name: TauTheta3ToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3ToUnmatched:
+      type: "1D"
+      name: TauTheta3ToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3ToNoTau:
+      type: "1D"
+      name: TauTheta3ToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3ToOther:
+      type: "1D"
+      name: TauTheta3ToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta3To3hNeutron:
+      type: "1D"
+      name: TauTheta3To3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4Toh:
+      type: "1D"
+      name: TauTheta4TohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4Toh1g:
+      type: "1D"
+      name: TauTheta4Toh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4Toh2g:
+      type: "1D"
+      name: TauTheta4Toh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4Toh3g:
+      type: "1D"
+      name: TauTheta4Toh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4Toh4g:
+      type: "1D"
+      name: TauTheta4Toh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4Toh5gPlus:
+      type: "1D"
+      name: TauTheta4Toh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4To3h:
+      type: "1D"
+      name: TauTheta4To3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4To3h1g:
+      type: "1D"
+      name: TauTheta4To3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4To3h2g:
+      type: "1D"
+      name: TauTheta4To3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4To3h3g:
+      type: "1D"
+      name: TauTheta4To3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4To3h4g:
+      type: "1D"
+      name: TauTheta4To3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4To3h5gPlus:
+      type: "1D"
+      name: TauTheta4To3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4ToElec:
+      type: "1D"
+      name: TauTheta4ToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4ToMuon:
+      type: "1D"
+      name: TauTheta4ToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4ToUnmatched:
+      type: "1D"
+      name: TauTheta4ToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4ToNoTau:
+      type: "1D"
+      name: TauTheta4ToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4ToOther:
+      type: "1D"
+      name: TauTheta4ToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta4To3hNeutron:
+      type: "1D"
+      name: TauTheta4To3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10Toh:
+      type: "1D"
+      name: TauTheta10TohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10Toh1g:
+      type: "1D"
+      name: TauTheta10Toh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10Toh2g:
+      type: "1D"
+      name: TauTheta10Toh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10Toh3g:
+      type: "1D"
+      name: TauTheta10Toh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10Toh4g:
+      type: "1D"
+      name: TauTheta10Toh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10Toh5gPlus:
+      type: "1D"
+      name: TauTheta10Toh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10To3h:
+      type: "1D"
+      name: TauTheta10To3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10To3h1g:
+      type: "1D"
+      name: TauTheta10To3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10To3h2g:
+      type: "1D"
+      name: TauTheta10To3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10To3h3g:
+      type: "1D"
+      name: TauTheta10To3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10To3h4g:
+      type: "1D"
+      name: TauTheta10To3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10To3h5gPlus:
+      type: "1D"
+      name: TauTheta10To3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10ToElec:
+      type: "1D"
+      name: TauTheta10ToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10ToMuon:
+      type: "1D"
+      name: TauTheta10ToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10ToUnmatched:
+      type: "1D"
+      name: TauTheta10ToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10ToNoTau:
+      type: "1D"
+      name: TauTheta10ToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10ToOther:
+      type: "1D"
+      name: TauTheta10ToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10To3hNeutron:
+      type: "1D"
+      name: TauTheta10To3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11Toh:
+      type: "1D"
+      name: TauTheta11TohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11Toh1g:
+      type: "1D"
+      name: TauTheta11Toh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11Toh2g:
+      type: "1D"
+      name: TauTheta11Toh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11Toh3g:
+      type: "1D"
+      name: TauTheta11Toh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11Toh4g:
+      type: "1D"
+      name: TauTheta11Toh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11Toh5gPlus:
+      type: "1D"
+      name: TauTheta11Toh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11To3h:
+      type: "1D"
+      name: TauTheta11To3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11To3h1g:
+      type: "1D"
+      name: TauTheta11To3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11To3h2g:
+      type: "1D"
+      name: TauTheta11To3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11To3h3g:
+      type: "1D"
+      name: TauTheta11To3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11To3h4g:
+      type: "1D"
+      name: TauTheta11To3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11To3h5gPlus:
+      type: "1D"
+      name: TauTheta11To3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11ToElec:
+      type: "1D"
+      name: TauTheta11ToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11ToMuon:
+      type: "1D"
+      name: TauTheta11ToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11ToUnmatched:
+      type: "1D"
+      name: TauTheta11ToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11ToNoTau:
+      type: "1D"
+      name: TauTheta11ToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11ToOther:
+      type: "1D"
+      name: TauTheta11ToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta11To3hNeutron:
+      type: "1D"
+      name: TauTheta11To3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12Toh:
+      type: "1D"
+      name: TauTheta12TohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12Toh1g:
+      type: "1D"
+      name: TauTheta12Toh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12Toh2g:
+      type: "1D"
+      name: TauTheta12Toh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12Toh3g:
+      type: "1D"
+      name: TauTheta12Toh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12Toh4g:
+      type: "1D"
+      name: TauTheta12Toh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12Toh5gPlus:
+      type: "1D"
+      name: TauTheta12Toh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12To3h:
+      type: "1D"
+      name: TauTheta12To3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12To3h1g:
+      type: "1D"
+      name: TauTheta12To3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12To3h2g:
+      type: "1D"
+      name: TauTheta12To3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12To3h3g:
+      type: "1D"
+      name: TauTheta12To3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12To3h4g:
+      type: "1D"
+      name: TauTheta12To3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12To3h5gPlus:
+      type: "1D"
+      name: TauTheta12To3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12ToElec:
+      type: "1D"
+      name: TauTheta12ToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12ToMuon:
+      type: "1D"
+      name: TauTheta12ToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12ToUnmatched:
+      type: "1D"
+      name: TauTheta12ToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12ToNoTau:
+      type: "1D"
+      name: TauTheta12ToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12ToOther:
+      type: "1D"
+      name: TauTheta12ToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta12To3hNeutron:
+      type: "1D"
+      name: TauTheta12To3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToh:
+      type: "1D"
+      name: TauThetaElecTohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToh1g:
+      type: "1D"
+      name: TauThetaElecToh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToh2g:
+      type: "1D"
+      name: TauThetaElecToh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToh3g:
+      type: "1D"
+      name: TauThetaElecToh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToh4g:
+      type: "1D"
+      name: TauThetaElecToh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToh5gPlus:
+      type: "1D"
+      name: TauThetaElecToh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecTo3h:
+      type: "1D"
+      name: TauThetaElecTo3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecTo3h1g:
+      type: "1D"
+      name: TauThetaElecTo3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecTo3h2g:
+      type: "1D"
+      name: TauThetaElecTo3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecTo3h3g:
+      type: "1D"
+      name: TauThetaElecTo3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecTo3h4g:
+      type: "1D"
+      name: TauThetaElecTo3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecTo3h5gPlus:
+      type: "1D"
+      name: TauThetaElecTo3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToElec:
+      type: "1D"
+      name: TauThetaElecToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToMuon:
+      type: "1D"
+      name: TauThetaElecToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToUnmatched:
+      type: "1D"
+      name: TauThetaElecToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToNoTau:
+      type: "1D"
+      name: TauThetaElecToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecToOther:
+      type: "1D"
+      name: TauThetaElecToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaElecTo3hNeutron:
+      type: "1D"
+      name: TauThetaElecTo3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToh:
+      type: "1D"
+      name: TauThetaMuonTohMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToh1g:
+      type: "1D"
+      name: TauThetaMuonToh1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToh2g:
+      type: "1D"
+      name: TauThetaMuonToh2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToh3g:
+      type: "1D"
+      name: TauThetaMuonToh3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToh4g:
+      type: "1D"
+      name: TauThetaMuonToh4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToh5gPlus:
+      type: "1D"
+      name: TauThetaMuonToh5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonTo3h:
+      type: "1D"
+      name: TauThetaMuonTo3hMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonTo3h1g:
+      type: "1D"
+      name: TauThetaMuonTo3h1gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonTo3h2g:
+      type: "1D"
+      name: TauThetaMuonTo3h2gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonTo3h3g:
+      type: "1D"
+      name: TauThetaMuonTo3h3gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonTo3h4g:
+      type: "1D"
+      name: TauThetaMuonTo3h4gMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonTo3h5gPlus:
+      type: "1D"
+      name: TauThetaMuonTo3h5gPlusMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToElec:
+      type: "1D"
+      name: TauThetaMuonToElecMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToMuon:
+      type: "1D"
+      name: TauThetaMuonToMuonMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToUnmatched:
+      type: "1D"
+      name: TauThetaMuonToUnmatchedMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToNoTau:
+      type: "1D"
+      name: TauThetaMuonToNoTauMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonToOther:
+      type: "1D"
+      name: TauThetaMuonToOtherMatched
+      range: [0, 3.15]
+      bins: 100
+
+    TauThetaMuonTo3hNeutron:
+      type: "1D"
+      name: TauThetaMuonTo3hNeutronMatched
+      range: [0, 3.15]
+      bins: 100
+
+    # Exploratorio de los casos 0 -> h1g y 0 -> h2g: que son el pion y el/los
+    # fotones que hacen que un pi+- gen se reconstruya con fotones de mas.
+    Mig0Toh1gPionPPhotonP:
+      type: "2D"
+      name: Mig0Toh1gPionPPhotonPMatched
+      x_range: [0, 45]
+      x_bins: 100
+      y_range: [0, 45]
+      y_bins: 100
+    
+    Mig0Toh1gPionPPhotonPRelative:
+      type: "1D"
+      name: Mig0Toh1gPionPPhotonPRelativeMatched
+      x_range: [0, 1]
+      bins: 100
+
+    Mig0Toh1gPhotonP:
+      type: "1D"
+      name: Mig0Toh1gPhotonPMatched
+      range: [0, 25]
+      bins: 100
+
+    Mig0Toh1gPionP:
+      type: "1D"
+      name: Mig0Toh1gPionPMatched
+      range: [0, 50]
+      bins: 100
+
+    Mig0Toh1gPionPhotonAngle:
+      type: "1D"
+      name: Mig0Toh1gPionPhotonAngleMatched
+      range: [0, 1.0]
+      bins: 200
+
+    Mig0Toh2gPhotonP:
+      type: "1D"
+      name: Mig0Toh2gPhotonPMatched
+      range: [0, 25]
+      bins: 100
+
+    Mig0Toh2gPionP:
+      type: "1D"
+      name: Mig0Toh2gPionPMatched
+      range: [0, 50]
+      bins: 100
+
+    Mig0Toh2gPionPhotonAngle:
+      type: "1D"
+      name: Mig0Toh2gPionPhotonAngleMatched
+      range: [0, 1.0]
+      bins: 200
+
+    ####
+    Mig1Toh1gPionPPhotonP:
+      type: "2D"
+      name: Mig1Toh1gPionPPhotonPMatched
+      x_range: [0, 45]
+      x_bins: 100
+      y_range: [0, 45]
+      y_bins: 100
+    
+    Mig1Toh1gPionPPhotonPRelative:
+      type: "1D"
+      name: Mig1Toh1gPionPPhotonPRelativeMatched
+      x_range: [0, 1]
+      bins: 100
+
+    Mig1Toh1gPhotonP:
+      type: "1D"
+      name: Mig1Toh1gPhotonPMatched
+      range: [0, 25]
+      bins: 100
+
+    Mig1Toh1gPionP:
+      type: "1D"
+      name: Mig1Toh1gPionPMatched
+      range: [0, 50]
+      bins: 100
+
+    Mig1Toh1gPionPhotonAngle:
+      type: "1D"
+      name: Mig1Toh1gPionPhotonAngleMatched
+      range: [0, 1.0]
+      bins: 200
+
+    Mig1Toh2gPhotonP:
+      type: "1D"
+      name: Mig1Toh2gPhotonPMatched
+      range: [0, 25]
+      bins: 100
+
+    Mig1Toh2gPionP:
+      type: "1D"
+      name: Mig1Toh2gPionPMatched
+      range: [0, 50]
+      bins: 100
+
+    Mig1Toh2gPionPhotonAngle:
+      type: "1D"
+      name: Mig1Toh2gPionPhotonAngleMatched
+      range: [0, 1.0]
+      bins: 200
+
+
+    PhotonP:
+      type: "1D"
+      name: PhotonPMatched
+      range: [0, 25]
+      bins: 100
+
+    PionP:
+      type: "1D"
+      name: PionPMatched
+      range: [0, 50]
+      bins: 100
+
+    PionsTheta:
+      type: "2D"
+      name: PionsThetaMatched
+      x_range: [0, 3.15]
+      x_bins: 100
+      y_range: [0, 3.15]
+      y_bins: 100
+
+  Resolution:
+    TauP:
+      type: "1D"
+      name: TauPResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauPt:
+      type: "1D"
+      name: TauPtResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauCharge:
+      type: "1D"
+      name: TauChargeResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauMaxAngle:
+      type: "1D"
+      name: TauMaxAngleResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauNComp:
+      type: "1D"
+      name: TauNCompResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    PionsPRes:
+      type: "1D"
+      name: PionsPResMatched
+      range: [-0.1, 0.1]
+      bins: 100
+
+    PhotonPRes:
+      type: "1D"
+      name: PhotonPResMatched
+      range: [-1, 1]
+      bins: 500
+
+    PionsThetaRes:
+      type: "1D"
+      name: PionsThetaResMatched
+      range: [-0.003, 0.003]
+      bins: 100
+
+    PhotonThetaRes:
+      type: "1D"
+      name: PhotonThetaResMatched
+      range: [-0.1, 0.1]
+      bins: 100
+
+    TauP0:
+      type: "1D"
+      name: TauP0ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauP1:
+      type: "1D"
+      name: TauP1ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauP2:
+      type: "1D"
+      name: TauP2ResMatched
+      range: [-1, 1]
+      bins: 500
+
+    TauP10:
+      type: "1D"
+      name: TauP10ResMatched
+      range: [-1, 1]
+      bins: 500
+  
+  Effi:
+
+    Pi0Mass:
+      name: hEffiGenPi0Mass
+      numerator: Matched/ConstPi0Mass
+      denominator: Gen/ConstPi0Mass
+
+    TauPt:
+      name: hEffiGenTauPt
+      numerator: Matched/TauPt
+      denominator: Gen/TauPt
+
+    VisTauPt:
+      name: hEffiGenVisTauPt
+      numerator: Matched/TauVisPt
+      denominator: Gen/TauVisPt
+
+    TauP:
+      name: hEffiGenTauP
+      numerator: Matched/TauP
+      denominator: Gen/TauP
+
+    VisTauP:
+      name: hEffiGenVisTauP
+      numerator: Matched/TauVisP
+      denominator: Gen/TauVisP
+
+    VisTauMass:
+      name: hEffiGenVisTauMass
+      numerator: Matched/TauVisMass
+      denominator: Gen/TauVisMass
+
+    TauEta:
+      name: hEffiGenTauEta
+      numerator: Matched/TauEta
+      denominator: Gen/TauEta
+
+    TauTheta:
+      name: hEffiGenTauTheta
+      numerator: Matched/TauTheta
+      denominator: Gen/TauTheta
+
+    TauType:
+      name: hEffiGenTauType
+      numerator: Matched/TauType
+      denominator: Gen/TauType
+
+    PhotonP:
+      name: hEffiGenPhotonP
+      numerator: Matched/PhotonP
+      denominator: Gen/PhotonP
+
+    PhotonTheta:
+      name: hEffiGenPhotonTheta
+      numerator: Matched/PhotonTheta
+      denominator: Gen/PhotonTheta
+
+    PionP:
+      name: hEffiGenTauPionP
+      numerator: Matched/PionP
+      denominator: Gen/PionP
+
+    PionTheta:
+      name: hEffiGenTauPionTheta
+      numerator: Matched/PionTheta
+      denominator: Gen/PionTheta
+
+    AllPionsP:
+      name: hEffiGenAllPionsP
+      numerator: Matched/AllPionsP
+      denominator: Gen/AllPionsP
+
+    AllPionsP_check:
+      name: eff_PionP_Pion
+      numerator: Matched/AllPionsP
+      denominator: Gen/AllPionsP
+
+    AllPionsTheta:
+      name: hEffiGenAllPionsTheta
+      numerator: Matched/AllPionsTheta
+      denominator: Gen/AllPionsTheta
+
+    AllPhotonsP:
+      name: hEffiGenAllPhotonsP
+      numerator: Matched/AllPhotonsP
+      denominator: Gen/AllPhotonsP
+
+    AllPhotonsTheta:
+      name: hEffiGenAllPhotonsTheta
+      numerator: Matched/AllPhotonsTheta
+      denominator: Gen/AllPhotonsTheta
+
+    HadronTauP:
+      name: hEffiGenHadronTauP
+      numerator: Matched/HadronTauP
+      denominator: Gen/HadronTauP
+
+    AllPionsPCut:
+      name: hEffiGenAllPionsPCut
+      numerator: Matched/AllPionsPCut
+      denominator: Gen/AllPionsPCut
+
+    AllPionsThetaCut:
+      name: hEffiGenAllPionsPionThetaCut
+      numerator: Matched/AllPionsThetaCut
+      denominator: Gen/AllPionsThetaCut
+
+    TauTheta0:
+      name: hEffiGenTauTheta0
+      numerator: Matched/TauTheta0
+      denominator: Gen/TauTheta0
+
+    TauTheta1:
+      name: hEffiGenTauTheta1
+      numerator: Matched/TauTheta1
+      denominator: Gen/TauTheta1
+
+    TauTheta2:
+      name: hEffiGenTauTheta2
+      numerator: Matched/TauTheta2
+      denominator: Gen/TauTheta2
+
+    TauTheta10:
+      name: hEffiGenTauTheta10
+      numerator: Matched/TauTheta10
+      denominator: Gen/TauTheta10
+
+    TauP0:
+      name: hEffiGenTauP0
+      numerator: Matched/TauP0
+      denominator: Gen/TauP0
+
+    TauP1:
+      name: hEffiGenTauP1
+      numerator: Matched/TauP1
+      denominator: Gen/TauP1
+
+    TauP0Correct:
+      name: hEffiGenTauP0Correct
+      numerator: Matched/TauP0Correct
+      denominator: Gen/TauP0
+    
+    TauP1Correct:
+      name: hEffiGenTauP1Correct
+      numerator: Matched/TauP1Correct
+      denominator: Gen/TauP1
+    
+    TauP2Correct:
+      name: hEffiGenTauP2Correct
+      numerator: Matched/TauP2Correct
+      denominator: Gen/TauP2
+    
+    TauP10Correct:
+      name: hEffiGenTauP10Correct
+      numerator: Matched/TauP10Correct
+      denominator: Gen/TauP10
+
+    TauP2:
+      name: hEffiGenTauP2
+      numerator: Matched/TauP2
+      denominator: Gen/TauP2
+
+    TauP10:
+      name: hEffiGenTauP10
+      numerator: Matched/TauP10
+      denominator: Gen/TauP10
+
+    TauVisP0:
+      name: hEffiGenTauVisP0
+      numerator: Matched/TauVisP0
+      denominator: Gen/TauVisP0
+
+    TauVisP1:
+      name: hEffiGenTauVisP1
+      numerator: Matched/TauVisP1
+      denominator: Gen/TauVisP1
+
+    TauVisP2:
+      name: hEffiGenTauVisP2
+      numerator: Matched/TauVisP2
+      denominator: Gen/TauVisP2
+
+    TauVisP10:
+      name: hEffiGenTauVisP10
+      numerator: Matched/TauVisP10
+      denominator: Gen/TauVisP10
+
+    # Migration fractions: each gen mode split over its reco outcomes.
+    # For a given gen mode the whole set of outcomes adds up to one.
+    TauP0Toh:
+      name: hEffiGenTauP0Toh
+      numerator: Matched/TauP0Toh
+      denominator: Gen/TauP0
+
+    TauP0Toh1g:
+      name: hEffiGenTauP0Toh1g
+      numerator: Matched/TauP0Toh1g
+      denominator: Gen/TauP0
+
+    TauP0Toh2g:
+      name: hEffiGenTauP0Toh2g
+      numerator: Matched/TauP0Toh2g
+      denominator: Gen/TauP0
+
+    TauP0Toh3g:
+      name: hEffiGenTauP0Toh3g
+      numerator: Matched/TauP0Toh3g
+      denominator: Gen/TauP0
+
+    TauP0Toh4g:
+      name: hEffiGenTauP0Toh4g
+      numerator: Matched/TauP0Toh4g
+      denominator: Gen/TauP0
+
+    TauP0Toh5gPlus:
+      name: hEffiGenTauP0Toh5gPlus
+      numerator: Matched/TauP0Toh5gPlus
+      denominator: Gen/TauP0
+
+    TauP0To3h:
+      name: hEffiGenTauP0To3h
+      numerator: Matched/TauP0To3h
+      denominator: Gen/TauP0
+
+    TauP0To3h1g:
+      name: hEffiGenTauP0To3h1g
+      numerator: Matched/TauP0To3h1g
+      denominator: Gen/TauP0
+
+    TauP0To3h2g:
+      name: hEffiGenTauP0To3h2g
+      numerator: Matched/TauP0To3h2g
+      denominator: Gen/TauP0
+
+    TauP0To3h3g:
+      name: hEffiGenTauP0To3h3g
+      numerator: Matched/TauP0To3h3g
+      denominator: Gen/TauP0
+
+    TauP0To3h4g:
+      name: hEffiGenTauP0To3h4g
+      numerator: Matched/TauP0To3h4g
+      denominator: Gen/TauP0
+
+    TauP0To3h5gPlus:
+      name: hEffiGenTauP0To3h5gPlus
+      numerator: Matched/TauP0To3h5gPlus
+      denominator: Gen/TauP0
+
+    TauP0ToElec:
+      name: hEffiGenTauP0ToElec
+      numerator: Matched/TauP0ToElec
+      denominator: Gen/TauP0
+
+    TauP0ToMuon:
+      name: hEffiGenTauP0ToMuon
+      numerator: Matched/TauP0ToMuon
+      denominator: Gen/TauP0
+
+    TauP0ToUnmatched:
+      name: hEffiGenTauP0ToUnmatched
+      numerator: Matched/TauP0ToUnmatched
+      denominator: Gen/TauP0
+
+    TauP0ToNoTau:
+      name: hEffiGenTauP0ToNoTau
+      numerator: Matched/TauP0ToNoTau
+      denominator: Gen/TauP0
+
+    TauP0ToOther:
+      name: hEffiGenTauP0ToOther
+      numerator: Matched/TauP0ToOther
+      denominator: Gen/TauP0
+
+    TauP0To3hNeutron:
+      name: hEffiGenTauP0To3hNeutron
+      numerator: Matched/TauP0To3hNeutron
+      denominator: Gen/TauP0
+
+    TauP1Toh:
+      name: hEffiGenTauP1Toh
+      numerator: Matched/TauP1Toh
+      denominator: Gen/TauP1
+
+    TauP1Toh1g:
+      name: hEffiGenTauP1Toh1g
+      numerator: Matched/TauP1Toh1g
+      denominator: Gen/TauP1
+
+    TauP1Toh2g:
+      name: hEffiGenTauP1Toh2g
+      numerator: Matched/TauP1Toh2g
+      denominator: Gen/TauP1
+
+    TauP1Toh3g:
+      name: hEffiGenTauP1Toh3g
+      numerator: Matched/TauP1Toh3g
+      denominator: Gen/TauP1
+
+    TauP1Toh4g:
+      name: hEffiGenTauP1Toh4g
+      numerator: Matched/TauP1Toh4g
+      denominator: Gen/TauP1
+
+    TauP1Toh5gPlus:
+      name: hEffiGenTauP1Toh5gPlus
+      numerator: Matched/TauP1Toh5gPlus
+      denominator: Gen/TauP1
+
+    TauP1To3h:
+      name: hEffiGenTauP1To3h
+      numerator: Matched/TauP1To3h
+      denominator: Gen/TauP1
+
+    TauP1To3h1g:
+      name: hEffiGenTauP1To3h1g
+      numerator: Matched/TauP1To3h1g
+      denominator: Gen/TauP1
+
+    TauP1To3h2g:
+      name: hEffiGenTauP1To3h2g
+      numerator: Matched/TauP1To3h2g
+      denominator: Gen/TauP1
+
+    TauP1To3h3g:
+      name: hEffiGenTauP1To3h3g
+      numerator: Matched/TauP1To3h3g
+      denominator: Gen/TauP1
+
+    TauP1To3h4g:
+      name: hEffiGenTauP1To3h4g
+      numerator: Matched/TauP1To3h4g
+      denominator: Gen/TauP1
+
+    TauP1To3h5gPlus:
+      name: hEffiGenTauP1To3h5gPlus
+      numerator: Matched/TauP1To3h5gPlus
+      denominator: Gen/TauP1
+
+    TauP1ToElec:
+      name: hEffiGenTauP1ToElec
+      numerator: Matched/TauP1ToElec
+      denominator: Gen/TauP1
+
+    TauP1ToMuon:
+      name: hEffiGenTauP1ToMuon
+      numerator: Matched/TauP1ToMuon
+      denominator: Gen/TauP1
+
+    TauP1ToUnmatched:
+      name: hEffiGenTauP1ToUnmatched
+      numerator: Matched/TauP1ToUnmatched
+      denominator: Gen/TauP1
+
+    TauP1ToNoTau:
+      name: hEffiGenTauP1ToNoTau
+      numerator: Matched/TauP1ToNoTau
+      denominator: Gen/TauP1
+
+    TauP1ToOther:
+      name: hEffiGenTauP1ToOther
+      numerator: Matched/TauP1ToOther
+      denominator: Gen/TauP1
+
+    TauP1To3hNeutron:
+      name: hEffiGenTauP1To3hNeutron
+      numerator: Matched/TauP1To3hNeutron
+      denominator: Gen/TauP1
+
+    TauP2Toh:
+      name: hEffiGenTauP2Toh
+      numerator: Matched/TauP2Toh
+      denominator: Gen/TauP2
+
+    TauP2Toh1g:
+      name: hEffiGenTauP2Toh1g
+      numerator: Matched/TauP2Toh1g
+      denominator: Gen/TauP2
+
+    TauP2Toh2g:
+      name: hEffiGenTauP2Toh2g
+      numerator: Matched/TauP2Toh2g
+      denominator: Gen/TauP2
+
+    TauP2Toh3g:
+      name: hEffiGenTauP2Toh3g
+      numerator: Matched/TauP2Toh3g
+      denominator: Gen/TauP2
+
+    TauP2Toh4g:
+      name: hEffiGenTauP2Toh4g
+      numerator: Matched/TauP2Toh4g
+      denominator: Gen/TauP2
+
+    TauP2Toh5gPlus:
+      name: hEffiGenTauP2Toh5gPlus
+      numerator: Matched/TauP2Toh5gPlus
+      denominator: Gen/TauP2
+
+    TauP2To3h:
+      name: hEffiGenTauP2To3h
+      numerator: Matched/TauP2To3h
+      denominator: Gen/TauP2
+
+    TauP2To3h1g:
+      name: hEffiGenTauP2To3h1g
+      numerator: Matched/TauP2To3h1g
+      denominator: Gen/TauP2
+
+    TauP2To3h2g:
+      name: hEffiGenTauP2To3h2g
+      numerator: Matched/TauP2To3h2g
+      denominator: Gen/TauP2
+
+    TauP2To3h3g:
+      name: hEffiGenTauP2To3h3g
+      numerator: Matched/TauP2To3h3g
+      denominator: Gen/TauP2
+
+    TauP2To3h4g:
+      name: hEffiGenTauP2To3h4g
+      numerator: Matched/TauP2To3h4g
+      denominator: Gen/TauP2
+
+    TauP2To3h5gPlus:
+      name: hEffiGenTauP2To3h5gPlus
+      numerator: Matched/TauP2To3h5gPlus
+      denominator: Gen/TauP2
+
+    TauP2ToElec:
+      name: hEffiGenTauP2ToElec
+      numerator: Matched/TauP2ToElec
+      denominator: Gen/TauP2
+
+    TauP2ToMuon:
+      name: hEffiGenTauP2ToMuon
+      numerator: Matched/TauP2ToMuon
+      denominator: Gen/TauP2
+
+    TauP2ToUnmatched:
+      name: hEffiGenTauP2ToUnmatched
+      numerator: Matched/TauP2ToUnmatched
+      denominator: Gen/TauP2
+
+    TauP2ToNoTau:
+      name: hEffiGenTauP2ToNoTau
+      numerator: Matched/TauP2ToNoTau
+      denominator: Gen/TauP2
+
+    TauP2ToOther:
+      name: hEffiGenTauP2ToOther
+      numerator: Matched/TauP2ToOther
+      denominator: Gen/TauP2
+
+    TauP2To3hNeutron:
+      name: hEffiGenTauP2To3hNeutron
+      numerator: Matched/TauP2To3hNeutron
+      denominator: Gen/TauP2
+
+    TauP3Toh:
+      name: hEffiGenTauP3Toh
+      numerator: Matched/TauP3Toh
+      denominator: Gen/TauP3
+
+    TauP3Toh1g:
+      name: hEffiGenTauP3Toh1g
+      numerator: Matched/TauP3Toh1g
+      denominator: Gen/TauP3
+
+    TauP3Toh2g:
+      name: hEffiGenTauP3Toh2g
+      numerator: Matched/TauP3Toh2g
+      denominator: Gen/TauP3
+
+    TauP3Toh3g:
+      name: hEffiGenTauP3Toh3g
+      numerator: Matched/TauP3Toh3g
+      denominator: Gen/TauP3
+
+    TauP3Toh4g:
+      name: hEffiGenTauP3Toh4g
+      numerator: Matched/TauP3Toh4g
+      denominator: Gen/TauP3
+
+    TauP3Toh5gPlus:
+      name: hEffiGenTauP3Toh5gPlus
+      numerator: Matched/TauP3Toh5gPlus
+      denominator: Gen/TauP3
+
+    TauP3To3h:
+      name: hEffiGenTauP3To3h
+      numerator: Matched/TauP3To3h
+      denominator: Gen/TauP3
+
+    TauP3To3h1g:
+      name: hEffiGenTauP3To3h1g
+      numerator: Matched/TauP3To3h1g
+      denominator: Gen/TauP3
+
+    TauP3To3h2g:
+      name: hEffiGenTauP3To3h2g
+      numerator: Matched/TauP3To3h2g
+      denominator: Gen/TauP3
+
+    TauP3To3h3g:
+      name: hEffiGenTauP3To3h3g
+      numerator: Matched/TauP3To3h3g
+      denominator: Gen/TauP3
+
+    TauP3To3h4g:
+      name: hEffiGenTauP3To3h4g
+      numerator: Matched/TauP3To3h4g
+      denominator: Gen/TauP3
+
+    TauP3To3h5gPlus:
+      name: hEffiGenTauP3To3h5gPlus
+      numerator: Matched/TauP3To3h5gPlus
+      denominator: Gen/TauP3
+
+    TauP3ToElec:
+      name: hEffiGenTauP3ToElec
+      numerator: Matched/TauP3ToElec
+      denominator: Gen/TauP3
+
+    TauP3ToMuon:
+      name: hEffiGenTauP3ToMuon
+      numerator: Matched/TauP3ToMuon
+      denominator: Gen/TauP3
+
+    TauP3ToUnmatched:
+      name: hEffiGenTauP3ToUnmatched
+      numerator: Matched/TauP3ToUnmatched
+      denominator: Gen/TauP3
+
+    TauP3ToNoTau:
+      name: hEffiGenTauP3ToNoTau
+      numerator: Matched/TauP3ToNoTau
+      denominator: Gen/TauP3
+
+    TauP3ToOther:
+      name: hEffiGenTauP3ToOther
+      numerator: Matched/TauP3ToOther
+      denominator: Gen/TauP3
+
+    TauP3To3hNeutron:
+      name: hEffiGenTauP3To3hNeutron
+      numerator: Matched/TauP3To3hNeutron
+      denominator: Gen/TauP3
+
+    TauP4Toh:
+      name: hEffiGenTauP4Toh
+      numerator: Matched/TauP4Toh
+      denominator: Gen/TauP4
+
+    TauP4Toh1g:
+      name: hEffiGenTauP4Toh1g
+      numerator: Matched/TauP4Toh1g
+      denominator: Gen/TauP4
+
+    TauP4Toh2g:
+      name: hEffiGenTauP4Toh2g
+      numerator: Matched/TauP4Toh2g
+      denominator: Gen/TauP4
+
+    TauP4Toh3g:
+      name: hEffiGenTauP4Toh3g
+      numerator: Matched/TauP4Toh3g
+      denominator: Gen/TauP4
+
+    TauP4Toh4g:
+      name: hEffiGenTauP4Toh4g
+      numerator: Matched/TauP4Toh4g
+      denominator: Gen/TauP4
+
+    TauP4Toh5gPlus:
+      name: hEffiGenTauP4Toh5gPlus
+      numerator: Matched/TauP4Toh5gPlus
+      denominator: Gen/TauP4
+
+    TauP4To3h:
+      name: hEffiGenTauP4To3h
+      numerator: Matched/TauP4To3h
+      denominator: Gen/TauP4
+
+    TauP4To3h1g:
+      name: hEffiGenTauP4To3h1g
+      numerator: Matched/TauP4To3h1g
+      denominator: Gen/TauP4
+
+    TauP4To3h2g:
+      name: hEffiGenTauP4To3h2g
+      numerator: Matched/TauP4To3h2g
+      denominator: Gen/TauP4
+
+    TauP4To3h3g:
+      name: hEffiGenTauP4To3h3g
+      numerator: Matched/TauP4To3h3g
+      denominator: Gen/TauP4
+
+    TauP4To3h4g:
+      name: hEffiGenTauP4To3h4g
+      numerator: Matched/TauP4To3h4g
+      denominator: Gen/TauP4
+
+    TauP4To3h5gPlus:
+      name: hEffiGenTauP4To3h5gPlus
+      numerator: Matched/TauP4To3h5gPlus
+      denominator: Gen/TauP4
+
+    TauP4ToElec:
+      name: hEffiGenTauP4ToElec
+      numerator: Matched/TauP4ToElec
+      denominator: Gen/TauP4
+
+    TauP4ToMuon:
+      name: hEffiGenTauP4ToMuon
+      numerator: Matched/TauP4ToMuon
+      denominator: Gen/TauP4
+
+    TauP4ToUnmatched:
+      name: hEffiGenTauP4ToUnmatched
+      numerator: Matched/TauP4ToUnmatched
+      denominator: Gen/TauP4
+
+    TauP4ToNoTau:
+      name: hEffiGenTauP4ToNoTau
+      numerator: Matched/TauP4ToNoTau
+      denominator: Gen/TauP4
+
+    TauP4ToOther:
+      name: hEffiGenTauP4ToOther
+      numerator: Matched/TauP4ToOther
+      denominator: Gen/TauP4
+
+    TauP4To3hNeutron:
+      name: hEffiGenTauP4To3hNeutron
+      numerator: Matched/TauP4To3hNeutron
+      denominator: Gen/TauP4
+
+    TauP10Toh:
+      name: hEffiGenTauP10Toh
+      numerator: Matched/TauP10Toh
+      denominator: Gen/TauP10
+
+    TauP10Toh1g:
+      name: hEffiGenTauP10Toh1g
+      numerator: Matched/TauP10Toh1g
+      denominator: Gen/TauP10
+
+    TauP10Toh2g:
+      name: hEffiGenTauP10Toh2g
+      numerator: Matched/TauP10Toh2g
+      denominator: Gen/TauP10
+
+    TauP10Toh3g:
+      name: hEffiGenTauP10Toh3g
+      numerator: Matched/TauP10Toh3g
+      denominator: Gen/TauP10
+
+    TauP10Toh4g:
+      name: hEffiGenTauP10Toh4g
+      numerator: Matched/TauP10Toh4g
+      denominator: Gen/TauP10
+
+    TauP10Toh5gPlus:
+      name: hEffiGenTauP10Toh5gPlus
+      numerator: Matched/TauP10Toh5gPlus
+      denominator: Gen/TauP10
+
+    TauP10To3h:
+      name: hEffiGenTauP10To3h
+      numerator: Matched/TauP10To3h
+      denominator: Gen/TauP10
+
+    TauP10To3h1g:
+      name: hEffiGenTauP10To3h1g
+      numerator: Matched/TauP10To3h1g
+      denominator: Gen/TauP10
+
+    TauP10To3h2g:
+      name: hEffiGenTauP10To3h2g
+      numerator: Matched/TauP10To3h2g
+      denominator: Gen/TauP10
+
+    TauP10To3h3g:
+      name: hEffiGenTauP10To3h3g
+      numerator: Matched/TauP10To3h3g
+      denominator: Gen/TauP10
+
+    TauP10To3h4g:
+      name: hEffiGenTauP10To3h4g
+      numerator: Matched/TauP10To3h4g
+      denominator: Gen/TauP10
+
+    TauP10To3h5gPlus:
+      name: hEffiGenTauP10To3h5gPlus
+      numerator: Matched/TauP10To3h5gPlus
+      denominator: Gen/TauP10
+
+    TauP10ToElec:
+      name: hEffiGenTauP10ToElec
+      numerator: Matched/TauP10ToElec
+      denominator: Gen/TauP10
+
+    TauP10ToMuon:
+      name: hEffiGenTauP10ToMuon
+      numerator: Matched/TauP10ToMuon
+      denominator: Gen/TauP10
+
+    TauP10ToUnmatched:
+      name: hEffiGenTauP10ToUnmatched
+      numerator: Matched/TauP10ToUnmatched
+      denominator: Gen/TauP10
+
+    TauP10ToNoTau:
+      name: hEffiGenTauP10ToNoTau
+      numerator: Matched/TauP10ToNoTau
+      denominator: Gen/TauP10
+
+    TauP10ToOther:
+      name: hEffiGenTauP10ToOther
+      numerator: Matched/TauP10ToOther
+      denominator: Gen/TauP10
+
+    TauP10To3hNeutron:
+      name: hEffiGenTauP10To3hNeutron
+      numerator: Matched/TauP10To3hNeutron
+      denominator: Gen/TauP10
+
+    TauP11Toh:
+      name: hEffiGenTauP11Toh
+      numerator: Matched/TauP11Toh
+      denominator: Gen/TauP11
+
+    TauP11Toh1g:
+      name: hEffiGenTauP11Toh1g
+      numerator: Matched/TauP11Toh1g
+      denominator: Gen/TauP11
+
+    TauP11Toh2g:
+      name: hEffiGenTauP11Toh2g
+      numerator: Matched/TauP11Toh2g
+      denominator: Gen/TauP11
+
+    TauP11Toh3g:
+      name: hEffiGenTauP11Toh3g
+      numerator: Matched/TauP11Toh3g
+      denominator: Gen/TauP11
+
+    TauP11Toh4g:
+      name: hEffiGenTauP11Toh4g
+      numerator: Matched/TauP11Toh4g
+      denominator: Gen/TauP11
+
+    TauP11Toh5gPlus:
+      name: hEffiGenTauP11Toh5gPlus
+      numerator: Matched/TauP11Toh5gPlus
+      denominator: Gen/TauP11
+
+    TauP11To3h:
+      name: hEffiGenTauP11To3h
+      numerator: Matched/TauP11To3h
+      denominator: Gen/TauP11
+
+    TauP11To3h1g:
+      name: hEffiGenTauP11To3h1g
+      numerator: Matched/TauP11To3h1g
+      denominator: Gen/TauP11
+
+    TauP11To3h2g:
+      name: hEffiGenTauP11To3h2g
+      numerator: Matched/TauP11To3h2g
+      denominator: Gen/TauP11
+
+    TauP11To3h3g:
+      name: hEffiGenTauP11To3h3g
+      numerator: Matched/TauP11To3h3g
+      denominator: Gen/TauP11
+
+    TauP11To3h4g:
+      name: hEffiGenTauP11To3h4g
+      numerator: Matched/TauP11To3h4g
+      denominator: Gen/TauP11
+
+    TauP11To3h5gPlus:
+      name: hEffiGenTauP11To3h5gPlus
+      numerator: Matched/TauP11To3h5gPlus
+      denominator: Gen/TauP11
+
+    TauP11ToElec:
+      name: hEffiGenTauP11ToElec
+      numerator: Matched/TauP11ToElec
+      denominator: Gen/TauP11
+
+    TauP11ToMuon:
+      name: hEffiGenTauP11ToMuon
+      numerator: Matched/TauP11ToMuon
+      denominator: Gen/TauP11
+
+    TauP11ToUnmatched:
+      name: hEffiGenTauP11ToUnmatched
+      numerator: Matched/TauP11ToUnmatched
+      denominator: Gen/TauP11
+
+    TauP11ToNoTau:
+      name: hEffiGenTauP11ToNoTau
+      numerator: Matched/TauP11ToNoTau
+      denominator: Gen/TauP11
+
+    TauP11ToOther:
+      name: hEffiGenTauP11ToOther
+      numerator: Matched/TauP11ToOther
+      denominator: Gen/TauP11
+
+    TauP11To3hNeutron:
+      name: hEffiGenTauP11To3hNeutron
+      numerator: Matched/TauP11To3hNeutron
+      denominator: Gen/TauP11
+
+    TauP12Toh:
+      name: hEffiGenTauP12Toh
+      numerator: Matched/TauP12Toh
+      denominator: Gen/TauP12
+
+    TauP12Toh1g:
+      name: hEffiGenTauP12Toh1g
+      numerator: Matched/TauP12Toh1g
+      denominator: Gen/TauP12
+
+    TauP12Toh2g:
+      name: hEffiGenTauP12Toh2g
+      numerator: Matched/TauP12Toh2g
+      denominator: Gen/TauP12
+
+    TauP12Toh3g:
+      name: hEffiGenTauP12Toh3g
+      numerator: Matched/TauP12Toh3g
+      denominator: Gen/TauP12
+
+    TauP12Toh4g:
+      name: hEffiGenTauP12Toh4g
+      numerator: Matched/TauP12Toh4g
+      denominator: Gen/TauP12
+
+    TauP12Toh5gPlus:
+      name: hEffiGenTauP12Toh5gPlus
+      numerator: Matched/TauP12Toh5gPlus
+      denominator: Gen/TauP12
+
+    TauP12To3h:
+      name: hEffiGenTauP12To3h
+      numerator: Matched/TauP12To3h
+      denominator: Gen/TauP12
+
+    TauP12To3h1g:
+      name: hEffiGenTauP12To3h1g
+      numerator: Matched/TauP12To3h1g
+      denominator: Gen/TauP12
+
+    TauP12To3h2g:
+      name: hEffiGenTauP12To3h2g
+      numerator: Matched/TauP12To3h2g
+      denominator: Gen/TauP12
+
+    TauP12To3h3g:
+      name: hEffiGenTauP12To3h3g
+      numerator: Matched/TauP12To3h3g
+      denominator: Gen/TauP12
+
+    TauP12To3h4g:
+      name: hEffiGenTauP12To3h4g
+      numerator: Matched/TauP12To3h4g
+      denominator: Gen/TauP12
+
+    TauP12To3h5gPlus:
+      name: hEffiGenTauP12To3h5gPlus
+      numerator: Matched/TauP12To3h5gPlus
+      denominator: Gen/TauP12
+
+    TauP12ToElec:
+      name: hEffiGenTauP12ToElec
+      numerator: Matched/TauP12ToElec
+      denominator: Gen/TauP12
+
+    TauP12ToMuon:
+      name: hEffiGenTauP12ToMuon
+      numerator: Matched/TauP12ToMuon
+      denominator: Gen/TauP12
+
+    TauP12ToUnmatched:
+      name: hEffiGenTauP12ToUnmatched
+      numerator: Matched/TauP12ToUnmatched
+      denominator: Gen/TauP12
+
+    TauP12ToNoTau:
+      name: hEffiGenTauP12ToNoTau
+      numerator: Matched/TauP12ToNoTau
+      denominator: Gen/TauP12
+
+    TauP12ToOther:
+      name: hEffiGenTauP12ToOther
+      numerator: Matched/TauP12ToOther
+      denominator: Gen/TauP12
+
+    TauP12To3hNeutron:
+      name: hEffiGenTauP12To3hNeutron
+      numerator: Matched/TauP12To3hNeutron
+      denominator: Gen/TauP12
+
+    TauPElecToh:
+      name: hEffiGenTauPElecToh
+      numerator: Matched/TauPElecToh
+      denominator: Gen/TauPElec
+
+    TauPElecToh1g:
+      name: hEffiGenTauPElecToh1g
+      numerator: Matched/TauPElecToh1g
+      denominator: Gen/TauPElec
+
+    TauPElecToh2g:
+      name: hEffiGenTauPElecToh2g
+      numerator: Matched/TauPElecToh2g
+      denominator: Gen/TauPElec
+
+    TauPElecToh3g:
+      name: hEffiGenTauPElecToh3g
+      numerator: Matched/TauPElecToh3g
+      denominator: Gen/TauPElec
+
+    TauPElecToh4g:
+      name: hEffiGenTauPElecToh4g
+      numerator: Matched/TauPElecToh4g
+      denominator: Gen/TauPElec
+
+    TauPElecToh5gPlus:
+      name: hEffiGenTauPElecToh5gPlus
+      numerator: Matched/TauPElecToh5gPlus
+      denominator: Gen/TauPElec
+
+    TauPElecTo3h:
+      name: hEffiGenTauPElecTo3h
+      numerator: Matched/TauPElecTo3h
+      denominator: Gen/TauPElec
+
+    TauPElecTo3h1g:
+      name: hEffiGenTauPElecTo3h1g
+      numerator: Matched/TauPElecTo3h1g
+      denominator: Gen/TauPElec
+
+    TauPElecTo3h2g:
+      name: hEffiGenTauPElecTo3h2g
+      numerator: Matched/TauPElecTo3h2g
+      denominator: Gen/TauPElec
+
+    TauPElecTo3h3g:
+      name: hEffiGenTauPElecTo3h3g
+      numerator: Matched/TauPElecTo3h3g
+      denominator: Gen/TauPElec
+
+    TauPElecTo3h4g:
+      name: hEffiGenTauPElecTo3h4g
+      numerator: Matched/TauPElecTo3h4g
+      denominator: Gen/TauPElec
+
+    TauPElecTo3h5gPlus:
+      name: hEffiGenTauPElecTo3h5gPlus
+      numerator: Matched/TauPElecTo3h5gPlus
+      denominator: Gen/TauPElec
+
+    TauPElecToElec:
+      name: hEffiGenTauPElecToElec
+      numerator: Matched/TauPElecToElec
+      denominator: Gen/TauPElec
+
+    TauPElecToMuon:
+      name: hEffiGenTauPElecToMuon
+      numerator: Matched/TauPElecToMuon
+      denominator: Gen/TauPElec
+
+    TauPElecToUnmatched:
+      name: hEffiGenTauPElecToUnmatched
+      numerator: Matched/TauPElecToUnmatched
+      denominator: Gen/TauPElec
+
+    TauPElecToNoTau:
+      name: hEffiGenTauPElecToNoTau
+      numerator: Matched/TauPElecToNoTau
+      denominator: Gen/TauPElec
+
+    TauPElecToOther:
+      name: hEffiGenTauPElecToOther
+      numerator: Matched/TauPElecToOther
+      denominator: Gen/TauPElec
+
+    TauPElecTo3hNeutron:
+      name: hEffiGenTauPElecTo3hNeutron
+      numerator: Matched/TauPElecTo3hNeutron
+      denominator: Gen/TauPElec
+
+    TauPMuonToh:
+      name: hEffiGenTauPMuonToh
+      numerator: Matched/TauPMuonToh
+      denominator: Gen/TauPMuon
+
+    TauPMuonToh1g:
+      name: hEffiGenTauPMuonToh1g
+      numerator: Matched/TauPMuonToh1g
+      denominator: Gen/TauPMuon
+
+    TauPMuonToh2g:
+      name: hEffiGenTauPMuonToh2g
+      numerator: Matched/TauPMuonToh2g
+      denominator: Gen/TauPMuon
+
+    TauPMuonToh3g:
+      name: hEffiGenTauPMuonToh3g
+      numerator: Matched/TauPMuonToh3g
+      denominator: Gen/TauPMuon
+
+    TauPMuonToh4g:
+      name: hEffiGenTauPMuonToh4g
+      numerator: Matched/TauPMuonToh4g
+      denominator: Gen/TauPMuon
+
+    TauPMuonToh5gPlus:
+      name: hEffiGenTauPMuonToh5gPlus
+      numerator: Matched/TauPMuonToh5gPlus
+      denominator: Gen/TauPMuon
+
+    TauPMuonTo3h:
+      name: hEffiGenTauPMuonTo3h
+      numerator: Matched/TauPMuonTo3h
+      denominator: Gen/TauPMuon
+
+    TauPMuonTo3h1g:
+      name: hEffiGenTauPMuonTo3h1g
+      numerator: Matched/TauPMuonTo3h1g
+      denominator: Gen/TauPMuon
+
+    TauPMuonTo3h2g:
+      name: hEffiGenTauPMuonTo3h2g
+      numerator: Matched/TauPMuonTo3h2g
+      denominator: Gen/TauPMuon
+
+    TauPMuonTo3h3g:
+      name: hEffiGenTauPMuonTo3h3g
+      numerator: Matched/TauPMuonTo3h3g
+      denominator: Gen/TauPMuon
+
+    TauPMuonTo3h4g:
+      name: hEffiGenTauPMuonTo3h4g
+      numerator: Matched/TauPMuonTo3h4g
+      denominator: Gen/TauPMuon
+
+    TauPMuonTo3h5gPlus:
+      name: hEffiGenTauPMuonTo3h5gPlus
+      numerator: Matched/TauPMuonTo3h5gPlus
+      denominator: Gen/TauPMuon
+
+    TauPMuonToElec:
+      name: hEffiGenTauPMuonToElec
+      numerator: Matched/TauPMuonToElec
+      denominator: Gen/TauPMuon
+
+    TauPMuonToMuon:
+      name: hEffiGenTauPMuonToMuon
+      numerator: Matched/TauPMuonToMuon
+      denominator: Gen/TauPMuon
+
+    TauPMuonToUnmatched:
+      name: hEffiGenTauPMuonToUnmatched
+      numerator: Matched/TauPMuonToUnmatched
+      denominator: Gen/TauPMuon
+
+    TauPMuonToNoTau:
+      name: hEffiGenTauPMuonToNoTau
+      numerator: Matched/TauPMuonToNoTau
+      denominator: Gen/TauPMuon
+
+    TauPMuonToOther:
+      name: hEffiGenTauPMuonToOther
+      numerator: Matched/TauPMuonToOther
+      denominator: Gen/TauPMuon
+
+    TauPMuonTo3hNeutron:
+      name: hEffiGenTauPMuonTo3hNeutron
+      numerator: Matched/TauPMuonTo3hNeutron
+      denominator: Gen/TauPMuon
+
+    TauTheta0Toh:
+      name: hEffiGenTauTheta0Toh
+      numerator: Matched/TauTheta0Toh
+      denominator: Gen/TauTheta0
+
+    TauTheta0Toh1g:
+      name: hEffiGenTauTheta0Toh1g
+      numerator: Matched/TauTheta0Toh1g
+      denominator: Gen/TauTheta0
+
+    TauTheta0Toh2g:
+      name: hEffiGenTauTheta0Toh2g
+      numerator: Matched/TauTheta0Toh2g
+      denominator: Gen/TauTheta0
+
+    TauTheta0Toh3g:
+      name: hEffiGenTauTheta0Toh3g
+      numerator: Matched/TauTheta0Toh3g
+      denominator: Gen/TauTheta0
+
+    TauTheta0Toh4g:
+      name: hEffiGenTauTheta0Toh4g
+      numerator: Matched/TauTheta0Toh4g
+      denominator: Gen/TauTheta0
+
+    TauTheta0Toh5gPlus:
+      name: hEffiGenTauTheta0Toh5gPlus
+      numerator: Matched/TauTheta0Toh5gPlus
+      denominator: Gen/TauTheta0
+
+    TauTheta0To3h:
+      name: hEffiGenTauTheta0To3h
+      numerator: Matched/TauTheta0To3h
+      denominator: Gen/TauTheta0
+
+    TauTheta0To3h1g:
+      name: hEffiGenTauTheta0To3h1g
+      numerator: Matched/TauTheta0To3h1g
+      denominator: Gen/TauTheta0
+
+    TauTheta0To3h2g:
+      name: hEffiGenTauTheta0To3h2g
+      numerator: Matched/TauTheta0To3h2g
+      denominator: Gen/TauTheta0
+
+    TauTheta0To3h3g:
+      name: hEffiGenTauTheta0To3h3g
+      numerator: Matched/TauTheta0To3h3g
+      denominator: Gen/TauTheta0
+
+    TauTheta0To3h4g:
+      name: hEffiGenTauTheta0To3h4g
+      numerator: Matched/TauTheta0To3h4g
+      denominator: Gen/TauTheta0
+
+    TauTheta0To3h5gPlus:
+      name: hEffiGenTauTheta0To3h5gPlus
+      numerator: Matched/TauTheta0To3h5gPlus
+      denominator: Gen/TauTheta0
+
+    TauTheta0ToElec:
+      name: hEffiGenTauTheta0ToElec
+      numerator: Matched/TauTheta0ToElec
+      denominator: Gen/TauTheta0
+
+    TauTheta0ToMuon:
+      name: hEffiGenTauTheta0ToMuon
+      numerator: Matched/TauTheta0ToMuon
+      denominator: Gen/TauTheta0
+
+    TauTheta0ToUnmatched:
+      name: hEffiGenTauTheta0ToUnmatched
+      numerator: Matched/TauTheta0ToUnmatched
+      denominator: Gen/TauTheta0
+
+    TauTheta0ToNoTau:
+      name: hEffiGenTauTheta0ToNoTau
+      numerator: Matched/TauTheta0ToNoTau
+      denominator: Gen/TauTheta0
+
+    TauTheta0ToOther:
+      name: hEffiGenTauTheta0ToOther
+      numerator: Matched/TauTheta0ToOther
+      denominator: Gen/TauTheta0
+
+    TauTheta0To3hNeutron:
+      name: hEffiGenTauTheta0To3hNeutron
+      numerator: Matched/TauTheta0To3hNeutron
+      denominator: Gen/TauTheta0
+
+    TauTheta1Toh:
+      name: hEffiGenTauTheta1Toh
+      numerator: Matched/TauTheta1Toh
+      denominator: Gen/TauTheta1
+
+    TauTheta1Toh1g:
+      name: hEffiGenTauTheta1Toh1g
+      numerator: Matched/TauTheta1Toh1g
+      denominator: Gen/TauTheta1
+
+    TauTheta1Toh2g:
+      name: hEffiGenTauTheta1Toh2g
+      numerator: Matched/TauTheta1Toh2g
+      denominator: Gen/TauTheta1
+
+    TauTheta1Toh3g:
+      name: hEffiGenTauTheta1Toh3g
+      numerator: Matched/TauTheta1Toh3g
+      denominator: Gen/TauTheta1
+
+    TauTheta1Toh4g:
+      name: hEffiGenTauTheta1Toh4g
+      numerator: Matched/TauTheta1Toh4g
+      denominator: Gen/TauTheta1
+
+    TauTheta1Toh5gPlus:
+      name: hEffiGenTauTheta1Toh5gPlus
+      numerator: Matched/TauTheta1Toh5gPlus
+      denominator: Gen/TauTheta1
+
+    TauTheta1To3h:
+      name: hEffiGenTauTheta1To3h
+      numerator: Matched/TauTheta1To3h
+      denominator: Gen/TauTheta1
+
+    TauTheta1To3h1g:
+      name: hEffiGenTauTheta1To3h1g
+      numerator: Matched/TauTheta1To3h1g
+      denominator: Gen/TauTheta1
+
+    TauTheta1To3h2g:
+      name: hEffiGenTauTheta1To3h2g
+      numerator: Matched/TauTheta1To3h2g
+      denominator: Gen/TauTheta1
+
+    TauTheta1To3h3g:
+      name: hEffiGenTauTheta1To3h3g
+      numerator: Matched/TauTheta1To3h3g
+      denominator: Gen/TauTheta1
+
+    TauTheta1To3h4g:
+      name: hEffiGenTauTheta1To3h4g
+      numerator: Matched/TauTheta1To3h4g
+      denominator: Gen/TauTheta1
+
+    TauTheta1To3h5gPlus:
+      name: hEffiGenTauTheta1To3h5gPlus
+      numerator: Matched/TauTheta1To3h5gPlus
+      denominator: Gen/TauTheta1
+
+    TauTheta1ToElec:
+      name: hEffiGenTauTheta1ToElec
+      numerator: Matched/TauTheta1ToElec
+      denominator: Gen/TauTheta1
+
+    TauTheta1ToMuon:
+      name: hEffiGenTauTheta1ToMuon
+      numerator: Matched/TauTheta1ToMuon
+      denominator: Gen/TauTheta1
+
+    TauTheta1ToUnmatched:
+      name: hEffiGenTauTheta1ToUnmatched
+      numerator: Matched/TauTheta1ToUnmatched
+      denominator: Gen/TauTheta1
+
+    TauTheta1ToNoTau:
+      name: hEffiGenTauTheta1ToNoTau
+      numerator: Matched/TauTheta1ToNoTau
+      denominator: Gen/TauTheta1
+
+    TauTheta1ToOther:
+      name: hEffiGenTauTheta1ToOther
+      numerator: Matched/TauTheta1ToOther
+      denominator: Gen/TauTheta1
+
+    TauTheta1To3hNeutron:
+      name: hEffiGenTauTheta1To3hNeutron
+      numerator: Matched/TauTheta1To3hNeutron
+      denominator: Gen/TauTheta1
+
+    TauTheta2Toh:
+      name: hEffiGenTauTheta2Toh
+      numerator: Matched/TauTheta2Toh
+      denominator: Gen/TauTheta2
+
+    TauTheta2Toh1g:
+      name: hEffiGenTauTheta2Toh1g
+      numerator: Matched/TauTheta2Toh1g
+      denominator: Gen/TauTheta2
+
+    TauTheta2Toh2g:
+      name: hEffiGenTauTheta2Toh2g
+      numerator: Matched/TauTheta2Toh2g
+      denominator: Gen/TauTheta2
+
+    TauTheta2Toh3g:
+      name: hEffiGenTauTheta2Toh3g
+      numerator: Matched/TauTheta2Toh3g
+      denominator: Gen/TauTheta2
+
+    TauTheta2Toh4g:
+      name: hEffiGenTauTheta2Toh4g
+      numerator: Matched/TauTheta2Toh4g
+      denominator: Gen/TauTheta2
+
+    TauTheta2Toh5gPlus:
+      name: hEffiGenTauTheta2Toh5gPlus
+      numerator: Matched/TauTheta2Toh5gPlus
+      denominator: Gen/TauTheta2
+
+    TauTheta2To3h:
+      name: hEffiGenTauTheta2To3h
+      numerator: Matched/TauTheta2To3h
+      denominator: Gen/TauTheta2
+
+    TauTheta2To3h1g:
+      name: hEffiGenTauTheta2To3h1g
+      numerator: Matched/TauTheta2To3h1g
+      denominator: Gen/TauTheta2
+
+    TauTheta2To3h2g:
+      name: hEffiGenTauTheta2To3h2g
+      numerator: Matched/TauTheta2To3h2g
+      denominator: Gen/TauTheta2
+
+    TauTheta2To3h3g:
+      name: hEffiGenTauTheta2To3h3g
+      numerator: Matched/TauTheta2To3h3g
+      denominator: Gen/TauTheta2
+
+    TauTheta2To3h4g:
+      name: hEffiGenTauTheta2To3h4g
+      numerator: Matched/TauTheta2To3h4g
+      denominator: Gen/TauTheta2
+
+    TauTheta2To3h5gPlus:
+      name: hEffiGenTauTheta2To3h5gPlus
+      numerator: Matched/TauTheta2To3h5gPlus
+      denominator: Gen/TauTheta2
+
+    TauTheta2ToElec:
+      name: hEffiGenTauTheta2ToElec
+      numerator: Matched/TauTheta2ToElec
+      denominator: Gen/TauTheta2
+
+    TauTheta2ToMuon:
+      name: hEffiGenTauTheta2ToMuon
+      numerator: Matched/TauTheta2ToMuon
+      denominator: Gen/TauTheta2
+
+    TauTheta2ToUnmatched:
+      name: hEffiGenTauTheta2ToUnmatched
+      numerator: Matched/TauTheta2ToUnmatched
+      denominator: Gen/TauTheta2
+
+    TauTheta2ToNoTau:
+      name: hEffiGenTauTheta2ToNoTau
+      numerator: Matched/TauTheta2ToNoTau
+      denominator: Gen/TauTheta2
+
+    TauTheta2ToOther:
+      name: hEffiGenTauTheta2ToOther
+      numerator: Matched/TauTheta2ToOther
+      denominator: Gen/TauTheta2
+
+    TauTheta2To3hNeutron:
+      name: hEffiGenTauTheta2To3hNeutron
+      numerator: Matched/TauTheta2To3hNeutron
+      denominator: Gen/TauTheta2
+
+    TauTheta3Toh:
+      name: hEffiGenTauTheta3Toh
+      numerator: Matched/TauTheta3Toh
+      denominator: Gen/TauTheta3
+
+    TauTheta3Toh1g:
+      name: hEffiGenTauTheta3Toh1g
+      numerator: Matched/TauTheta3Toh1g
+      denominator: Gen/TauTheta3
+
+    TauTheta3Toh2g:
+      name: hEffiGenTauTheta3Toh2g
+      numerator: Matched/TauTheta3Toh2g
+      denominator: Gen/TauTheta3
+
+    TauTheta3Toh3g:
+      name: hEffiGenTauTheta3Toh3g
+      numerator: Matched/TauTheta3Toh3g
+      denominator: Gen/TauTheta3
+
+    TauTheta3Toh4g:
+      name: hEffiGenTauTheta3Toh4g
+      numerator: Matched/TauTheta3Toh4g
+      denominator: Gen/TauTheta3
+
+    TauTheta3Toh5gPlus:
+      name: hEffiGenTauTheta3Toh5gPlus
+      numerator: Matched/TauTheta3Toh5gPlus
+      denominator: Gen/TauTheta3
+
+    TauTheta3To3h:
+      name: hEffiGenTauTheta3To3h
+      numerator: Matched/TauTheta3To3h
+      denominator: Gen/TauTheta3
+
+    TauTheta3To3h1g:
+      name: hEffiGenTauTheta3To3h1g
+      numerator: Matched/TauTheta3To3h1g
+      denominator: Gen/TauTheta3
+
+    TauTheta3To3h2g:
+      name: hEffiGenTauTheta3To3h2g
+      numerator: Matched/TauTheta3To3h2g
+      denominator: Gen/TauTheta3
+
+    TauTheta3To3h3g:
+      name: hEffiGenTauTheta3To3h3g
+      numerator: Matched/TauTheta3To3h3g
+      denominator: Gen/TauTheta3
+
+    TauTheta3To3h4g:
+      name: hEffiGenTauTheta3To3h4g
+      numerator: Matched/TauTheta3To3h4g
+      denominator: Gen/TauTheta3
+
+    TauTheta3To3h5gPlus:
+      name: hEffiGenTauTheta3To3h5gPlus
+      numerator: Matched/TauTheta3To3h5gPlus
+      denominator: Gen/TauTheta3
+
+    TauTheta3ToElec:
+      name: hEffiGenTauTheta3ToElec
+      numerator: Matched/TauTheta3ToElec
+      denominator: Gen/TauTheta3
+
+    TauTheta3ToMuon:
+      name: hEffiGenTauTheta3ToMuon
+      numerator: Matched/TauTheta3ToMuon
+      denominator: Gen/TauTheta3
+
+    TauTheta3ToUnmatched:
+      name: hEffiGenTauTheta3ToUnmatched
+      numerator: Matched/TauTheta3ToUnmatched
+      denominator: Gen/TauTheta3
+
+    TauTheta3ToNoTau:
+      name: hEffiGenTauTheta3ToNoTau
+      numerator: Matched/TauTheta3ToNoTau
+      denominator: Gen/TauTheta3
+
+    TauTheta3ToOther:
+      name: hEffiGenTauTheta3ToOther
+      numerator: Matched/TauTheta3ToOther
+      denominator: Gen/TauTheta3
+
+    TauTheta3To3hNeutron:
+      name: hEffiGenTauTheta3To3hNeutron
+      numerator: Matched/TauTheta3To3hNeutron
+      denominator: Gen/TauTheta3
+
+    TauTheta4Toh:
+      name: hEffiGenTauTheta4Toh
+      numerator: Matched/TauTheta4Toh
+      denominator: Gen/TauTheta4
+
+    TauTheta4Toh1g:
+      name: hEffiGenTauTheta4Toh1g
+      numerator: Matched/TauTheta4Toh1g
+      denominator: Gen/TauTheta4
+
+    TauTheta4Toh2g:
+      name: hEffiGenTauTheta4Toh2g
+      numerator: Matched/TauTheta4Toh2g
+      denominator: Gen/TauTheta4
+
+    TauTheta4Toh3g:
+      name: hEffiGenTauTheta4Toh3g
+      numerator: Matched/TauTheta4Toh3g
+      denominator: Gen/TauTheta4
+
+    TauTheta4Toh4g:
+      name: hEffiGenTauTheta4Toh4g
+      numerator: Matched/TauTheta4Toh4g
+      denominator: Gen/TauTheta4
+
+    TauTheta4Toh5gPlus:
+      name: hEffiGenTauTheta4Toh5gPlus
+      numerator: Matched/TauTheta4Toh5gPlus
+      denominator: Gen/TauTheta4
+
+    TauTheta4To3h:
+      name: hEffiGenTauTheta4To3h
+      numerator: Matched/TauTheta4To3h
+      denominator: Gen/TauTheta4
+
+    TauTheta4To3h1g:
+      name: hEffiGenTauTheta4To3h1g
+      numerator: Matched/TauTheta4To3h1g
+      denominator: Gen/TauTheta4
+
+    TauTheta4To3h2g:
+      name: hEffiGenTauTheta4To3h2g
+      numerator: Matched/TauTheta4To3h2g
+      denominator: Gen/TauTheta4
+
+    TauTheta4To3h3g:
+      name: hEffiGenTauTheta4To3h3g
+      numerator: Matched/TauTheta4To3h3g
+      denominator: Gen/TauTheta4
+
+    TauTheta4To3h4g:
+      name: hEffiGenTauTheta4To3h4g
+      numerator: Matched/TauTheta4To3h4g
+      denominator: Gen/TauTheta4
+
+    TauTheta4To3h5gPlus:
+      name: hEffiGenTauTheta4To3h5gPlus
+      numerator: Matched/TauTheta4To3h5gPlus
+      denominator: Gen/TauTheta4
+
+    TauTheta4ToElec:
+      name: hEffiGenTauTheta4ToElec
+      numerator: Matched/TauTheta4ToElec
+      denominator: Gen/TauTheta4
+
+    TauTheta4ToMuon:
+      name: hEffiGenTauTheta4ToMuon
+      numerator: Matched/TauTheta4ToMuon
+      denominator: Gen/TauTheta4
+
+    TauTheta4ToUnmatched:
+      name: hEffiGenTauTheta4ToUnmatched
+      numerator: Matched/TauTheta4ToUnmatched
+      denominator: Gen/TauTheta4
+
+    TauTheta4ToNoTau:
+      name: hEffiGenTauTheta4ToNoTau
+      numerator: Matched/TauTheta4ToNoTau
+      denominator: Gen/TauTheta4
+
+    TauTheta4ToOther:
+      name: hEffiGenTauTheta4ToOther
+      numerator: Matched/TauTheta4ToOther
+      denominator: Gen/TauTheta4
+
+    TauTheta4To3hNeutron:
+      name: hEffiGenTauTheta4To3hNeutron
+      numerator: Matched/TauTheta4To3hNeutron
+      denominator: Gen/TauTheta4
+
+    TauTheta10Toh:
+      name: hEffiGenTauTheta10Toh
+      numerator: Matched/TauTheta10Toh
+      denominator: Gen/TauTheta10
+
+    TauTheta10Toh1g:
+      name: hEffiGenTauTheta10Toh1g
+      numerator: Matched/TauTheta10Toh1g
+      denominator: Gen/TauTheta10
+
+    TauTheta10Toh2g:
+      name: hEffiGenTauTheta10Toh2g
+      numerator: Matched/TauTheta10Toh2g
+      denominator: Gen/TauTheta10
+
+    TauTheta10Toh3g:
+      name: hEffiGenTauTheta10Toh3g
+      numerator: Matched/TauTheta10Toh3g
+      denominator: Gen/TauTheta10
+
+    TauTheta10Toh4g:
+      name: hEffiGenTauTheta10Toh4g
+      numerator: Matched/TauTheta10Toh4g
+      denominator: Gen/TauTheta10
+
+    TauTheta10Toh5gPlus:
+      name: hEffiGenTauTheta10Toh5gPlus
+      numerator: Matched/TauTheta10Toh5gPlus
+      denominator: Gen/TauTheta10
+
+    TauTheta10To3h:
+      name: hEffiGenTauTheta10To3h
+      numerator: Matched/TauTheta10To3h
+      denominator: Gen/TauTheta10
+
+    TauTheta10To3h1g:
+      name: hEffiGenTauTheta10To3h1g
+      numerator: Matched/TauTheta10To3h1g
+      denominator: Gen/TauTheta10
+
+    TauTheta10To3h2g:
+      name: hEffiGenTauTheta10To3h2g
+      numerator: Matched/TauTheta10To3h2g
+      denominator: Gen/TauTheta10
+
+    TauTheta10To3h3g:
+      name: hEffiGenTauTheta10To3h3g
+      numerator: Matched/TauTheta10To3h3g
+      denominator: Gen/TauTheta10
+
+    TauTheta10To3h4g:
+      name: hEffiGenTauTheta10To3h4g
+      numerator: Matched/TauTheta10To3h4g
+      denominator: Gen/TauTheta10
+
+    TauTheta10To3h5gPlus:
+      name: hEffiGenTauTheta10To3h5gPlus
+      numerator: Matched/TauTheta10To3h5gPlus
+      denominator: Gen/TauTheta10
+
+    TauTheta10ToElec:
+      name: hEffiGenTauTheta10ToElec
+      numerator: Matched/TauTheta10ToElec
+      denominator: Gen/TauTheta10
+
+    TauTheta10ToMuon:
+      name: hEffiGenTauTheta10ToMuon
+      numerator: Matched/TauTheta10ToMuon
+      denominator: Gen/TauTheta10
+
+    TauTheta10ToUnmatched:
+      name: hEffiGenTauTheta10ToUnmatched
+      numerator: Matched/TauTheta10ToUnmatched
+      denominator: Gen/TauTheta10
+
+    TauTheta10ToNoTau:
+      name: hEffiGenTauTheta10ToNoTau
+      numerator: Matched/TauTheta10ToNoTau
+      denominator: Gen/TauTheta10
+
+    TauTheta10ToOther:
+      name: hEffiGenTauTheta10ToOther
+      numerator: Matched/TauTheta10ToOther
+      denominator: Gen/TauTheta10
+
+    TauTheta10To3hNeutron:
+      name: hEffiGenTauTheta10To3hNeutron
+      numerator: Matched/TauTheta10To3hNeutron
+      denominator: Gen/TauTheta10
+
+    TauTheta11Toh:
+      name: hEffiGenTauTheta11Toh
+      numerator: Matched/TauTheta11Toh
+      denominator: Gen/TauTheta11
+
+    TauTheta11Toh1g:
+      name: hEffiGenTauTheta11Toh1g
+      numerator: Matched/TauTheta11Toh1g
+      denominator: Gen/TauTheta11
+
+    TauTheta11Toh2g:
+      name: hEffiGenTauTheta11Toh2g
+      numerator: Matched/TauTheta11Toh2g
+      denominator: Gen/TauTheta11
+
+    TauTheta11Toh3g:
+      name: hEffiGenTauTheta11Toh3g
+      numerator: Matched/TauTheta11Toh3g
+      denominator: Gen/TauTheta11
+
+    TauTheta11Toh4g:
+      name: hEffiGenTauTheta11Toh4g
+      numerator: Matched/TauTheta11Toh4g
+      denominator: Gen/TauTheta11
+
+    TauTheta11Toh5gPlus:
+      name: hEffiGenTauTheta11Toh5gPlus
+      numerator: Matched/TauTheta11Toh5gPlus
+      denominator: Gen/TauTheta11
+
+    TauTheta11To3h:
+      name: hEffiGenTauTheta11To3h
+      numerator: Matched/TauTheta11To3h
+      denominator: Gen/TauTheta11
+
+    TauTheta11To3h1g:
+      name: hEffiGenTauTheta11To3h1g
+      numerator: Matched/TauTheta11To3h1g
+      denominator: Gen/TauTheta11
+
+    TauTheta11To3h2g:
+      name: hEffiGenTauTheta11To3h2g
+      numerator: Matched/TauTheta11To3h2g
+      denominator: Gen/TauTheta11
+
+    TauTheta11To3h3g:
+      name: hEffiGenTauTheta11To3h3g
+      numerator: Matched/TauTheta11To3h3g
+      denominator: Gen/TauTheta11
+
+    TauTheta11To3h4g:
+      name: hEffiGenTauTheta11To3h4g
+      numerator: Matched/TauTheta11To3h4g
+      denominator: Gen/TauTheta11
+
+    TauTheta11To3h5gPlus:
+      name: hEffiGenTauTheta11To3h5gPlus
+      numerator: Matched/TauTheta11To3h5gPlus
+      denominator: Gen/TauTheta11
+
+    TauTheta11ToElec:
+      name: hEffiGenTauTheta11ToElec
+      numerator: Matched/TauTheta11ToElec
+      denominator: Gen/TauTheta11
+
+    TauTheta11ToMuon:
+      name: hEffiGenTauTheta11ToMuon
+      numerator: Matched/TauTheta11ToMuon
+      denominator: Gen/TauTheta11
+
+    TauTheta11ToUnmatched:
+      name: hEffiGenTauTheta11ToUnmatched
+      numerator: Matched/TauTheta11ToUnmatched
+      denominator: Gen/TauTheta11
+
+    TauTheta11ToNoTau:
+      name: hEffiGenTauTheta11ToNoTau
+      numerator: Matched/TauTheta11ToNoTau
+      denominator: Gen/TauTheta11
+
+    TauTheta11ToOther:
+      name: hEffiGenTauTheta11ToOther
+      numerator: Matched/TauTheta11ToOther
+      denominator: Gen/TauTheta11
+
+    TauTheta11To3hNeutron:
+      name: hEffiGenTauTheta11To3hNeutron
+      numerator: Matched/TauTheta11To3hNeutron
+      denominator: Gen/TauTheta11
+
+    TauTheta12Toh:
+      name: hEffiGenTauTheta12Toh
+      numerator: Matched/TauTheta12Toh
+      denominator: Gen/TauTheta12
+
+    TauTheta12Toh1g:
+      name: hEffiGenTauTheta12Toh1g
+      numerator: Matched/TauTheta12Toh1g
+      denominator: Gen/TauTheta12
+
+    TauTheta12Toh2g:
+      name: hEffiGenTauTheta12Toh2g
+      numerator: Matched/TauTheta12Toh2g
+      denominator: Gen/TauTheta12
+
+    TauTheta12Toh3g:
+      name: hEffiGenTauTheta12Toh3g
+      numerator: Matched/TauTheta12Toh3g
+      denominator: Gen/TauTheta12
+
+    TauTheta12Toh4g:
+      name: hEffiGenTauTheta12Toh4g
+      numerator: Matched/TauTheta12Toh4g
+      denominator: Gen/TauTheta12
+
+    TauTheta12Toh5gPlus:
+      name: hEffiGenTauTheta12Toh5gPlus
+      numerator: Matched/TauTheta12Toh5gPlus
+      denominator: Gen/TauTheta12
+
+    TauTheta12To3h:
+      name: hEffiGenTauTheta12To3h
+      numerator: Matched/TauTheta12To3h
+      denominator: Gen/TauTheta12
+
+    TauTheta12To3h1g:
+      name: hEffiGenTauTheta12To3h1g
+      numerator: Matched/TauTheta12To3h1g
+      denominator: Gen/TauTheta12
+
+    TauTheta12To3h2g:
+      name: hEffiGenTauTheta12To3h2g
+      numerator: Matched/TauTheta12To3h2g
+      denominator: Gen/TauTheta12
+
+    TauTheta12To3h3g:
+      name: hEffiGenTauTheta12To3h3g
+      numerator: Matched/TauTheta12To3h3g
+      denominator: Gen/TauTheta12
+
+    TauTheta12To3h4g:
+      name: hEffiGenTauTheta12To3h4g
+      numerator: Matched/TauTheta12To3h4g
+      denominator: Gen/TauTheta12
+
+    TauTheta12To3h5gPlus:
+      name: hEffiGenTauTheta12To3h5gPlus
+      numerator: Matched/TauTheta12To3h5gPlus
+      denominator: Gen/TauTheta12
+
+    TauTheta12ToElec:
+      name: hEffiGenTauTheta12ToElec
+      numerator: Matched/TauTheta12ToElec
+      denominator: Gen/TauTheta12
+
+    TauTheta12ToMuon:
+      name: hEffiGenTauTheta12ToMuon
+      numerator: Matched/TauTheta12ToMuon
+      denominator: Gen/TauTheta12
+
+    TauTheta12ToUnmatched:
+      name: hEffiGenTauTheta12ToUnmatched
+      numerator: Matched/TauTheta12ToUnmatched
+      denominator: Gen/TauTheta12
+
+    TauTheta12ToNoTau:
+      name: hEffiGenTauTheta12ToNoTau
+      numerator: Matched/TauTheta12ToNoTau
+      denominator: Gen/TauTheta12
+
+    TauTheta12ToOther:
+      name: hEffiGenTauTheta12ToOther
+      numerator: Matched/TauTheta12ToOther
+      denominator: Gen/TauTheta12
+
+    TauTheta12To3hNeutron:
+      name: hEffiGenTauTheta12To3hNeutron
+      numerator: Matched/TauTheta12To3hNeutron
+      denominator: Gen/TauTheta12
+
+    TauThetaElecToh:
+      name: hEffiGenTauThetaElecToh
+      numerator: Matched/TauThetaElecToh
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToh1g:
+      name: hEffiGenTauThetaElecToh1g
+      numerator: Matched/TauThetaElecToh1g
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToh2g:
+      name: hEffiGenTauThetaElecToh2g
+      numerator: Matched/TauThetaElecToh2g
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToh3g:
+      name: hEffiGenTauThetaElecToh3g
+      numerator: Matched/TauThetaElecToh3g
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToh4g:
+      name: hEffiGenTauThetaElecToh4g
+      numerator: Matched/TauThetaElecToh4g
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToh5gPlus:
+      name: hEffiGenTauThetaElecToh5gPlus
+      numerator: Matched/TauThetaElecToh5gPlus
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecTo3h:
+      name: hEffiGenTauThetaElecTo3h
+      numerator: Matched/TauThetaElecTo3h
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecTo3h1g:
+      name: hEffiGenTauThetaElecTo3h1g
+      numerator: Matched/TauThetaElecTo3h1g
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecTo3h2g:
+      name: hEffiGenTauThetaElecTo3h2g
+      numerator: Matched/TauThetaElecTo3h2g
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecTo3h3g:
+      name: hEffiGenTauThetaElecTo3h3g
+      numerator: Matched/TauThetaElecTo3h3g
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecTo3h4g:
+      name: hEffiGenTauThetaElecTo3h4g
+      numerator: Matched/TauThetaElecTo3h4g
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecTo3h5gPlus:
+      name: hEffiGenTauThetaElecTo3h5gPlus
+      numerator: Matched/TauThetaElecTo3h5gPlus
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToElec:
+      name: hEffiGenTauThetaElecToElec
+      numerator: Matched/TauThetaElecToElec
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToMuon:
+      name: hEffiGenTauThetaElecToMuon
+      numerator: Matched/TauThetaElecToMuon
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToUnmatched:
+      name: hEffiGenTauThetaElecToUnmatched
+      numerator: Matched/TauThetaElecToUnmatched
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToNoTau:
+      name: hEffiGenTauThetaElecToNoTau
+      numerator: Matched/TauThetaElecToNoTau
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecToOther:
+      name: hEffiGenTauThetaElecToOther
+      numerator: Matched/TauThetaElecToOther
+      denominator: Gen/TauThetaElec
+
+    TauThetaElecTo3hNeutron:
+      name: hEffiGenTauThetaElecTo3hNeutron
+      numerator: Matched/TauThetaElecTo3hNeutron
+      denominator: Gen/TauThetaElec
+
+    TauThetaMuonToh:
+      name: hEffiGenTauThetaMuonToh
+      numerator: Matched/TauThetaMuonToh
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToh1g:
+      name: hEffiGenTauThetaMuonToh1g
+      numerator: Matched/TauThetaMuonToh1g
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToh2g:
+      name: hEffiGenTauThetaMuonToh2g
+      numerator: Matched/TauThetaMuonToh2g
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToh3g:
+      name: hEffiGenTauThetaMuonToh3g
+      numerator: Matched/TauThetaMuonToh3g
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToh4g:
+      name: hEffiGenTauThetaMuonToh4g
+      numerator: Matched/TauThetaMuonToh4g
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToh5gPlus:
+      name: hEffiGenTauThetaMuonToh5gPlus
+      numerator: Matched/TauThetaMuonToh5gPlus
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonTo3h:
+      name: hEffiGenTauThetaMuonTo3h
+      numerator: Matched/TauThetaMuonTo3h
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonTo3h1g:
+      name: hEffiGenTauThetaMuonTo3h1g
+      numerator: Matched/TauThetaMuonTo3h1g
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonTo3h2g:
+      name: hEffiGenTauThetaMuonTo3h2g
+      numerator: Matched/TauThetaMuonTo3h2g
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonTo3h3g:
+      name: hEffiGenTauThetaMuonTo3h3g
+      numerator: Matched/TauThetaMuonTo3h3g
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonTo3h4g:
+      name: hEffiGenTauThetaMuonTo3h4g
+      numerator: Matched/TauThetaMuonTo3h4g
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonTo3h5gPlus:
+      name: hEffiGenTauThetaMuonTo3h5gPlus
+      numerator: Matched/TauThetaMuonTo3h5gPlus
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToElec:
+      name: hEffiGenTauThetaMuonToElec
+      numerator: Matched/TauThetaMuonToElec
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToMuon:
+      name: hEffiGenTauThetaMuonToMuon
+      numerator: Matched/TauThetaMuonToMuon
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToUnmatched:
+      name: hEffiGenTauThetaMuonToUnmatched
+      numerator: Matched/TauThetaMuonToUnmatched
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToNoTau:
+      name: hEffiGenTauThetaMuonToNoTau
+      numerator: Matched/TauThetaMuonToNoTau
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonToOther:
+      name: hEffiGenTauThetaMuonToOther
+      numerator: Matched/TauThetaMuonToOther
+      denominator: Gen/TauThetaMuon
+
+    TauThetaMuonTo3hNeutron:
+      name: hEffiGenTauThetaMuonTo3hNeutron
+      numerator: Matched/TauThetaMuonTo3hNeutron
+      denominator: Gen/TauThetaMuon
+
+
+
+Reco:
+  Events:
+    ZMass:
+      type: "1D"
+      name: ZMassReco
+      range: [0, 100]
+      bins: 100
+
+    TauPairAngle:
+      type: "1D"
+      name: TauPairAngleReco
+      range: [2, 4.5]
+      bins: 250
+
+    TauPt:
+      type: "1D"
+      name: TauPtReco
+      range: [0, 50]
+      bins: 250
+
+    TauP:
+      type: "1D"
+      name: TauPReco
+      range: [0, 50]
+      bins: 250
+
+    TauMass:
+      type: "1D"
+      name: TauMassReco
+      range: [0, 10]
+      bins: 500
+
+    TauType:
+      type: "1D"
+      name: TauTypeReco
+      range: [-1, 20]
+      bins: 21
+
+    TauQ:
+      type: "1D"
+      name: TauQReco
+      range: [-1.5, 1.5]
+      bins: 3
+
+    TauEta:
+      type: "1D"
+      name: TauEtaReco
+      range: [-5, 5]
+      bins: 100
+
+    TauTheta:
+      type: "1D"
+      name: TauThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    TauDR:
+      type: "1D"
+      name: TauDRReco
+      range: [0, 1]
+      bins: 100
+
+    a1OnePionMass:
+      type: "1D"
+      name: a1OnePionMassReco
+      range: [0, 2.5]
+      bins: 100
+
+    a1ThreePionMass:
+      type: "1D"
+      name: a1ThreePionMassReco
+      range: [0, 2.5]
+      bins: 100
+
+    RhoMass:
+      type: "1D"
+      name: RhoMassReco
+      range: [0, 2.5]
+      bins: 100
+
+    ConstPi0MassRhoGen:
+      type: "1D"
+      name: ConstPi0MassRhoGenReco
+      range: [0, 0.5]
+      bins: 100
+
+    ConstPi0MassRhoReco:
+      type: "1D"
+      name: ConstPi0MassRhoRecoReco
+      range: [0, 0.5]
+      bins: 100
+
+    ConstTwoPhotonAngDist:
+      type: "1D"
+      name: ConstTwoPhotonAngDistReco
+      range: [0, 2]
+      bins: 100
+
+    ConstPi0MassFromPhotonMass:
+      type: "1D"
+      name: ConstPi0MassFromPhotonMassReco
+      range: [0, 0.5]
+      bins: 100
+
+    ConstPi0MassFromPhotonDist:
+      type: "1D"
+      name: ConstPi0MassFromPhotonDistReco
+      range: [0, 0.5]
+      bins: 100
+
+    Pi0MassOverNPhoton:
+      type: "2D"
+      name: Pi0MassOverNPhotonReco
+      x_range: [0, 2]
+      x_bins: 100
+      y_range: [0, 20]
+      y_bins: 20
+
+    ConstlessPhotonPa1strMass:
+      type: "1D"
+      name: ConstlessPhotonPa1strMassReco
+      range: [0, 50]
+      bins: 100
+
+    ConstlessPhotonPa1strMassZoom:
+      type: "1D"
+      name: ConstlessPhotonPa1strMassZoomReco
+      range: [0, 2]
+      bins: 100
+
+    ConstlessPhotonPa1strDist:
+      type: "1D"
+      name: ConstlessPhotonPa1strDistReco
+      range: [0, 50]
+      bins: 100
+
+    ConstxtraPhotonPrhostrMass:
+      type: "1D"
+      name: ConstxtraPhotonPrhostrMassReco
+      range: [0, 50]
+      bins: 100
+
+    ConstxtraPhotonPrhostrMassZoom:
+      type: "1D"
+      name: ConstxtraPhotonPrhostrMassZoomReco
+      range: [0, 2]
+      bins: 100
+
+    ConstxtraPhotonPrhostrDist:
+      type: "1D"
+      name: ConstxtraPhotonPrhostrDistReco
+      range: [0, 50]
+      bins: 100
+
+    ConstlessPhotonPrho:
+      type: "1D"
+      name: ConstlessPhotonPrhoReco
+      range: [0, 50]
+      bins: 100
+
+    ConstxtraPhotonPi:
+      type: "1D"
+      name: ConstxtraPhotonPiReco
+      range: [0, 50]
+      bins: 100
+
+    ConstlessPhotonPrhoZoom:
+      type: "1D"
+      name: ConstlessPhotonPrhoZoomReco
+      range: [0, 2]
+      bins: 100
+
+    ConstxtraPhotonPiZoom:
+      type: "1D"
+      name: ConstxtraPhotonPiZoomReco
+      range: [0, 2]
+      bins: 100
+
+    ThreePhotonMatchOnestrMassP:
+      type: "1D"
+      name: ThreePhotonMatchOnestrMassPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonMatchOnestrDistP:
+      type: "1D"
+      name: ThreePhotonMatchOnestrDistPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonMatchTwostrMassP:
+      type: "1D"
+      name: ThreePhotonMatchTwostrMassPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonMatchTwostrDistP:
+      type: "1D"
+      name: ThreePhotonMatchTwostrDistPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonNoMatchstrMassP:
+      type: "1D"
+      name: ThreePhotonNoMatchstrMassPReco
+      range: [0, 50]
+      bins: 100
+
+    ThreePhotonNoMatchstrDistP:
+      type: "1D"
+      name: ThreePhotonNoMatchstrDistPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoPiDecayP:
+      type: "1D"
+      name: RhoPiDecayPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecayP:
+      type: "1D"
+      name: RhoTwoPhotonDecayPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecaySumP:
+      type: "1D"
+      name: RhoTwoPhotonDecaySumPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoTwoPhotonDecayPiPhotonSumP:
+      type: "2D"
+      name: RhoTwoPhotonDecayPiPhotonSumPReco
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    RhoOnePhotonDecayPiP:
+      type: "1D"
+      name: RhoOnePhotonDecayPiPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPhotonP:
+      type: "1D"
+      name: RhoOnePhotonDecayPhotonPReco
+      range: [0, 50]
+      bins: 100
+
+    RhoOnePhotonDecayPiPhotonP:
+      type: "2D"
+      name: RhoOnePhotonDecayPiPhotonPReco
+      x_range: [0, 50]
+      x_bins: 100
+      y_range: [0, 50]
+      y_bins: 100
+
+    NTaus:
+      type: "1D"
+      name: NTausReco
+      range: [0, 6]
+      bins: 6
+
+    NTausType:
+      type: "1D"
+      name: NTausTypeReco
+      range: [0, 6]
+      bins: 6
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0Reco
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1Reco
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2Reco
+      range: [0, 3.15]
+      bins: 100
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10Reco
+      range: [0, 3.15]
+      bins: 100
+
+    NeutralHadronP:
+      type: "1D"
+      name: NeutralHadronPReco
+      range: [0, 50]
+      bins: 100
+
+    NeutralHadronTauP:
+      type: "1D"
+      name: NeutralHadronTauPReco
+      range: [0, 50]
+      bins: 100
+
+    PhotonTheta:
+      type: "1D"
+      name: PhotonThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    PionTheta:
+      type: "1D"
+      name: PionThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    AllPhotonsTheta:
+      type: "1D"
+      name: AllPhotonsThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    AllPhotonsP:
+      type: "1D"
+      name: AllPhotonsPReco
+      range: [0, 50]
+      bins: 100
+
+    AllPionsTheta:
+      type: "1D"
+      name: AllPionsThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    AllPionsP:
+      type: "1D"
+      name: AllPionsPReco
+      range: [0, 50]
+      bins: 100
+
+    DuplicatePionMatch:
+      type: "1D"
+      name: DuplicatePionMatchReco
+      range: [0, 10]
+      bins: 10
+
+    UnmatchedPionsP:
+      type: "1D"
+      name: UnmatchedPionsPReco
+      range: [0, 50]
+      bins: 100
+
+    UnmatchedPionsTheta:
+      type: "1D"
+      name: UnmatchedPionsThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    UnmatchedPhotonsP:
+      type: "1D"
+      name: UnmatchedPhotonsPReco
+      range: [0, 50]
+      bins: 100
+
+    UnmatchedPhotonsTheta:
+      type: "1D"
+      name: UnmatchedPhotonsThetaReco
+      range: [0, 3.15]
+      bins: 100
+
+    TauP0:
+      type: "1D"
+      name: TauP0Reco
+      range: [0, 50]
+      bins: 12
+
+    TauP1:
+      type: "1D"
+      name: TauP1Reco
+      range: [0, 50]
+      bins: 12
+
+    TauP2:
+      type: "1D"
+      name: TauP2Reco
+      range: [0, 50]
+      bins: 12
+
+    TauP10:
+      type: "1D"
+      name: TauP10Reco
+      range: [0, 50]
+      bins: 12
+
+    PhotonP:
+      type: "1D"
+      name: PhotonPReco
+      range: [0, 25]
+      bins: 100
+
+    PionP:
+      type: "1D"
+      name: PionPReco
+      range: [0, 50]
+      bins: 100
+
+  Resolution:
+    TauPt:
+      type: "1D"
+      name: TauPtResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauP:
+      type: "1D"
+      name: TauPResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauMass:
+      type: "1D"
+      name: TauMassResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta0:
+      type: "1D"
+      name: TauTheta0ResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta1:
+      type: "1D"
+      name: TauTheta1ResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta2:
+      type: "1D"
+      name: TauTheta2ResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauTheta10:
+      type: "1D"
+      name: TauTheta10ResReco
+      range: [-1, 1]
+      bins: 500
+
+    TauP0:
+      type: "1D"
+      name: TauP0ResReco
+      range: [-1, 1]
+      bins: 100
+
+    TauP1:
+      type: "1D"
+      name: TauP1ResReco
+      range: [-1, 1]
+      bins: 100
+
+    TauP2:
+      type: "1D"
+      name: TauP2ResReco
+      range: [-1, 1]
+      bins: 100
+
+    TauP10:
+      type: "1D"
+      name: TauP10ResReco
+      range: [-1, 1]
+      bins: 100
+
+
+GenVSReco:
+  Events:
+    TauPt:
+      type: "2D"
+      name: TauPtGenVsReco
+      x_range: [0, 50]
+      x_bins: 250
+      y_range: [0, 50]
+      y_bins: 250
+
+    TauP:
+      type: "2D"
+      name: TauPGenVsReco
+      x_range: [0, 50]
+      x_bins: 250
+      y_range: [0, 50]
+      y_bins: 250
+
+    TauDR:
+      type: "2D"
+      name: TauDRGenVsReco
+      x_range: [0, 1]
+      x_bins: 100
+      y_range: [0, 1]
+      y_bins: 100
+
+    TauMass:
+      type: "2D"
+      name: TauMassGenVsReco
+      x_range: [0, 10]
+      x_bins: 500
+      y_range: [0, 10]
+      y_bins: 500
+
+    TauType:
+      type: "2D"
+      name: TauTypeGenVsReco
+      x_range: [-1, 20]
+      x_bins: 21
+      y_range: [-1, 20]
+      y_bins: 21
+
+    TauQ:
+      type: "2D"
+      name: TauQGenVsReco
+      x_range: [-2, 2]
+      x_bins: 4
+      y_range: [-2, 2]
+      y_bins: 4

@@ -1,0 +1,69 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Estudio CLD vs ILD (polarización de tau) — etapa 2: histogramas MDecs.
+# Los árboles los produce RhoAnalysis/scripts_CLD_ILD/01_build_trees.sh, así que
+# aquí tree.enabled = false y se apunta al árbol ya generado.
+#   python RhoAnalysis/runTreeHistPipeline_MDecs.py --pipeline-config <este fichero>
+# Canales: rho/pi/e/mu inclusivos (single-decay) + rho×e y rho×mu (pares).
+# a1 y el id 1 (rho con un solo fotón) quedan fuera por ahora.
+# Sin cortes cinemáticos (config base).
+# DecayIDs: 0=π/K, 2=ρ (1=ρ gen), 10=a1, -11=e, -13=μ.
+# ═══════════════════════════════════════════════════════════════════════════
+
+pipeline:
+
+  tree:
+    enabled: false
+    mode: reco
+    sample: ztt_2M
+    prefix: PolAnalysis_RECO_CLD_ztt2M_
+    config: config/default/taurecolong_optimal.yaml
+    n_workers: 16
+    decay_modes: [0, 1, 2, 10, -11, -13]
+
+  tree_file: Results/RhoAnalysis/PolAnalysis_RECO_CLD_ztt2M_tau_trained0.4_tph0.35_tpi0_n3_g0.0/TTree_MDecs_0_1_2_10_-11_-13_tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+
+  hist_common:
+    hist_config_mdecs: config/histograms/rho_analysis_config_mdecs.yml
+    config: config/default/taurecolong_optimal.yaml
+    n_workers: 16
+    only_gen: false
+    compute_weights: false
+    no_omega_weights: false
+    sin_eff: 0.2312
+    cos_acceptance: null   # sin corte
+    omega_border_cut: false
+    ang: null              # sin corte
+    meson_cut: null        # sin corte
+    lepton_cut: null       # sin corte
+    zmass_cut: null        # sin corte
+    cut: []
+    verbose: 1
+
+  hist_runs:
+    # Canales inclusivos: se selecciona el hemisferio objetivo (siempre dec0) y el
+    # otro lado queda libre. Producen HistosMDecs_single{id}_<stem>.root, que
+    # makeCosBins_MDecs.py consume con --other-decay all.
+    - name: rho_incl
+      single_decay: 2
+      vism_cut: 0.
+
+    - name: pion_incl
+      single_decay: 0
+      vism_cut: 0.
+
+    - name: ele_incl
+      single_decay: -11
+      vism_cut: 0.
+
+    - name: muon_incl
+      single_decay: -13
+      vism_cut: 0.
+
+    # rho + leptón explícito (pares), para el canal rho_lep de la etapa 4.
+    - name: rho_el
+      decay_pair: [2, -11]
+      vism_cut: 0.
+
+    - name: rho_mu
+      decay_pair: [2, -13]
+      vism_cut: 0.
