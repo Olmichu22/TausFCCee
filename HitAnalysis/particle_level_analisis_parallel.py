@@ -23,7 +23,8 @@ from modules.TauDecays import extractTauDecays
 from modules.NeutralRecover import (debug_reco_tau, plot_debug_reco_tau, get_reco_mc_links_by_dR,
                                     DEFAULT_ASSOC_MAX_DR)
 from modules.ConfusionMatrixParticleLevel import (plot_confusion_matrices, plot_energy_distributions,
-                                                  plot_efficiency_vs_momentum, plot_fake_rate_vs_momentum)
+                                                  plot_efficiency_vs_momentum, plot_fake_rate_vs_momentum,
+                                                  plot_momentum_resolution)
 from modules import (ParticleObjects, electronReco, muonReco, myutils, pi0Reco,
                      tauReco, particleMatch)
 from modules.ParticleObjects import RecoParticle
@@ -654,6 +655,44 @@ def build_association_structures(full_df, bins, e_bins, fake_bin_by_reco=False):
     return association_results_df, energy_distribution_results
 
 
+def energy_cut_label(threshold):
+    """Directory-friendly label for an energy threshold: 2.5 → 'Emin_2p5GeV'."""
+    return f"Emin_{f'{threshold:g}'.replace('.', 'p').replace('-', 'm')}GeV"
+
+
+def apply_min_energy_cut(full_df, threshold, mode="auto"):
+    """
+    Keep only the rows whose particle energy is above `threshold` (GeV).
+
+    mode
+    ----
+    'auto' : Gen_energy for rows with a gen particle, Reco_energy for the fake
+             rows (Gen_pid == -999), which have no gen energy at all.  Sin esto
+             los fakes caerían todos por el NaN y la fila 999 de la matriz
+             desaparecería del recorte.
+    'gen'  : always Gen_energy   (drops the fake rows)
+    'reco' : always Reco_energy  (drops the rows without reco match)
+
+    Rows whose cut variable is NaN are dropped.
+    """
+    if full_df.empty:
+        return full_df
+
+    gen_energy  = pd.to_numeric(full_df["Gen_energy"], errors="coerce").to_numpy(dtype=float)
+    reco_energy = pd.to_numeric(full_df["Reco_energy"], errors="coerce").to_numpy(dtype=float)
+
+    if mode == "gen":
+        cut_var = gen_energy
+    elif mode == "reco":
+        cut_var = reco_energy
+    else:
+        is_fake = full_df["Gen_pid"].abs().to_numpy() == 999
+        cut_var = np.where(is_fake, reco_energy, gen_energy)
+
+    keep = np.isfinite(cut_var) & (cut_var > threshold)
+    return full_df.loc[keep].copy()
+
+
 # ── Placeholder: relleno de histogramas ROOT (implementación futura) ──────────
 
 def fill_particle_level_histograms(full_df, root_histograms, histogram_config):
@@ -750,6 +789,32 @@ def main():
                 "Gen_energy = NaN and all land in the 'nan' energy bin, so the "
                 "per-bin purities ignore fakes. Enabling this spreads them across "
                 "bins but breaks comparability with previously produced matrices."
+            ),
+        )
+        parser.add_argument(
+            "--min-energy-cuts",
+            type=float,
+            nargs="*",
+            default=[],
+            metavar="GEV",
+            help=(
+                "Extra energy thresholds (GeV). For each value, a second set of "
+                "confusion matrices and momentum-resolution distributions is "
+                "produced using only particles above that energy, in a "
+                "sub-directory Emin_<value>GeV. The matrices are integrated (a "
+                "single bin E > threshold), not split per energy bin. "
+                "E.g. --min-energy-cuts 10 20. Default: none."
+            ),
+        )
+        parser.add_argument(
+            "--min-energy-var",
+            choices=["auto", "gen", "reco"],
+            default="auto",
+            help=(
+                "Energy used by --min-energy-cuts. 'auto' (default): Gen_energy "
+                "for rows with a gen particle and Reco_energy for fake rows, so "
+                "fakes are not silently dropped. 'gen'/'reco': always that one "
+                "(rows without it are dropped)."
             ),
         )
         parser.add_argument(
@@ -1040,6 +1105,56 @@ def main():
         fake_dir_truth_theta = os.path.join(outputpath, "fake_rate_plots_theta", "truthlink")
         plot_fake_rate_vs_momentum(full_df_truth, output_dir=fake_dir_truth_theta, plot_type="theta",
                                    selection_note=selection_note_truth, n_events=n_events_truth)
+
+    # ── Resolución relativa de momento (p_reco − p_gen)/p_gen ────────────────
+    with stage(logger_io, "Resolución de momento (dR)"):
+        res_dir_dr = os.path.join(outputpath, "momentum_resolution", "dR")
+        plot_momentum_resolution(full_df_dr, output_dir=res_dir_dr)
+    with stage(logger_io, "Resolución de momento (truthlink)"):
+        res_dir_truth = os.path.join(outputpath, "momentum_resolution", "truthlink")
+        plot_momentum_resolution(full_df_truth, output_dir=res_dir_truth)
+
+    # ── Variantes con corte mínimo en energía (--min-energy-cuts) ────────────
+    # Matrices integradas (un único bin E > umbral) y distribuciones de
+    # resolución sobre el mismo subconjunto, en Emin_<valor>GeV.
+    for threshold in (args.min_energy_cuts or []):
+        cut_label = energy_cut_label(threshold)
+        cut_note = f" | E > {threshold:g} GeV"
+        cut_bins = [threshold, np.inf]
+
+        for tag, df_all in (("dR", full_df_dr), ("truthlink", full_df_truth)):
+            df_cut = apply_min_energy_cut(df_all, threshold, mode=args.min_energy_var)
+            logger_io.info(
+                "Corte E > %g GeV (%s, var=%s): %d de %d filas",
+                threshold, tag, args.min_energy_var, len(df_cut), len(df_all),
+            )
+            if df_cut.empty:
+                logger_io.warning(
+                    "Corte E > %g GeV (%s): sin filas, se omiten los plots",
+                    threshold, tag,
+                )
+                continue
+
+            with stage(logger_io, f"Matriz de confusión E>{threshold:g} GeV ({tag})"):
+                # Aquí la matriz tiene un único bin, así que binear los fakes
+                # por Reco_energy no los reparte: solo evita que caigan en la
+                # etiqueta "nan" y generen una segunda matriz espuria.
+                assoc_cut, _ = build_association_structures(
+                    df_cut, cut_bins, e_bins, fake_bin_by_reco=True
+                )
+                plot_confusion_matrices(
+                    assoc_cut,
+                    output_dir=os.path.join(
+                        outputpath, "confusion_matrices_particle_level", tag, cut_label
+                    ),
+                )
+
+            with stage(logger_io, f"Resolución de momento E>{threshold:g} GeV ({tag})"):
+                plot_momentum_resolution(
+                    df_cut,
+                    output_dir=os.path.join(outputpath, "momentum_resolution", tag, cut_label),
+                    title_suffix=cut_note,
+                )
 
     # Fichero ROOT con histogramas (descomentar cuando fill_particle_level_histograms
     # esté implementado con las secciones histograms_config del YAML)
