@@ -1,0 +1,62 @@
+datasets:
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/CLD_reco_ele_optcuts.root
+    label: CLD reco
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/ILD_reco_ele_optcuts.root
+    label: ILD reco
+    color: ROOT.kBlue
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.0
+    linewidth: 3
+
+plots:
+  visP_hadron:
+    per_dataset:
+      'CLD reco': RecoVisP_dec0_SIGNAL_BG
+      'ILD reco': RecoVisP_dec0_SIGNAL_BG
+    title: '\text{Visible P of the } e^{\pm}'
+    x: 'P [GeV/c]'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]
+  visP_lepton:
+    per_dataset:
+      'CLD reco': RecoVisP_dec1_SIGNAL_BG
+      'ILD reco': RecoVisP_dec1_SIGNAL_BG
+    title: '\text{Visible P of the other hemisphere (X)}'
+    x: 'P [GeV/c]'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]
+  reco_zmass:
+    per_dataset:
+      'CLD reco': RecoZMass_ALL_ALL
+      'ILD reco': RecoZMass_ALL_ALL
+    title: '\text{Reconstructed } m_{Z}'
+    x: 'm_{Z} [GeV/c^{2}]'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]
+  deltaR:
+    per_dataset:
+      'CLD reco': DeltaR_dec0_dec1_ALL_ALL
+      'ILD reco': DeltaR_dec0_dec1_ALL_ALL
+    title: '\Delta R \text{ between hemispheres}'
+    x: '\Delta R'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]
+  cos_theta_vis:
+    per_dataset:
+      'CLD reco': RecoVisCosTheta_dec0_SIGNAL_BG
+      'ILD reco': RecoVisCosTheta_dec0_SIGNAL_BG
+    title: '\cos\theta \text{ of the } e^{\pm}'
+    x: '\cos\theta_{vis}'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]

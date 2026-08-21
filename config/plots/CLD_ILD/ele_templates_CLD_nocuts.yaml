@@ -1,0 +1,34 @@
+datasets:
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/CLD_reco_ele_nocuts.root
+    label: SM
+    color: ROOT.kBlack
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/CLD_reco_ele_nocuts.root
+    label: A_tau=+1
+    color: ROOT.kRed
+    linestyle: 2
+    markerstyle: 21
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/CLD_reco_ele_nocuts.root
+    label: A_tau=-1
+    color: ROOT.kBlue
+    linestyle: 2
+    markerstyle: 22
+    markersize: 1.0
+    linewidth: 3
+
+plots:
+  templates_CLD:
+    per_dataset:
+      'SM': Optimal_X_dec0_SIGNAL_BG
+      'A_tau=+1': Optimal_X_dec0_SIGNAL_BG_corr_M1
+      'A_tau=-1': Optimal_X_dec0_SIGNAL_BG_corr_P1
+    title: '\text{CLD: reweighted templates, } e^{\pm} + X'
+    x: 'z_{e}'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]

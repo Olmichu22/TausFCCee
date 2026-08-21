@@ -2,7 +2,8 @@
 """makeCosBins_MDecs.py — adaptador de salidas MDecs reco → templates BINED legacy.
 
 Toma los TH2 `OptimalReco_vs_CosThetaVis_dec{T}_{cat0}_{cat1}[_variante]` de los
-ficheros `HistosMDecs_{id0}_{id1}_<stem>.root` (X = variable óptima reco, Y = cosθ
+ficheros `HistosMDecs_{id0}_{id1}_<stem>.root` (pares) o `HistosMDecs_single{id}_<stem>.root`
+(single-decay: objetivo en dec0, otro hemisferio libre) (X = variable óptima reco, Y = cosθ
 del visible reco, 100×20), selecciona el canal OBJETIVO + el(los) canal(es) del OTRO
 hemisferio, combina por luminosidad (lumi·σ/N_gen) y escribe en formato legacy
 (`histo_SIGNAL_{b}`, `histo_SIGNAL_P1/M1_{b}`, `histo_BG_migrations_{b}`,
@@ -46,10 +47,16 @@ BG_HIST_NAME = {
 }
 
 
-def compute_weight(event_type, verbose=False):
+def compute_weight(event_type, verbose=False, ngen=None, lumi_pb=None):
+    """Peso lumi·σ/N_gen. `ngen`/`lumi_pb` sobrescriben EVENT_CONFIG (obligatorio
+    cuando la muestra procesada no es la que fija la entrada del diccionario:
+    p.ej. ztt_2M o ild_fcc, con su propio número de eventos generados)."""
     cfg = EVENT_CONFIG.get(event_type)
     if cfg is None:
         raise ValueError(f"Event type '{event_type}' no definido en EVENT_CONFIG")
+    ngen = cfg["ngen"] if ngen is None else ngen
+    lumi_pb = cfg["lumi_pb"] if lumi_pb is None else lumi_pb
+    cfg = {**cfg, "ngen": ngen, "lumi_pb": lumi_pb}
     w = cfg["lumi_pb"] * cfg["xsec_pb"] / cfg["ngen"]
     if verbose:
         print(f"[INFO] {event_type}: weight = {w:.6g} "
@@ -75,12 +82,25 @@ def _variant_suffix(kind, mode):
     return f"{stem}_{'P1' if kind == 'P1' else 'M1'}"
 
 def _parse_pair_ids(basename, stem):
-    """Extrae (id0, id1) de 'HistosMDecs_{id0}_{id1}_{stem}.root'."""
+    """Extrae los ids de un fichero de histogramas MDecs.
+
+    Dos convenciones de nombre, ambas escritas por RhoHistFromTree_MDecs_parallel:
+      * par:    'HistosMDecs_{id0}_{id1}_{stem}.root'   → (id0, id1)
+      * single: 'HistosMDecs_single{id}_{stem}.root'    → (id, None)
+
+    En los ficheros single el hemisferio objetivo es siempre dec0 y el otro lado
+    no está restringido, de ahí el None.
+    """
     prefix = "HistosMDecs_"
     if not basename.startswith(prefix):
         return None
     rest = basename[len(prefix):]
     toks = rest.split("_")
+    if toks[0].startswith("single"):
+        try:
+            return int(toks[0][len("single"):]), None
+        except ValueError:
+            return None
     try:
         id0 = int(toks[0])
         id1 = int(toks[1])
@@ -93,14 +113,31 @@ def find_pair_files(sample_dir, stem, target_id, other_ids, verbose=False):
     """Devuelve [(path, slot)] donde slot es el índice dec del canal objetivo.
 
     other_ids = None  → 'all': cualquier pareja que contenga el objetivo.
+
+    Los ficheros single-decay (HistosMDecs_single{id}) ya son inclusivos en el
+    otro hemisferio, así que solo sirven para 'all'. Si para el mismo objetivo
+    hay single y pares, se usan los single: sumar ambos doble-contaría los
+    eventos.
     """
-    out = []
+    out, singles = [], []
     pattern = os.path.join(sample_dir, f"HistosMDecs_*_{stem}.root")
     for path in sorted(glob.glob(pattern)):
         ids = _parse_pair_ids(os.path.basename(path), stem)
         if ids is None:
             continue
         id0, id1 = ids
+        if id1 is None:                       # fichero single-decay
+            if id0 != target_id:
+                continue
+            if other_ids is not None:
+                if verbose:
+                    print(f"[INFO] ignoro {os.path.basename(path)}: es single-decay "
+                          f"(inclusivo) y se ha pedido otro={other_ids}")
+                continue
+            singles.append((path, 0))
+            if verbose:
+                print(f"[INFO] incluyo {os.path.basename(path)} (single, otro=libre, slot=dec0)")
+            continue
         if target_id not in (id0, id1):
             continue
         # determinar el id del otro hemisferio
@@ -118,6 +155,11 @@ def find_pair_files(sample_dir, stem, target_id, other_ids, verbose=False):
         out.append((path, slot))
         if verbose:
             print(f"[INFO] incluyo {os.path.basename(path)} (otro={other}, slot=dec{slot})")
+    if singles:
+        if out:
+            print(f"[WARN] objetivo={target_id}: hay {len(singles)} fichero(s) single y "
+                  f"{len(out)} de pares; uso los single para no doble-contar.")
+        return singles
     return out
 
 
@@ -147,7 +189,8 @@ def load_sum_2d(files_slots, cat, suffix):
 
 def main(sample_dir, stem, target_decay, other_decays, weight_modes,
          signal_type="Ztt", background_dirs=None, background_types=None,
-         nBins=None, rebin=1, bg_def="ss", outdir=".", verbose=False):
+         nBins=None, rebin=1, bg_def="ss", outdir=".", verbose=False,
+         signal_ngen=None, signal_lumi_pb=None):
     # bg_def="ss":       BG = ALL_ALL − SIGNAL_SIGNAL  (ambos hemisferios gen-correctos = señal)
     # bg_def="sa":       BG = ALL_ALL − SIGNAL_ALL      (solo el hemisferio objetivo gen-correcto)
     #                    SIGNAL_ALL = SIGNAL_SIGNAL + SIGNAL_BG; esos eventos desaparecen del total
@@ -178,7 +221,8 @@ def main(sample_dir, stem, target_decay, other_decays, weight_modes,
         raise RuntimeError(f"No se encontraron ficheros para objetivo={target_decay} "
                            f"otro={other_decays} en {sample_dir}")
 
-    w_signal = compute_weight(signal_type, verbose)
+    w_signal = compute_weight(signal_type, verbose,
+                              ngen=signal_ngen, lumi_pb=signal_lumi_pb)
 
     # nBins por defecto = nº de bins en Y del 2D de señal
     sig_nom = load_sum_2d(files_slots, "SIGNAL_SIGNAL", "")
@@ -320,6 +364,10 @@ if __name__ == "__main__":
                    help="Modo(s) de peso para los templates P1/M1: per-tau "
                         "(reco_P1/M1) y/o corr (reco_corr_P1/M1, término cruzado)")
     p.add_argument("--signal-type", default="Ztt")
+    p.add_argument("--signal-ngen", type=float, default=None,
+                   help="N_gen de la muestra de señal procesada (sobrescribe EVENT_CONFIG)")
+    p.add_argument("--signal-lumi-pb", type=float, default=None,
+                   help="Luminosidad [pb^-1] a la que escalar la señal (sobrescribe EVENT_CONFIG)")
     p.add_argument("--bg-dirs", nargs="+", default=None,
                    help="Dir(s) con HistosMDecs de fondos físicos externos (Bhabha, Zqq). "
                         "Mismo número de elementos que --bg-types.")
@@ -356,6 +404,8 @@ if __name__ == "__main__":
         other_decays=args.other_decay,
         weight_modes=args.weights,
         signal_type=args.signal_type,
+        signal_ngen=args.signal_ngen,
+        signal_lumi_pb=args.signal_lumi_pb,
         background_dirs=args.bg_dirs,
         background_types=args.bg_types,
         nBins=args.nBins,

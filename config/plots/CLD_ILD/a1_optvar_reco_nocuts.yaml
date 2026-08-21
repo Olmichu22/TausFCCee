@@ -1,0 +1,35 @@
+datasets:
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/CLD_reco_a1_nocuts.root
+    label: CLD reco
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.0
+    linewidth: 3
+  - path: /nfs/cms/arqolmo/TausFCCee/TauPolOutputs/CLD_ILD/merged_histos/ILD_reco_a1_nocuts.root
+    label: ILD reco
+    color: ROOT.kBlue
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.0
+    linewidth: 3
+
+plots:
+  optvar_reco_signal:
+    per_dataset:
+      'CLD reco': Optimal_X_dec0_SIGNAL_SIGNAL
+      'ILD reco': Optimal_X_dec0_SIGNAL_SIGNAL
+    title: '\text{Optimal variable, } a_{1}^{\pm} + \ell \text{ (signal)}'
+    x: 'z_{a_{1}}'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]
+  optvar_reco_allall:
+    per_dataset:
+      'CLD reco': Optimal_X_dec0_ALL_ALL
+      'ILD reco': Optimal_X_dec0_ALL_ALL
+    title: '\text{Optimal variable, } a_{1}^{\pm} + \ell \text{ (all selected)}'
+    x: 'z_{a_{1}}'
+    y: 'Norm. events'
+    normalize: "integral"
+    legend: [0.60, 0.72, 0.90, 0.90]
