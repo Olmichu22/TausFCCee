@@ -5,6 +5,7 @@ import yaml
 import os
 import shutil
 import argparse
+import glob
 import copy
 import logging
 import pandas as pd
@@ -932,14 +933,22 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
             sys.exit(1)
 
         entry_prefix = entry.get("file_prefix", default_prefix)
+        entry_glob = entry.get("file_glob", samples_db.get("default_file_glob"))
 
         # Resolve one or more source directories for this sample.
         # Supported keys (singular = 1 dir, plural = list of dirs; can be combined):
         #   path  / paths   -> absolute directory path(s)
         #   folder/ folders -> name(s) relative to default_base
-        # List elements may be plain strings or dicts {path|folder, file_prefix}
-        # to give a given directory its own file prefix.
-        dir_specs = []  # list of (dir_path, file_prefix)
+        # List elements may be plain strings or dicts {path|folder, file_prefix,
+        # file_glob} to give a given directory its own prefix/glob.
+        #
+        # Two ways of naming the input files:
+        #   * file_prefix -> files are numbered sequentially: "<prefix>_<i>.root"
+        #   * file_glob   -> shell pattern matched inside the directory, for
+        #                    samples whose file names carry arbitrary run ids
+        #                    (e.g. "events_*_REC.edm4hep.root"). Takes priority
+        #                    over file_prefix when both are given.
+        dir_specs = []  # list of (dir_path, file_prefix, file_glob)
 
         def _add_dir(value, is_folder):
             if isinstance(value, (list, tuple)):
@@ -947,15 +956,16 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
                     _add_dir(v, is_folder)
             elif isinstance(value, dict):
                 sub_prefix = value.get("file_prefix", entry_prefix)
+                sub_glob = value.get("file_glob", entry_glob)
                 if "path" in value:
-                    dir_specs.append((value["path"], sub_prefix))
+                    dir_specs.append((value["path"], sub_prefix, sub_glob))
                 elif "folder" in value:
-                    dir_specs.append((os.path.join(default_base, value["folder"]), sub_prefix))
+                    dir_specs.append((os.path.join(default_base, value["folder"]), sub_prefix, sub_glob))
                 else:
                     loggers["io"].warning("Ignoring dir spec without 'path'/'folder': %r", value)
             else:
                 dp = os.path.join(default_base, value) if is_folder else value
-                dir_specs.append((dp, entry_prefix))
+                dir_specs.append((dp, entry_prefix, entry_glob))
 
         for v in entry.get("paths", []):
             _add_dir(v, is_folder=False)
@@ -979,27 +989,44 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
 
         filenames = []
         remaining = 100 if test else None  # --test caps the total number of files
-        for dir_path, file_prefix in dir_specs:
+        for dir_path, file_prefix, file_glob in dir_specs:
             if remaining is not None and remaining <= 0:
                 break
             if not os.path.isdir(dir_path):
                 loggers["io"].warning("Directory %s not found, skipping.", dir_path)
                 continue
 
-            nfiles = sum(
-                1
-                for fname in os.listdir(dir_path)
-                if fname.endswith(".root") and os.path.isfile(os.path.join(dir_path, fname))
-            )
-            if remaining is not None:
-                nfiles = min(nfiles, remaining)
+            if file_glob:
+                # Glob mode: candidate names come from the directory listing.
+                candidates = sorted(
+                    f for f in glob.glob(os.path.join(dir_path, file_glob))
+                    if os.path.isfile(f)
+                )
+                if not candidates:
+                    loggers["io"].warning(
+                        "Pattern '%s' matched no file in %s.", file_glob, dir_path
+                    )
+            else:
+                # Sequential mode: names are rebuilt as "<prefix>_<i>.root".
+                nfiles = sum(
+                    1
+                    for fname in os.listdir(dir_path)
+                    if fname.endswith(".root") and os.path.isfile(os.path.join(dir_path, fname))
+                )
+                candidates = [
+                    os.path.join(dir_path, f"{file_prefix}_{i}.root")
+                    for i in range(1, nfiles + 1)
+                ]
 
-            loggers["io"].info("Reading files from %s (%d files)", dir_path, nfiles)
-            for i in range(1, nfiles + 1):
+            if remaining is not None:
+                candidates = candidates[:remaining]
+
+            loggers["io"].info("Reading files from %s (%d files)", dir_path, len(candidates))
+            # bad_file_indices son 1-based sobre esta lista de candidatos
+            for i, filename in enumerate(candidates, start=1):
                 if i in bad_indices:
-                    loggers["io"].debug("Skipping bad file index %d", i)
+                    loggers["io"].debug("Skipping bad file index %d (%s)", i, filename)
                     continue
-                filename = os.path.join(dir_path, f"{file_prefix}_{i}.root")
                 loggers["io"].debug("Reading file %s", filename)
                 my_file = Path(filename)
                 if my_file.is_file():
@@ -1011,7 +1038,7 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
                     filenames.append(filename)
 
             if remaining is not None:
-                remaining = 10 - len(filenames)
+                remaining = 100 - len(filenames)
 
         loggers["io"].info("Total files to process for sample '%s': %d", sample, len(filenames))
 
