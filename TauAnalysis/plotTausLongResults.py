@@ -36,6 +36,90 @@ def write_histograms_recursive(obj):
         except AttributeError:
             print(f"Objeto {obj} no tiene método .Write(). Ignorado.")
 
+
+# Modos de desintegración seguidos en los plots de migración, con la etiqueta
+# usada en el nombre del histograma. Los dos modos leptónicos llevan palabra en
+# vez del id con signo para no meter un menos en los nombres de ROOT.
+MIGRATION_MODE_TAG = {0: "0", 1: "1", 2: "2", 3: "3", 4: "4",
+                      10: "10", 11: "11", 12: "12", -11: "Elec", -13: "Muon"}
+
+# Modos gen que ya tienen su propio bloque de llenado en el bucle de eventos.
+MIGRATION_MODES_ALREADY_FILLED = (0, 1, 2, 10)
+
+
+# A partir de este numero de fotones se agrupan todos juntos: entre todos no
+# llegan al 2% de la muestra.
+MIGRATION_MAX_PHOTONS = 5
+
+
+def migration_label(recoTauId):
+    """
+    Map a raw reconstructed tau id to its migration-histogram label.
+
+    The reco side of the migration plots counts PHOTONS, not pi0s, so this uses
+    ``recoTauId`` rather than the ``recoDM`` that feeds the confusion matrix:
+    one and two photons land in "h1g" and "h2g" instead of being merged.
+
+    Ids are ``nPhotons`` for one-prong taus and ``10 + nPhotons`` for three-prong
+    ones. Everything from MIGRATION_MAX_PHOTONS photons up is pooled into a
+    single bucket per prong count. ``-21`` (three prongs plus a neutral hadron
+    absorbed into the tau) gets its own "3hNeutron" bucket and anything else
+    ends up in "Other"; the "Unmatched" and "NoTau" labels are filled directly
+    at their call sites.
+    """
+    if recoTauId == -11:
+        return "Elec"
+    if recoTauId == -13:
+        return "Muon"
+    if recoTauId == -21:
+        return "3hNeutron"
+    if recoTauId < 0:
+        return "Other"
+    prong = "h" if recoTauId < 10 else "3h"
+    n_photons = recoTauId if recoTauId < 10 else recoTauId - 10
+    if n_photons == 0:
+        return prong
+    if n_photons >= MIGRATION_MAX_PHOTONS:
+        return f"{prong}{MIGRATION_MAX_PHOTONS}gPlus"
+    return f"{prong}{n_photons}g"
+
+
+def fill_decay_migration(root_histograms, genTauId, label, genTauP, genTauTheta):
+    """
+    Fill the "where does this gen decay mode end up" histograms for one gen tau.
+
+    Both the momentum and the polar angle version are filled, so the migration
+    can be read against either variable.
+
+    Args:
+        root_histograms (dict): Nested dict of ROOT histograms.
+        genTauId (int): Generator level decay mode of the tau.
+        label (str): Reco outcome, i.e. a decay mode or "Unmatched"/"NoTau"/"Other".
+        genTauP (float): Momentum of the generator level tau.
+        genTauTheta (float): Polar angle of the generator level tau.
+    """
+    gen_tag = MIGRATION_MODE_TAG.get(genTauId)
+    if gen_tag is None:
+        return
+    for variable, value in (("TauP", genTauP), ("TauTheta", genTauTheta)):
+        hist = root_histograms["Matched"]["Events"].get(f"{variable}{gen_tag}To{label}")
+        if hist is not None:
+            hist.Fill(value)
+
+
+def fill_migration_denominators(root_histograms, genTauId, genTauP, genTauTheta):
+    """
+    Fill the Gen denominators of the migration plots for one gen tau.
+
+    Only the modes without a dedicated block in the event loop are handled here;
+    the rest are already filled alongside their other gen distributions.
+    """
+    gen_tag = MIGRATION_MODE_TAG.get(genTauId)
+    if gen_tag is None or genTauId in MIGRATION_MODES_ALREADY_FILLED:
+        return
+    root_histograms["Gen"]["Events"][f"TauP{gen_tag}"].Fill(genTauP)
+    root_histograms["Gen"]["Events"][f"TauTheta{gen_tag}"].Fill(genTauTheta)
+
 # ----------------------------------------------------------------------------
 def my_hook(parser):
     parser.add_argument("--sys-err", type=str, default="config/systematics/err_sys.yml", help="YAML file with systematics errors to apply")
@@ -105,7 +189,8 @@ filenames, mlpf_results = myutils.get_root_trees_path(sample,
                                                       gatr_results_path,
                                                       loggers,
                                                       test_arg,
-                                                      args)
+                                                      args,
+                                                      skip_root_validation=False)
 # print(filenames)
 # for file in filenames:
     # check_existence = Path(file).is_file()
@@ -422,9 +507,15 @@ for eventid, event in enumerate(reader.get("events")):
             # # # P4 Tau filters
             # if genVisTauP4.P() < 5:
             #     continue
-            # if abs(math.cos(genVisTauP4.Theta()) > 0.9):
-            #     continue
-
+            
+            ###############################################################
+            # IMPORTANT!!! CUT IN 0.95
+            if abs(math.cos(genVisTauP4.Theta())) > 0.95:
+                continue
+            ################################################################
+            
+            
+            
             # print ("Gen",genTauP4.P(),genVisTauP4.P(),genVisTauP4.Theta(),genVisTauP4.Phi(),genTauId,genTauQ,genTauDR,genTauNConsts)
 
             # Fill histograms
@@ -456,6 +547,11 @@ for eventid, event in enumerate(reader.get("events")):
                 root_histograms["Gen"]["Events"]["TauTheta10"].Fill(genTauP4.Theta())
                 root_histograms["Gen"]["Events"]["TauP10"].Fill(genTauP4.P())
                 root_histograms["Gen"]["Events"]["TauVisP10"].Fill(genVisTauP4.P())
+
+            # Denominadores de los plots de migracion para los modos sin bloque propio
+            fill_migration_denominators(
+                root_histograms, genTauId, genTauP4.P(), genTauP4.Theta()
+            )
 
             root_histograms["Gen"]["Events"]["TauDR"].Fill(genTauDR)  # Angle of Tau Constituents
             countPionsRun = 0
@@ -491,6 +587,9 @@ for eventid, event in enumerate(reader.get("events")):
                 true_predicted_label["Countpions"].append(-999)
                 true_predicted_label["Countphotons"].append(-999)
                 true_predicted_label["Countneutrons"].append(-999)
+                fill_decay_migration(
+                    root_histograms, genTauId, "Unmatched", genTauP4.P(), genTauP4.Theta()
+                )
                 continue
             
 
@@ -536,6 +635,9 @@ for eventid, event in enumerate(reader.get("events")):
                 true_predicted_label["Countpions"].append(n_pions)
                 true_predicted_label["Countphotons"].append(n_photons)
                 true_predicted_label["Countneutrons"].append(n_neutrons)
+                fill_decay_migration(
+                    root_histograms, genTauId, "NoTau", genTauP4.P(), genTauP4.Theta()
+                )
                 continue
 
             RecoTausP4.append(recoTauP4)
@@ -561,6 +663,11 @@ for eventid, event in enumerate(reader.get("events")):
             
             true_predicted_label["Predicted"].append(recoDM)
             true_predicted_label["PhotonPredicted"].append(recoTauId)
+
+            fill_decay_migration(
+                root_histograms, genTauId, migration_label(recoTauId),
+                genTauP4.P(), genTauP4.Theta()
+            )
 
             root_histograms["Matched"]["Resolution"]["TauP"].Fill((recoTauP4.P() - genTauP4.P()) / genTauP4.P())
             root_histograms["Matched"]["Resolution"]["TauPt"].Fill((recoTauP4.Pt() - genTauP4.Pt()) / genTauP4.Pt())
@@ -675,6 +782,107 @@ for eventid, event in enumerate(reader.get("events")):
             true_predicted_label["Countphotons"].append(n_photons)
             true_predicted_label["Countneutrons"].append(n_neutrons)
             
+
+            # Exploratorio de las migraciones 0 -> h1g y 0 -> h2g: un pi+- gen
+            # que acaba reconstruido con uno o dos fotones de mas. Se rellena
+            # una entrada por foton, asi que los casos de 2 fotones contribuyen
+            # dos veces a los histogramas de foton y de angulo.
+            if genTauId == 0 and recoTauId in [1]:
+                migPionP4 = None
+                migPhotonsP4 = []
+                for c in range(0, recoTauNConsts):
+                    const = recoTauConsts[c]
+                    constP4 = ROOT.TLorentzVector()
+                    try:
+                        constP4.SetXYZM(
+                            const.getMomentum().x,
+                            const.getMomentum().y,
+                            const.getMomentum().z,
+                            const.getMass(),
+                        )
+                    except AttributeError:
+                        constP4.SetXYZM(
+                            const.getMomentum().X(),
+                            const.getMomentum().Y(),
+                            const.getMomentum().Z(),
+                            const.getMass(),
+                        )
+                    if const.getPDG() == 22:
+                        migPhotonsP4.append(ROOT.TLorentzVector(constP4))
+                    elif abs(const.getPDG()) == 211 and (
+                        migPionP4 is None or constP4.P() > migPionP4.P()
+                    ):
+                        # El pion de la desintegracion es el mas energetico
+                        migPionP4 = ROOT.TLorentzVector(constP4)
+
+                migTag = migration_label(recoTauId)
+                if migPionP4 is not None:
+                    root_histograms["Matched"]["Events"][f"Mig0To{migTag}PionP"].Fill(
+                        migPionP4.P()
+                    )
+                    root_histograms["Matched"]["Events"][f"Mig0To{migTag}PionPPhotonP"].Fill(
+                        migPionP4.P(), migPhotonsP4[0].P()
+                    )
+                    root_histograms["Matched"]["Events"][f"Mig0To{migTag}PionPPhotonPRelative"].Fill(
+                                            migPhotonsP4[0].P() / (migPionP4.P() + 1e-6)
+                                        )
+                for migPhotonP4 in migPhotonsP4:
+                    root_histograms["Matched"]["Events"][f"Mig0To{migTag}PhotonP"].Fill(
+                        migPhotonP4.P()
+                    )
+                    if migPionP4 is not None:
+                        root_histograms["Matched"]["Events"][f"Mig0To{migTag}PionPhotonAngle"].Fill(
+                            migPionP4.Angle(migPhotonP4.Vect())
+                        )
+            
+            if genTauId == 1 and recoTauId in [1]:
+                            migPionP4 = None
+                            migPhotonsP4 = []
+                            for c in range(0, recoTauNConsts):
+                                const = recoTauConsts[c]
+                                constP4 = ROOT.TLorentzVector()
+                                try:
+                                    constP4.SetXYZM(
+                                        const.getMomentum().x,
+                                        const.getMomentum().y,
+                                        const.getMomentum().z,
+                                        const.getMass(),
+                                    )
+                                except AttributeError:
+                                    constP4.SetXYZM(
+                                        const.getMomentum().X(),
+                                        const.getMomentum().Y(),
+                                        const.getMomentum().Z(),
+                                        const.getMass(),
+                                    )
+                                if const.getPDG() == 22:
+                                    migPhotonsP4.append(ROOT.TLorentzVector(constP4))
+                                elif abs(const.getPDG()) == 211 and (
+                                    migPionP4 is None or constP4.P() > migPionP4.P()
+                                ):
+                                    # El pion de la desintegracion es el mas energetico
+                                    migPionP4 = ROOT.TLorentzVector(constP4)
+            
+                            migTag = migration_label(recoTauId)
+                            if migPionP4 is not None:
+                                root_histograms["Matched"]["Events"][f"Mig1To{migTag}PionP"].Fill(
+                                    migPionP4.P()
+                                )
+                                root_histograms["Matched"]["Events"][f"Mig1To{migTag}PionPPhotonP"].Fill(
+                                    migPionP4.P(), migPhotonsP4[0].P()
+                                )
+                                root_histograms["Matched"]["Events"][f"Mig1To{migTag}PionPPhotonPRelative"].Fill(
+                                                        migPhotonsP4[0].P() / (migPionP4.P() + 1e-6)
+                                                    )
+                            for migPhotonP4 in migPhotonsP4:
+                                root_histograms["Matched"]["Events"][f"Mig1To{migTag}PhotonP"].Fill(
+                                    migPhotonP4.P()
+                                )
+                                if migPionP4 is not None:
+                                    root_histograms["Matched"]["Events"][f"Mig1To{migTag}PionPhotonAngle"].Fill(
+                                        migPionP4.Angle(migPhotonP4.Vect())
+                                    )
+
             if n_pi0s > 0:
                 logger_pi0mass.debug(
                     f"Found {n_pi0s} pi0s ({n_photons} photons) in the matched reco with Id {recoTauId} tau with real Id {genTauId}"
