@@ -262,11 +262,43 @@ def merge_csvs(shard_dirs_list, out_dir):
         print(f"Merged {len(paths)} CSV(s), {len(merged)} rows → {out_path}")
 
 
+def retarget_config(config_path, out_dir):
+    """Point a copied shard config.yaml at the merged directory.
+
+    Each shard writes its ``outputpath``/``outputlabels`` pointing at its own
+    staging directory, which ``--clean`` then deletes. Copying that config
+    verbatim leaves the merged directory describing files that no longer exist,
+    so downstream scripts (TausCompletePlot.py and friends) cannot find either
+    the merged ROOT file or the merged labels CSV. Rewrite both to ``out_dir``.
+    """
+    with open(config_path) as handle:
+        config = yaml.safe_load(handle)
+
+    output = config.get("output")
+    if not isinstance(output, dict):
+        return
+
+    merged_dir = os.path.join(os.path.abspath(out_dir), "")
+    output["outputpath"] = merged_dir
+
+    labels = output.get("outputlabels")
+    if labels:
+        output["outputlabels"] = [
+            merged_dir + os.path.basename(str(label)) for label in labels
+        ]
+
+    with open(config_path, "w") as handle:
+        yaml.safe_dump(config, handle, default_flow_style=False)
+
+
 def copy_side_files(reference_dir, out_dir):
     """Copy the config/plot-config written by every shard. They are identical."""
     for pattern in ("plot_config*.yaml", "config.yaml"):
         for path in sorted(glob.glob(os.path.join(reference_dir, pattern))):
-            shutil.copy2(path, os.path.join(out_dir, os.path.basename(path)))
+            destination = os.path.join(out_dir, os.path.basename(path))
+            shutil.copy2(path, destination)
+            if os.path.basename(path) == "config.yaml":
+                retarget_config(destination, out_dir)
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
