@@ -1,7 +1,18 @@
-import math 
+import math
 import ROOT
 
-def wVariab(genTauP4,genRhoP4,genPionP4,beamE, testAtau=0, sin_eff=None):
+from modules import weightsPol
+
+
+def wVariab(genTauP4,genRhoP4,genPionP4,beamE, testAtau=0, sin_eff=None, *, tau_pdg):
+    """Rho-channel optimal variable omega and the associated Atau=+-1 weights.
+
+    tau_pdg: PDG of the tau in THIS hemisphere (15 or -15). Mandatory and
+    keyword-only: the polarization P(z) is defined with z = cos(theta_tau-), so
+    the tau+ hemisphere needs a sign flip (see weightsPol._z_taum). The returned
+    observables (cos_theta, cosPsi, cosBeta, omega) carry no charge sign and are
+    unaffected; only the weights are.
+    """
 
     # GEN 
     boostGEN=ROOT.TVector3()
@@ -65,18 +76,14 @@ def wVariab(genTauP4,genRhoP4,genPionP4,beamE, testAtau=0, sin_eff=None):
       sin2theta_effective = sin_eff
     else:  
       sin2theta_effective= 0.2312
-    gv_ga=  1 - 4 *sin2theta_effective
-    Ae_sm=  2* gv_ga / (1+gv_ga*gv_ga)
-    Atau_sm= Ae_sm
+    Ae_sm = weightsPol._compute_ae_sm(sin2theta_effective)
 
-    Ae=Ae_sm
+    # this is the theta of the Tau, not the Rho; sign always referred to the tau-
+    costheta_tau = weightsPol._z_taum(genTauP4, tau_pdg)
 
-    costheta_tau=math.cos(genTauP4.Theta()) # this is the theta of the Tau, not the Rho 
-
-    Ptau_sm= - (Atau_sm * (1+  costheta_tau*costheta_tau) + 2*Ae_sm*costheta_tau) / (1+costheta_tau*costheta_tau + 2*Ae_sm*Atau_sm*costheta_tau)
-
-    Pnew_P1= - ( (+1)   * (1+  costheta_tau*costheta_tau) + 2*Ae_sm*costheta_tau) / (1+costheta_tau*costheta_tau + 2*Ae_sm* (+1) *costheta_tau)
-    Pnew_M1= - ( (-1)   * (1+  costheta_tau*costheta_tau) + 2*Ae_sm*costheta_tau) / (1+costheta_tau*costheta_tau + 2*Ae_sm* (-1) *costheta_tau)
+    Ptau_sm = weightsPol._compute_Ptau(costheta_tau, Ae_sm, Ae_sm)
+    Pnew_P1 = weightsPol._compute_Ptau(costheta_tau, +1, Ae_sm)
+    Pnew_M1 = weightsPol._compute_Ptau(costheta_tau, -1, Ae_sm)
 
     ratioMass2= mtau*mtau/mRho/mRho
 
@@ -98,7 +105,7 @@ def wVariab(genTauP4,genRhoP4,genPionP4,beamE, testAtau=0, sin_eff=None):
     if testAtau==0:
       return (cos_theta,cosPsi,gen_cosBeta,w,weight_P1,weight_M1)
     else:
-      Pnew_test= - ( (testAtau)   * (1+  costheta_tau*costheta_tau) + 2*Ae_sm*costheta_tau) / (1+costheta_tau*costheta_tau + 2*Ae_sm* testAtau  *costheta_tau)
+      Pnew_test = weightsPol._compute_Ptau(costheta_tau, testAtau, Ae_sm)
       term_a_Ptest= 2/3*((1-Pnew_test*z)- ratioMass2*(1+Pnew_test*z)) + ratioMass2* (1+Pnew_test*z)
       term_b_Ptest= -2/3*((1-Pnew_test*z-ratioMass2*(1+Pnew_test*z))*(3*cosPsi*cosPsi-1)/2-3/2*math.sqrt(ratioMass2)*Pnew_test*math.sin(2*anglePsi) *math.sin(gen_theta_Rho))*(3*gen_cosBeta*gen_cosBeta-1)/2
       num_Ptest=term_a_Ptest+term_b_Ptest
@@ -161,21 +168,27 @@ def wVariabRECO(RhoP4,PionP4,beamE):
     return (cos_theta,cosPsi,cosBeta,w)
 
 
-def optimal_var(decay_id, tauP4, visP4, pionP4, beamE):
-    """Variable óptima (observable) por canal — definición ÚNICA compartida por los
-    generadores (genOnly/analysisRHOTree) y el hist stage (RhoHistFromTree), para
-    evitar drift entre ellos.
+def optimal_var(decay_id, tauP4, visP4, pionP4, beamE, *, tau_pdg):
+    """Per-channel optimal variable (observable) — the SINGLE definition shared by
+    the tree producers (genOnly/analysisRHOTree) and the hist stage
+    (RhoHistFromTree), so that they cannot drift apart.
 
-    - π (0), a1 (10) y leptónico (-11/-13): E_visible / E_τ  (convención Cepeda: meson =
-      sistema visible completo, consistente con el peso que también usa el visible).
-    - ρ (1): ω de wVariab (variable óptima completa; puramente cinemática, no depende de sin_eff).
+    - pi (0), a1 (10) and leptonic (-11/-13): E_vis / E_tau (Cepeda convention: the
+      meson is the full visible system, consistent with the weight, which also uses
+      the visible system).
+    - rho (1): omega from wVariab (the full optimal variable; purely kinematic, it
+      does not depend on sin_eff).
 
-    Devuelve -999.0 si E_τ no es válido o el canal no está soportado.
+    The observable carries NO charge sign: tau_pdg is only forwarded to wVariab,
+    whose weights (unused here, only element [3] is taken) need it. It is kept
+    mandatory so that call sites stay explicit about which hemisphere they hold.
+
+    Returns -999.0 if E_tau is invalid or the channel is not supported.
     """
     if tauP4.E() <= 0:
         return -999.0
     if decay_id == 1:
-        return wVariab(tauP4, visP4, pionP4, beamE)[3]
+        return wVariab(tauP4, visP4, pionP4, beamE, tau_pdg=tau_pdg)[3]
     if decay_id in (0, 10, -11, -13):
         return visP4.E() / tauP4.E()
     return -999.0

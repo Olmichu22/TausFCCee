@@ -109,8 +109,8 @@ def compute_corr_weights(tau_m, tau_p, beamE, sin_eff):
     H_m = _H_for_joint(tau_m, beamE)   # tau-
     H_p = _H_for_joint(tau_p, beamE)   # tau+
     tauMinusP4 = make_p4(tau_m["P"], tau_m["Theta"], tau_m["Phi"], tau_m["E"])
-    w_p1 = weightsPol.newAtauJoint(tauMinusP4, H_m, H_p, +1.0, sin_eff=sin_eff)
-    w_m1 = weightsPol.newAtauJoint(tauMinusP4, H_m, H_p, -1.0, sin_eff=sin_eff)
+    w_p1 = weightsPol.newAtauJoint(tauMinusP4, H_m, H_p, +1.0, tau_pdg=15, sin_eff=sin_eff)
+    w_m1 = weightsPol.newAtauJoint(tauMinusP4, H_m, H_p, -1.0, tau_pdg=15, sin_eff=sin_eff)
     return w_p1, w_m1
 
 

@@ -25,8 +25,20 @@ def _compute_ae_sm(sin2eff=0.2312):
     return 2*gv_ga / (1 + gv_ga**2)
 
 
+def _z_taum(p4, tau_pdg):
+    """cos(theta) of the tau-, from the hemisphere 4-vector and its PDG.
+
+    tau_pdg: 15 (tau-) or -15 (tau+). The taus are back-to-back, so
+    cos(theta_tau+) = -cos(theta_tau-): the tau+ hemisphere needs a sign flip.
+    P(z) has terms odd in z (2*Ae*z and 2*Ae*Atau*z), so using the hemisphere
+    cos(theta) instead of the tau- one amounts to flipping Ae in ~50% of the
+    events, which destroys Ae and sin^2(theta_eff) as independent measurements.
+    """
+    return (1.0 if int(tau_pdg) == 15 else -1.0) * math.cos(p4.Theta())
+
+
 def _compute_Ptau(costheta, Atau, Ae):
-    """Alcaraz (2026) eq. (3): P(z)_tau."""
+    """Alcaraz (2026) eq. (3): P(z)_tau. costheta es SIEMPRE el del tau-."""
     c2 = costheta**2
     denom = (1 + c2) + 2*Ae*Atau*costheta
     if abs(denom) < 1e-12:
@@ -102,19 +114,23 @@ def cosThetaStar(tauP4, visP4):
 
 # ── Public single-tau weight functions ───────────────────────────────────────
 
-def newAtau(TauP4, MesonP4, Type, New_Atau, sin_eff=None):
+def newAtau(TauP4, MesonP4, Type, New_Atau, *, tau_pdg, sin_eff=None):
     """
     Single-tau hadronic reweighting per Alcaraz (2026) eqs. (4)-(6).
     Supports Type=0 (pion/kaon), Type=1 (rho), Type=10 (a1).
     Returns 1.0 for unsupported types.
 
     W = (1 + P_new * H_R) / (1 + P_SM * H_R)
+
+    tau_pdg: PDG of the tau in THIS hemisphere (15 or -15). Mandatory and
+    keyword-only: P(z) is defined with z = cos(theta_tau-), so a forgotten call
+    site must raise TypeError instead of silently computing the wrong sign.
     """
     if Type not in (0, 1, 10):
         return 1.0
     sin2eff = sin_eff if sin_eff is not None else 0.2312
     Ae = _compute_ae_sm(sin2eff)
-    costheta = math.cos(TauP4.Theta())
+    costheta = _z_taum(TauP4, tau_pdg)
     P_sm  = _compute_Ptau(costheta, Ae, Ae)
     P_new = _compute_Ptau(costheta, New_Atau, Ae)
     H = _compute_H(MesonP4, TauP4, Type)
@@ -125,20 +141,21 @@ def newAtau(TauP4, MesonP4, Type, New_Atau, sin_eff=None):
     return numer / denom if abs(denom) > 1e-12 else 1.0
 
 
-def newAtauLep(lepP4, lepTauP4, beamE, New_Atau, sin_eff=None):
+def newAtauLep(lepP4, lepTauP4, beamE, New_Atau, *, tau_pdg, sin_eff=None):
     """
     Single-tau leptonic reweighting per Alcaraz (2026) eq. (12).
 
     W = (1 + P_new * H_ell) / (1 + P_SM * H_ell)
 
-    lepP4    : 4-vector del leptón visible (e/μ) — para x_ell = E_lep/E_beam
-    lepTauP4 : 4-vector del tau leptónico completo — para la dirección de polarización
+    lepP4    : 4-vector of the visible lepton (e/mu) — sets x_ell = E_lep/E_beam
+    lepTauP4 : 4-vector of the full leptonic tau — sets the polarization direction
+    tau_pdg  : PDG of the tau in this hemisphere (15 or -15), see newAtau.
     """
     if beamE <= 0:
         return 1.0
     sin2eff = sin_eff if sin_eff is not None else 0.2312
     Ae = _compute_ae_sm(sin2eff)
-    costheta = math.cos(lepTauP4.Theta())
+    costheta = _z_taum(lepTauP4, tau_pdg)
     P_sm  = _compute_Ptau(costheta, Ae, Ae)
     P_new = _compute_Ptau(costheta, New_Atau, Ae)
     H_ell = _compute_H_lep(lepP4, beamE)
@@ -147,11 +164,13 @@ def newAtauLep(lepP4, lepTauP4, beamE, New_Atau, sin_eff=None):
     return numer / denom if abs(denom) > 1e-12 else 1.0
 
 
-def newAtauFromH(TauP4, H, New_Atau, sin_eff=None):
+def newAtauFromH(TauP4, H, New_Atau, *, tau_pdg, sin_eff=None):
     """
     Single-tau weight from a pre-computed spin-analyzing observable H.
 
     W = (1 + P_new * H) / (1 + P_SM * H)
+
+    tau_pdg: PDG of the tau in this hemisphere (15 or -15), see newAtau.
 
     H is the full analyzing variable for the channel (already includes any alpha
     factor): omega for rho (wVariab/wVariabRECO), cos(theta*) for the single pion
@@ -165,7 +184,7 @@ def newAtauFromH(TauP4, H, New_Atau, sin_eff=None):
     """
     sin2eff = sin_eff if sin_eff is not None else 0.2312
     Ae = _compute_ae_sm(sin2eff)
-    costheta = math.cos(TauP4.Theta())
+    costheta = _z_taum(TauP4, tau_pdg)
     P_sm  = _compute_Ptau(costheta, Ae, Ae)
     P_new = _compute_Ptau(costheta, New_Atau, Ae)
     denom = 1 + P_sm  * H
@@ -173,14 +192,14 @@ def newAtauFromH(TauP4, H, New_Atau, sin_eff=None):
     return numer / denom if abs(denom) > 1e-12 else 1.0
 
 
-def newAtauRhoOmega(TauP4, omega, New_Atau, sin_eff=None):
+def newAtauRhoOmega(TauP4, omega, New_Atau, *, tau_pdg, sin_eff=None):
     """Deprecated alias for newAtauFromH (H=omega). Kept for backward compatibility."""
-    return newAtauFromH(TauP4, omega, New_Atau, sin_eff=sin_eff)
+    return newAtauFromH(TauP4, omega, New_Atau, tau_pdg=tau_pdg, sin_eff=sin_eff)
 
 
 # ── Public two-tau joint weight functions ────────────────────────────────────
 
-def newAtauJoint(TauP4, H, Hp, New_Atau, sin_eff=None):
+def newAtauJoint(TauP4, H, Hp, New_Atau, *, tau_pdg, sin_eff=None):
     """
     Generic joint two-tau weight given pre-computed spin-analyzing values H and H'.
 
@@ -189,11 +208,14 @@ def newAtauJoint(TauP4, H, Hp, New_Atau, sin_eff=None):
     H  : spin-analyzing value for tau- decay (any observable: H_V, omega, H_ell...)
     Hp : spin-analyzing value for tau+ decay (same convention as newAtauJoint_had_had:
          the tau+ sign flip is already absorbed into the sumHH = H + Hp form)
-    TauP4: tau- 4-vector (defines costheta for polarization).
+    TauP4  : 4-vector of the tau matching tau_pdg (either hemisphere).
+    tau_pdg: PDG of that tau (15 or -15). Since z is always referred to the tau-,
+             the weight is invariant under passing either hemisphere with its own
+             PDG — a property worth asserting in validation (see the docs plan).
     """
     sin2eff = sin_eff if sin_eff is not None else 0.2312
     Ae = _compute_ae_sm(sin2eff)
-    costheta = math.cos(TauP4.Theta())
+    costheta = _z_taum(TauP4, tau_pdg)
     P_sm  = _compute_Ptau(costheta, Ae, Ae)
     P_new = _compute_Ptau(costheta, New_Atau, Ae)
     sumHH = H + Hp
@@ -204,13 +226,14 @@ def newAtauJoint(TauP4, H, Hp, New_Atau, sin_eff=None):
 
 
 def newAtauJoint_had_had(TauP4, MesonP4, OtherTauP4, OtherMesonP4,
-                         Type, OtherType, New_Atau, sin_eff=None):
+                         Type, OtherType, New_Atau, *, tau_pdg, sin_eff=None):
     """
     Joint two-tau hadronic+hadronic weight per Alcaraz (2026) eq. (9).
 
     W = [1 + P'*(H + H') + H*H'] / [1 + P*(H + H') + H*H']
 
-    TauP4 (tau-) defines z=cosTheta for P(z)_tau. OtherTauP4 is tau+.
+    TauP4 together with tau_pdg (15 or -15) defines z = cos(theta_tau-) for
+    P(z)_tau. OtherTauP4 is the opposite hemisphere.
     Sign convention: H' for tau+ enters with opposite sign relative to the
     original eq. (9) formula (H - H') because the tau+ decay distribution,
     due to the antineutrino handedness, maps to -H' in the joint weight.
@@ -220,7 +243,7 @@ def newAtauJoint_had_had(TauP4, MesonP4, OtherTauP4, OtherMesonP4,
         return 1.0
     sin2eff = sin_eff if sin_eff is not None else 0.2312
     Ae = _compute_ae_sm(sin2eff)
-    costheta = math.cos(TauP4.Theta())
+    costheta = _z_taum(TauP4, tau_pdg)
     P_sm  = _compute_Ptau(costheta, Ae, Ae)
     P_new = _compute_Ptau(costheta, New_Atau, Ae)
     H  = _compute_H(MesonP4,      TauP4,      Type)
@@ -236,13 +259,14 @@ def newAtauJoint_had_had(TauP4, MesonP4, OtherTauP4, OtherMesonP4,
 
 
 def newAtauJoint_had_lep(TauHadP4, MesonP4, TauLepP4, LepP4,
-                         TypeHad, New_Atau, beamE, sin_eff=None):
+                         TypeHad, New_Atau, beamE, *, tau_pdg, sin_eff=None):
     """
     Joint two-tau hadronic+leptonic weight per Alcaraz (2026) eq. (13).
 
     W = [1 + P'*(H_R + H_ell) + H_R*H_ell] / [1 + P*(H_R + H_ell) + H_R*H_ell]
 
-    TauHadP4 (tau-) defines z=cosTheta for P(z)_tau. LepP4 is from tau+ side.
+    TauHadP4 together with tau_pdg (PDG of the HADRONIC tau, 15 or -15) defines
+    z = cos(theta_tau-) for P(z)_tau. LepP4 is from the opposite hemisphere.
     H_ell for tau+ enters with flipped sign (same antineutrino handedness
     correction as in newAtauJoint_had_had): (H_R - H_ell) -> (H_R + H_ell)
     and -H_R*H_ell -> +H_R*H_ell.
@@ -251,7 +275,7 @@ def newAtauJoint_had_lep(TauHadP4, MesonP4, TauLepP4, LepP4,
         return 1.0
     sin2eff = sin_eff if sin_eff is not None else 0.2312
     Ae = _compute_ae_sm(sin2eff)
-    costheta = math.cos(TauHadP4.Theta())
+    costheta = _z_taum(TauHadP4, tau_pdg)
     P_sm  = _compute_Ptau(costheta, Ae, Ae)
     P_new = _compute_Ptau(costheta, New_Atau, Ae)
     H_R   = _compute_H(MesonP4, TauHadP4, TypeHad)
@@ -268,14 +292,16 @@ def newAtauJoint_had_lep(TauHadP4, MesonP4, TauLepP4, LepP4,
 
 # ── Backward-compatible aliases (deprecated) ─────────────────────────────────
 
-def newAtauRHO(TauP4, RhoP4, beamE, TauConst, Type, New_Atau, sin2theta_effective=0.2312):
+def newAtauRHO(TauP4, RhoP4, beamE, TauConst, Type, New_Atau, sin2theta_effective=0.2312,
+               *, tau_pdg):
     """Deprecated alias for newAtau. The beamE/TauConst args are no longer needed."""
-    return newAtau(TauP4, RhoP4, Type, New_Atau, sin_eff=sin2theta_effective)
+    return newAtau(TauP4, RhoP4, Type, New_Atau, tau_pdg=tau_pdg, sin_eff=sin2theta_effective)
 
 
-def newAtauRHO2(TauP4, RhoP4, pionP4, beamE, Type, New_Atau, sin2theta_effective=0.2312):
+def newAtauRHO2(TauP4, RhoP4, pionP4, beamE, Type, New_Atau, sin2theta_effective=0.2312,
+                *, tau_pdg):
     """Deprecated alias for newAtau. The pionP4/beamE args are no longer needed."""
-    return newAtau(TauP4, RhoP4, Type, New_Atau, sin_eff=sin2theta_effective)
+    return newAtau(TauP4, RhoP4, Type, New_Atau, tau_pdg=tau_pdg, sin_eff=sin2theta_effective)
 
 
 # ── Deprecated originals (kept for reference) ────────────────────────────────
