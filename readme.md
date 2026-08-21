@@ -8,6 +8,8 @@ The main tools included are:
 - **Tau polarization analysis** (`RhoAnalysis/`): extraction of the polarization
   asymmetry `A_τ` from the optimal polarimeter observable, with event reweighting,
   background handling, selection-cut optimization and an MLP observable.
+  See *Physics of Tau Polarization at the Z Pole* below for the theory, formulas
+  and their mapping to the code.
 
 # Simple Tau Reconstruction Test
 
@@ -429,11 +431,235 @@ ls Results/TauReco/*/confusion_matrices_particle_level/dR/
 
 ---
 
+# Physics of Tau Polarization at the Z Pole
+
+Theory reference for the `RhoAnalysis/` pipeline. Everything below follows
+J. Alcaraz / FCC-CIEMAT team, *Differential cross section distributions for tau
+polarization at the Z pole*, 2 June 2026 (`Reweight_tautau.pdf`); equation
+numbers in brackets are the ones in that note. The implementation lives in
+`modules/weightsPol.py` and `modules/optimalVariabRho.py` — see the
+formula→code map in §7.
+
+## 1. Differential cross section
+
+In the $m_\tau/E_\tau \to 0$ limit, for $e^+e^- \to \tau^+\tau^-$ with both taus
+decaying to a pseudoscalar or charged vector resonance plus one neutrino
+($\tau^-\to R^-\nu_\tau$, $\tau^+\to R'^+\bar\nu_\tau$):
+
+$$\frac{d\sigma}{dz\,dz_R\,dz_{R'}} = \left[\frac{3}{8}(1+z^2) + A_{FB}\,z\right] F(z, z_R, z_{R'}) \tag{1}$$
+
+$$F(z, z_R, z_{R'}) = 1 + \mathcal{P}(z)_\tau\,\big(H_R(z_R) + H_{R'}(z_{R'})\big) + H_R(z_R)\,H_{R'}(z_{R'}) \tag{2}$$
+
+The angular variables — **the definitions matter, see §6**:
+
+| Variable | Definition |
+| --- | --- |
+| $z \equiv \cos\theta$ | Polar angle of the **$\tau^-$**, positive Z axis along the direction of the **colliding electron** |
+| $z_R \equiv \cos\theta_R^*$ | Polar angle of $R^-$ in the **$\tau^-$ rest frame**, using the $\tau^-$ flight direction as $+Z$ |
+| $z_{R'} \equiv \cos\theta_{R'}^*$ | Polar angle of $R'^+$ in the **$\tau^+$ rest frame**, using the $\tau^+$ flight direction as $+Z$ |
+
+with $A_{FB} = \tfrac{3}{4}\mathcal{A}_e\mathcal{A}_\tau$ the forward-backward
+charge asymmetry. Each spin analyzer is therefore computed in **its own tau's
+rest frame**, which is what makes the formula charge-symmetric in the decay part.
+
+Eq. (2) can be rewritten as a helicity decomposition [7–8]:
+
+$$F = \left(\frac{1+\mathcal{P}(z)_\tau}{2}\right)(1+H_R)(1+H_{R'}) + \left(\frac{1-\mathcal{P}(z)_\tau}{2}\right)(1-H_R)(1-H_{R'})$$
+
+i.e. at a given $z$ the process splits into two subprocesses with probabilities
+$(1\pm\mathcal{P})/2$ in which the $\tau^-$ has positive / negative helicity (and
+the $\tau^+$ the opposite). Within this approximation the two decays can be
+implemented independently.
+
+## 2. The polarization $\mathcal{P}(z)_\tau$
+
+$\mathcal{P}(z)_\tau$ is the polarization **of the $\tau^-$** at $z=\cos\theta$.
+At the Z peak, ignoring $\gamma^*$ exchange:
+
+$$\mathcal{P}(z)_\tau \approx -\frac{\mathcal{A}_\tau(1+z^2) + 2\mathcal{A}_e z}{(1+z^2) + 2\mathcal{A}_e\mathcal{A}_\tau z} \tag{3}$$
+
+The lepton asymmetry parameters follow from the effective couplings,
+$\mathcal{A}_\ell = 2(g_V^\ell/g_A^\ell)/\big(1+(g_V^\ell/g_A^\ell)^2\big)$ with
+$g_V^\ell/g_A^\ell = 1 - 4\sin^2\theta_\text{eff}$. This is the single entry point
+for $\sin^2\theta_\text{eff}$ in the whole chain (`--sin-eff`, default `0.2312`).
+
+**The structure of eq. (3) drives the entire measurement strategy:** the
+$\mathcal{A}_\tau(1+z^2)$ term is **even** in $z$, while $2\mathcal{A}_e z$ and
+$2\mathcal{A}_e\mathcal{A}_\tau z$ are **odd**. So $\mathcal{A}_\tau$ is accessible
+from the $z$-integrated polarization, whereas $\mathcal{A}_e$ lives *entirely* in
+the odd modulation — which is why the $\cos\theta$ binning
+(`makeCosBins_MDecs.py`) exists at all, and why the sign convention of §6 is not
+negotiable.
+
+## 3. Spin analyzers $H$ per channel
+
+**Hadronic** — $H_R$ depends on whether $R$ is a pseudoscalar ($\pi$, $K$) or a
+vector resonance $V$ of mass $m_V$ ($\rho$, $a_1$):
+
+$$H_\pi(z_\pi) = z_\pi \tag{4}$$
+
+$$H_V(z_V) = \alpha_V\, z_V = \left(\frac{m_\tau^2 - 2m_V^2}{m_\tau^2 + 2m_V^2}\right) z_V \tag{5}$$
+
+The polar angle is measurable from $x = E_R/E_\tau$, the fraction of the tau
+energy carried by $R$ in the laboratory system:
+
+$$z_R \equiv \cos\theta_R^* = \frac{2x - 1 - \xi}{1 - \xi}, \qquad \xi = m_R^2/m_\tau^2 \tag{6}$$
+
+The dilution factor $\alpha_V$ is what makes the vector channels much less
+sensitive than the pion: $\alpha_\rho \approx 0.46$, and with the PDG $a_1$ pole
+mass $\alpha_{a_1} \approx 0.021$ (nearly blind).
+
+**Leptonic** — replacing $R'$ by a purely leptonic decay, $z_{R'}$ is substituted
+by $x_\ell$, the tau energy fraction taken by the charged lepton in the lab:
+
+$$F(z, z_R, x_\ell) = f(x_\ell)\left[1 + \mathcal{P}(z)_\tau (H_R(z_R) + H_\ell(x_\ell)) + H_R(z_R) H_\ell(x_\ell)\right] \tag{10}$$
+
+$$f(x_\ell) = \tfrac{1}{3}(5 - 9x_\ell^2 + 4x_\ell^3), \qquad g(x_\ell) = \tfrac{1}{3}(1 - 9x_\ell^2 + 8x_\ell^3) \tag{11,12}$$
+
+$$H_\ell(x_\ell) = \frac{g(x_\ell)}{f(x_\ell)} = \frac{1 + x_\ell - 8x_\ell^2}{5 + 5x_\ell - 4x_\ell^2} \tag{13}$$
+
+The right-hand factored form (common $(1-x)$ cancelled) is the one implemented:
+it is numerically stable at $x\to1$, where the unfactored ratio is $0/0$ and the
+limit is $H_\ell(1) = -1$.
+
+## 4. The optimal variable $\omega$
+
+The normalized differential decay distribution of the $\tau$ can always be
+expressed via an **optimal variable** $\omega$ that absorbs all the information
+from the full decay chain (Davier, Duflot, Le Diberder, Rougé, 1993):
+
+$$\frac{1}{N}\frac{dN}{d\omega} = f(\omega)\,(1 + \mathcal{P}\,\omega) \tag{15}$$
+
+For the $\rho$ this is strictly more powerful than $H_V = \alpha_V z_V$, because
+$\omega$ encodes the full $\rho \to \pi\pi^0$ substructure ($\cos\beta$,
+$\cos\psi$) rather than the energy fraction alone. It is computed by
+`optimalVariabRho.wVariab` and is the **default** for the $\rho$ channel;
+`--no-omega-weights` falls back to eq. (5).
+
+Note $\omega$ plays the role of $H$: for the single pion the two coincide
+($\alpha_\pi = 1$), and gen-level code may use the exact boosted angle
+(`cosThetaStar`) instead of the analytic $z_R$ reconstruction.
+
+## 5. Event reweighting
+
+To move from the reference scenario $(\mathcal{A}_e, \mathcal{A}_\tau)$ to an
+alternative $(\mathcal{A}'_e, \mathcal{A}'_\tau)$, the event weight is the ratio
+of eq. (2) evaluated with the new and old polarizations:
+
+$$\mathcal{W} = \frac{1 + \mathcal{P}'(z)_\tau (H_R + H_{R'}) + H_R H_{R'}}{1 + \mathcal{P}(z)_\tau (H_R + H_{R'}) + H_R H_{R'}} \tag{9}$$
+
+with the had–lep [14] and fully general optimal-variable [16] versions following
+the same pattern ($H\to\omega$, $H'\to\omega'$). A **per-tau** (single-hemisphere)
+version drops the partner terms, $\mathcal{W} = (1+\mathcal{P}'H)/(1+\mathcal{P}H)$.
+
+Two properties worth internalizing:
+
+- **The weight does not "add" polarization — it divides by the SM density with
+  which the events were generated.** With $\mathcal{A}'_\tau = \pm1$ the numerator
+  collapses to $(1\mp H_R)(1\mp H_{R'})$ exactly, independent of $z$, so *all* the
+  $z$ dependence sits in the denominator. A wrong $z$ means dividing by a density
+  that did not generate the sample. This is what the templates `P1` / `M1`
+  (`weight_P1`, `weight_M1`) are.
+- **The angular factor of eq. (1) is not included** in eq. (9): the
+  $[\tfrac{3}{8}(1+z^2) + A_{FB}z]$ terms depend on $A_{FB}$ and hence on
+  $\mathcal{A}_e, \mathcal{A}_\tau$ themselves. For a combined analysis that also
+  uses the observed charge asymmetry, those factors must be reinstated in both
+  numerator and denominator.
+
+## 6. Sign convention for $z$ — mandatory
+
+$z$ is **always the $\cos\theta$ of the $\tau^-$**, never of the hemisphere being
+analyzed. Since the taus are back-to-back,
+$\cos\theta_{\tau^+} = -\cos\theta_{\tau^-}$, and by §2 the odd terms of eq. (3)
+flip: $z \to -z \iff \mathcal{A}_e \to -\mathcal{A}_e$. Using the hemisphere's own
+angle therefore inverts $\mathcal{A}_e$ in ~50% of events, destroying exactly the
+odd information the measurement is after. $\mathcal{A}_\tau$ (even part) survives.
+
+What **does not** carry a charge sign: the spin analyzers. $\omega$, $z_R$ and
+$H_\ell$ are each computed in their own tau's rest frame (eq. 2 definitions
+above), which is natural for both charges — the antineutrino handedness of the
+$\tau^+$ decay is already absorbed, since $d\Gamma(\tau^+) \propto 1 - h^+\omega^+
+= 1 + h^-\omega^+$. Both hemispheres are governed by the *same*
+$\mathcal{P}(z)_\tau$ of the $\tau^-$.
+
+In this repository the $+Z$ axis convention is satisfied by construction: the
+Pythia cards in `../SimProdScripts/CLDFCC_sim/` set `Beams:idA = 11` (electron)
+with no frame overrides, and Pythia8 sends beam A along $+z$. (The CLD sim
+applies a 15 mrad `crossingAngleBoost`, a known second-order tilt that does not
+affect the sign.)
+
+The charge sign is carried through the tree branches `tauPDG` (gen) and
+`recoCharge` (reco). For background on why this convention is enforced explicitly
+rather than left implicit, see
+[`docs/plan_signo_costheta_taum.md`](docs/plan_signo_costheta_taum.md) and
+`../ExamplesFCCFullSim/docs/signo_costheta_carga_tau.md`.
+
+## 7. Formula → code map
+
+| Formula | Implementation |
+| --- | --- |
+| $\mathcal{A}_\ell(\sin^2\theta_\text{eff})$ | `weightsPol._compute_ae_sm` |
+| (3) $\mathcal{P}(z)_\tau$ | `weightsPol._compute_Ptau` (also inlined in `optimalVariabRho.wVariab`) |
+| (4)(5)(6) $H_\pi$, $H_V$, $z_R$ | `weightsPol._compute_H`, `_alpha_V` |
+| (13) $H_\ell$ | `weightsPol._compute_H_lep` |
+| Exact boosted $\cos\theta^*$ (π, gen) | `weightsPol.cosThetaStar` |
+| (15) optimal variable $\omega$ | `optimalVariabRho.wVariab` |
+| Per-tau weight, hadronic | `weightsPol.newAtau` |
+| Per-tau weight, leptonic | `weightsPol.newAtauLep` |
+| Per-tau weight from precomputed $H$ | `weightsPol.newAtauFromH` (`newAtauRhoOmega` alias) |
+| (16) joint weight, generic | `weightsPol.newAtauJoint` |
+| (9) joint weight, had–had | `weightsPol.newAtauJoint_had_had` |
+| (14) joint weight, had–lep | `weightsPol.newAtauJoint_had_lep` |
+
+Masses are hardcoded in `weightsPol.py`: $m_\tau = 1.7769$, $m_\rho = 0.77545$,
+$m_{a_1} = 1.2300$ GeV. For the $\rho$, $\alpha_V$ uses the **event-by-event**
+invariant mass (consistent with `wVariab`); for the broad $a_1$ the pole mass is
+used instead, being numerically more stable.
+
+## 8. Corrections not included
+
+The formulas above are the leading approximation. Known, deliberately omitted
+effects, in rough order of size:
+
+- **QED radiation (ISR/FSR).** All expressions assume a pure $e^+e^-\to\tau^+\tau^-$
+  process. Near the Z pole these are mostly soft-collinear and expected at the
+  permille level, and ISR/FSR interference can be neglected *at the peak* (not
+  away from it). Mitigations if needed: for FSR, use generator information before
+  radiation, or "dress" each charged particle with its nearby hard photons; for
+  ISR, boost the $\tau^+\tau^-$ system to the Collins–Soper frame (two pure
+  boosts: longitudinal $\vec\beta_z = (0,0,-p_z/E)$, then transverse
+  $\vec\beta_T = (-p_x/\sqrt{p_T^2+M^2}, -p_y/\sqrt{p_T^2+M^2}, 0)$). Note that
+  with large ISR the $\tau\tau$ invariant mass shifts and the relevant
+  polarization is the one at the *updated* mass.
+- **$\gamma^*$ exchange.** Shifts both the charge asymmetry and the polarization
+  [17–26]. At the Z peak $\mathrm{Re}(\chi)=0$ and the correction reduces to
+  eq. (27); for $z=0$ in the SM it is $\Delta\mathcal{P}(0)_\tau \approx -0.0002$,
+  a 1.3 permille relative effect. It grows rapidly away from the pole.
+- **Transverse spin correlations** between the decay products of the two taus.
+  These exist even in the SM because $m_\tau \neq 0$, and are neglected by the
+  factorized treatment. Kinematically they show up as aplanarity effects once all
+  decay products are considered (Bernabéu, Rius, Pich 1991).
+
+## 9. References
+
+1. J. Alcaraz / FCC-CIEMAT team, *Differential cross section distributions for tau
+   polarization at the Z pole*, 2 June 2026 — `../ExamplesFCCFullSim/Reweight_tautau.pdf`.
+2. J. Bernabéu, N. Rius, A. Pich, *Tau spin correlations at the Z peak: Aplanarities
+   of the decay products*, Phys. Lett. B **257** (1991) 219–226.
+3. J. M. John, A. Tapadar, Z. Wąs, *On 'τ' Spin Use with KKMCee*, arXiv:2509.04400.
+4. M. Davier, L. Duflot, F. Le Diberder, A. Rougé, *The Optimal method for the
+   measurement of tau polarization*, Phys. Lett. B **306** (1993) 411–417.
+5. J. C. Collins, D. E. Soper, *Angular distribution of dileptons in high-energy
+   hadron collisions*, Phys. Rev. D **16** (1977) 2219.
+
+---
+
 # Tau Polarization Analysis (`RhoAnalysis/` — ρ / MDecs pipeline)
 
 `RhoAnalysis/` contains the pipeline that **extracts the tau polarization
 asymmetry `A_τ`** from the *optimal polarimeter observable* of each tau decay,
-channel by channel. It is a three-stage, mostly-parallel workflow:
+channel by channel. The theory behind it is summarized in the section above. It
+is a three-stage, mostly-parallel workflow:
 
 1. **Stage 1 — build a flat `TTree`** (one entry per event, two taus per entry)
    holding every kinematic quantity, the optimal observable `ω`/`optimalVar`, the
@@ -633,6 +859,42 @@ python RhoAnalysis/RhoHistFromTree_MDecs_parallel.py \
     --hist-config-mdecs config/histograms/rho_analysis_config_mdecs.yml \
     --config config/default/taurecolong_optimal.yaml --n-workers 1
 ```
+
+## 10. CLD vs ILD detector comparison (`RhoAnalysis/scripts_CLD_ILD/`)
+
+A packaged end-to-end run of the whole pipeline over the two full-simulation samples
+(`ztt_2M` = CLD, `ild_fcc` = ILD), for the π, ρ and a₁ channels each paired with a
+leptonic hemisphere, using the **correlated** (two-hemisphere) weight templates.
+The base configuration is `config/default/taurecolong.yaml` (no kinematic cuts) and
+the only background is the internal migrations of the ττ sample.
+
+```bash
+bash RhoAnalysis/scripts_CLD_ILD/01_build_trees.sh        # reco + gen trees, 16 workers
+bash RhoAnalysis/scripts_CLD_ILD/run_all_after_trees.sh   # stages 2 → 6, unattended
+```
+
+| Script | Stage |
+| --- | --- |
+| `01_build_trees.sh` | Reco (`analysisRHOTree`) and gen (`genOnlyRHOTree`) trees, decay modes `0 2 10 -11 -13`. |
+| `02_histograms_nocuts.sh` | Six hadron+lepton channel pairs per tree, via `runTreeHistPipeline_MDecs.py` and the configs in `config/pipeline/CLD_ILD/`. |
+| `03_optimize_cuts.sh` | PSO cut optimization per detector and channel. |
+| `03b_make_optcut_configs.py` | Writes `<DET>_reco_optcuts.yaml` from the PSO results. |
+| `04_binning_and_fit.py` | `makeCosBins_MDecs.py` (`--weights corr --bg-def ss`) + `fitPolAssym.py`, once at the MC-equivalent luminosity and once rescaled to `LUMI_FCC_YEAR_FB`. |
+| `05_compare_plots.py` | Merges the e/μ files per channel and runs `CompareAlgs.py`: optimal variable for CLD/ILD/gen, kinematics, and the reweighted fit templates. |
+| `06_summary.py` | Collects every fit and cut result into `Results/CLD_ILD_Summary/`. |
+
+Outputs: figures in `TauPolOutputs/CLD_ILD/`, binned templates and fits in
+`Binned_histograms_MDecs/CLD_ILD/`, cuts in `Results/CutOptimization_CLD_ILD/`.
+
+Two helpers were added for this study and are reusable on their own:
+
+- `RhoAnalysis/mdecsTreeToLegacy.py` projects a two-hemisphere MDecs tree onto the
+  legacy one-hemisphere schema (`recoMesonP`, `lepP`, `genTauID`, …) that
+  `optimize_cuts.py` and `modules/optimize_pso/` expect.
+- `makeCosBins_MDecs.py` gained `--signal-ngen` / `--signal-lumi-pb`, needed whenever
+  the processed sample is not the one hardcoded in `EVENT_CONFIG`; `optimize_cuts.py`
+  now accepts any number of background files (including none), any `--selectGEN`, and
+  an `--outdir`.
 
 ---
 
