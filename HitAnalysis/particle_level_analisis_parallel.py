@@ -28,6 +28,7 @@ from modules.ConfusionMatrixParticleLevel import (plot_confusion_matrices, plot_
 from modules import (ParticleObjects, electronReco, muonReco, myutils, pi0Reco,
                      tauReco, particleMatch)
 from modules.ParticleObjects import RecoParticle
+from modules.analysis_hardening import make_event_id, resolve_worker_result, split_prediction_keys
 
 
 # ── Helpers (module-level, usados tanto en main como en workers) ──────────────
@@ -68,30 +69,13 @@ def split_filenames(filenames, n_workers):
 
 
 def split_mlpf(mlpf_results, file_chunks):
-    """
-    Divide mlpf_results en sub-dicts con claves renormalizadas a índice local.
-
-    En myutils.get_root_trees_path los eventos se indexan como:
-        key_id = n_files * 1000 + local_key - 1
-    Por tanto el chunk que empieza en el fichero global f_offset contiene claves
-    en el rango [f_offset*1000, (f_offset + len(chunk))*1000).
-    Las renormalizamos a 0..len(chunk)*1000 para que el eventid local del worker
-    encaje directamente con mlpf_chunk.get(local_eventid).
-    """
-    mlpf_chunks = []
-    file_offset = 0
-    for chunk in file_chunks:
-        lo = file_offset * 1000
-        hi = (file_offset + len(chunk)) * 1000
-        sub = {k - lo: v for k, v in mlpf_results.items() if lo <= k < hi}
-        mlpf_chunks.append(sub)
-        file_offset += len(chunk)
-    return mlpf_chunks
+    """Split tuple-keyed MLPF predictions into worker-local file coordinates."""
+    return split_prediction_keys(mlpf_results, file_chunks)
 
 
 # ── Función worker (debe ser picklable → nivel de módulo) ─────────────────────
 
-def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
+def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
                   config_bundle, worker_id):
     """
     Lee un subconjunto de ficheros ROOT y devuelve un DataFrame con las
@@ -103,8 +87,9 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
         Paths de los ficheros ROOT que procesa este worker.
     mlpf_chunk : dict
         Subconjunto de mlpf_results con claves renormalizadas a índice local.
-    global_event_offset : int
-        Desplazamiento para calcular event_id globalmente único.
+    global_file_offset : int
+        Índice global del primer fichero del chunk; forma una identidad única
+        junto con event_in_file mediante make_event_id.
     config_bundle : dict
         Parámetros de configuración serializables (sin loggers ni objetos ROOT).
     worker_id : int
@@ -158,7 +143,7 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
     expected_cols = [
         "gen", "reco", "Gen_pid", "Reco_pid", "Gen_energy", "Reco_energy", "event_id",
         "Gen_Px", "Gen_Py", "Gen_Pz", "Reco_Px", "Reco_Py", "Reco_Pz",
-        "source_file", "event_in_file",
+        "source_file_id", "source_file", "event_in_file",
     ]
 
     # Contadores de diagnóstico para el resumen final del worker
@@ -172,7 +157,7 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
         "collection_found_at_event": None,
     }
 
-    def _normalize_links_df(df_links, event_id_global, source_file="", event_in_file=-1):
+    def _normalize_links_df(df_links, event_id_global, source_file_id=-1, source_file="", event_in_file=-1):
         if df_links is None or df_links.empty:
             return pd.DataFrame(columns=expected_cols)
 
@@ -183,6 +168,7 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
 
         df_out = df_out[expected_cols].copy()
         df_out["event_id"] = event_id_global
+        df_out["source_file_id"] = source_file_id
         df_out["source_file"] = source_file
         df_out["event_in_file"] = event_in_file
         return df_out
@@ -418,7 +404,8 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
     # ── Reader propio (se crea dentro del worker, después del fork) ───────────
     # Iteramos fichero a fichero para poder registrar source_file y event_in_file
     cumulative_local_eventid = 0
-    for filename in filenames_chunk:
+    for file_id_local, filename in enumerate(filenames_chunk):
+        source_file_id = global_file_offset + file_id_local
         source_file = os.path.basename(filename)
         file_reader = root_io.Reader([filename])
         file_local_eventid = -1
@@ -432,14 +419,14 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
             try:
                 # Ejecutar matching MLPF por dR siempre que haya resultados MLPF disponibles,
                 # independientemente del flag return_hit_type_map (que controla visualización de hits).
-                run_mlpf_match = (gatr_results_path is not None) and (mlpf_chunk.get(local_eventid) is not None)
+                run_mlpf_match = (gatr_results_path is not None) and (mlpf_chunk.get(make_event_id(file_id_local, file_local_eventid)) is not None)
                 if run_mlpf_match:
                     # return_hit_type_map=True garantiza que extractTauDecays devuelva 6 valores
                     # (incluyendo extra_info_dict con df_reco_mc_links); sin él solo devuelve 4.
                     _neutral_cfg_assoc = {**neutral_recover_cfg, "return_hit_type_map": True}
                     (_, _, _, _, _,
                      extra_info_dict) = extractTauDecays(
-                        gatr_results_path, mlpf_chunk, local_eventid,
+                        gatr_results_path, mlpf_chunk, make_event_id(file_id_local, file_local_eventid),
                         pfos,
                         cuts["dRMax"], cuts["minPTauPhoton"], cuts["minPTauPion"],
                         cuts["PNeutron"], cuts["generalPCut"],
@@ -451,7 +438,7 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
                     df_reco_mc_links_dr = extra_info_dict.get("df_reco_mc_links", pd.DataFrame())
                 else:
                     # Sin MLPF: matching por dR entre MCParticles y PandoraPFOs.
-                    # Se pasan mapas de hits vacíos → no hay filtrado por señal en detector.
+                    # Los mapas calorimétricos van vacíos; los links de tracks aún pueden activar el filtro de señal.
                     df_reco_mc_links_dr = get_reco_mc_links_by_dR(
                         event, {}, {}, logger_process=logger,
                         max_dR=cuts.get("assocMaxDR", DEFAULT_ASSOC_MAX_DR),
@@ -459,23 +446,25 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_event_offset,
                     )
 
                 df_reco_mc_links_truth = _get_reco_mc_links_truth(
-                    event, local_eventid, global_event_offset + local_eventid
+                    event, local_eventid, make_event_id(source_file_id, file_local_eventid)
                 )
 
             except Exception as exc:
-                logger.error("Worker %d: error en evento local %d: %s",
-                             worker_id, local_eventid, exc)
-                continue
+                logger.exception("Worker %d: error en evento local %d",
+                                 worker_id, local_eventid)
+                raise RuntimeError(
+                    f"worker {worker_id} failed at local event {local_eventid}"
+                ) from exc
 
-            event_id_global = global_event_offset + local_eventid
+            event_id_global = make_event_id(source_file_id, file_local_eventid)
             df_out_dr = _normalize_links_df(df_reco_mc_links_dr, event_id_global,
-                                            source_file=source_file,
+                                            source_file_id=source_file_id, source_file=source_file,
                                             event_in_file=file_local_eventid)
             if not df_out_dr.empty:
                 df_list_dr.append(df_out_dr)
 
             df_out_truth = _normalize_links_df(df_reco_mc_links_truth, event_id_global,
-                                               source_file=source_file,
+                                               source_file_id=source_file_id, source_file=source_file,
                                                event_in_file=file_local_eventid)
             if not df_out_truth.empty:
                 df_list_truth.append(df_out_truth)
@@ -526,7 +515,7 @@ def merge_results(partial_dfs):
     return pd.DataFrame(columns=["gen", "reco", "Gen_pid", "Reco_pid",
                                   "Gen_energy", "Reco_energy", "event_id",
                                   "Gen_Px", "Gen_Py", "Gen_Pz", "Reco_Px", "Reco_Py", "Reco_Pz",
-                                  "source_file", "event_in_file"])
+                                  "source_file_id", "source_file", "event_in_file"])
 
 
 def _parquet_engine():
@@ -729,6 +718,10 @@ def main():
             help="Test de los extremos de la resolución en energía del fotón",
         )
         parser.add_argument(
+            "--assoc-max-dr", type=float, default=None,
+            help="Override the frozen geometric-association threshold (default from YAML).",
+        )
+        parser.add_argument(
             "--n-workers", type=int, default=None,
             help="Número de workers paralelos (por defecto: núcleos disponibles)",
         )
@@ -853,7 +846,7 @@ def main():
     generalPCut   = run_config["cuts"]["generalPCut"]
     # Cono de la asociación gen-reco por dR. Con fallback para las configs
     # antiguas que no declaran la clave.
-    assocMaxDR    = run_config["cuts"].get("AssocMaxDR", DEFAULT_ASSOC_MAX_DR)
+    assocMaxDR    = args.assoc_max_dr if args.assoc_max_dr is not None else run_config["cuts"].get("AssocMaxDR", DEFAULT_ASSOC_MAX_DR)
     # Fuente única del cono: recover_pion_from_neutrals lo lee de su propia cfg,
     # así que se propaga ahí salvo que se declare explícitamente en el YAML.
     neutral_recover_cfg.setdefault("assoc_max_dR", assocMaxDR)
@@ -924,18 +917,18 @@ def main():
     file_chunks = split_filenames(filenames, n_workers)
     mlpf_chunks = split_mlpf(mlpf_results, file_chunks)
 
-    # Offset global de event_id por worker, consistente con el esquema de
-    # indexación de mlpf_results (1000 eventos por fichero en myutils).
-    event_offsets = []
+    # Índice global del primer fichero de cada worker. event_id se construye con
+    # make_event_id(file_id, event_in_file), sin límite de eventos por fichero.
+    file_offsets = []
     acc = 0
     for chunk in file_chunks:
-        event_offsets.append(acc)
-        acc += len(chunk) * 1000
+        file_offsets.append(acc)
+        acc += len(chunk)
 
     logger_io.info("Lanzando %d workers sobre %d ficheros", n_workers, len(filenames))
     for i, chunk in enumerate(file_chunks):
-        logger_io.info("  Worker %d: %d ficheros, offset eventos %d",
-                       i, len(chunk), event_offsets[i])
+        logger_io.info("  Worker %d: %d ficheros, primer file_id %d",
+                       i, len(chunk), file_offsets[i])
 
     # ── Ejecución paralela ────────────────────────────────────────────────────
     # Usamos fork (default en Linux): los workers se forkan antes de que se
@@ -956,7 +949,7 @@ def main():
                 process_chunk,
                 file_chunks[i],
                 mlpf_chunks[i],
-                event_offsets[i],
+                file_offsets[i],
                 config_bundle,
                 i,
             ): i
@@ -965,16 +958,11 @@ def main():
 
         for n_done, future in enumerate(as_completed(futures), start=1):
             wid = futures[future]
-            try:
-                df_dr, df_truth = future.result()
-                total_rows_dr += len(df_dr)
-                total_rows_truth += len(df_truth)
-                partial_dfs_dr.append(df_dr)
-                partial_dfs_truth.append(df_truth)
-            except Exception as exc:
-                logger_process.error("Worker %d lanzó excepción: %s", wid, exc)
-                df_dr = pd.DataFrame()
-                df_truth = pd.DataFrame()
+            df_dr, df_truth = resolve_worker_result(future, wid, logger_process)
+            total_rows_dr += len(df_dr)
+            total_rows_truth += len(df_truth)
+            partial_dfs_dr.append(df_dr)
+            partial_dfs_truth.append(df_truth)
 
             # ── Progreso en stdout ────────────────────────────────────────────
             elapsed   = time.time() - t_start

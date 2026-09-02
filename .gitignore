@@ -3,6 +3,7 @@
 *.log
 *.out
 Results/
+ParticleEval_Results/
 test/examples.py
 .claude/
 # Python cache / compiled files
@@ -20,3 +21,13 @@ Cases_more_mesons.csv
 # Salidas del pipeline CLD/ILD (histogramas binned y plots)
 Binned_histograms_MDecs/
 TauPolOutputs/
+
+# FCC analysis runtime products
+artifacts/
+outputs/
+run/
+*.parquet
+*.pkl.gz
+.coverage
+build/
+*.egg-info/

@@ -1,6 +1,33 @@
 # Tau Reconstruction at FCC-ee
 This repository contains tools and scripts for reconstructing tau leptons at the Future Circular Collider (FCC-ee) using the EDM4hep data format. The focus is on validating tau reconstruction algorithms (such as PandoraPFO).
 
+## FCC-ee tau workflow integration
+
+The upstream TausFCCee tau, rho, and event-display tools remain the foundation
+of this repository. The maintained FCC analysis layer adds the authoritative G
+geometric association in `modules/NeutralRecover.py`, hardened parallel
+HitAnalysis, frozen truth/PID helpers, portable wrappers, and migration-matrix
+postprocessing.
+
+Here G means geometric selected-truth association. L_direct is the frozen immediate MC-contributor assignment, and L_ancestor maps it to nearest unique selected generator-level ancestry.
+
+Production and truth-link assignment live in the separate
+`FCC-tau-workflow` repository. It exports REC files, manifests, and
+L_direct/L_ancestor Parquet products; TausFCCee consumes those products as
+data. There are no runtime Python imports or absolute clone paths between the
+repositories.
+
+Start with:
+
+- [FCC analysis quick start](docs/QUICKSTART.md)
+- [Maintained analysis recipes](docs/ANALYSIS_RECIPES.md)
+- [Scientific definitions](docs/SCIENTIFIC_DEFINITIONS.md)
+- [FCC analysis troubleshooting](docs/TROUBLESHOOTING.md)
+- [Frozen scientific reports](docs/scientific/README.md)
+
+The maintained FCC path requires explicit input manifests and output roots; it
+does not use the historical `Results/` tree as a cross-repository API.
+
 The main tools included are:
 - Identification of the gennerator-level tau leptons and their decay products (decay type).
 - Reconstruction of hadronic and leptonic tau decays from PandoraPFO collections.
