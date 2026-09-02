@@ -21,11 +21,16 @@ The frozen FCC study used Key4hep `2026-08-21`. IFIC example:
 
 ```bash
 source /cvmfs/sw-nightlies.hsf.org/key4hep/releases/2026-08-21/x86_64-almalinux9-gcc14.2.0-opt/key4hep-stack/2026-08-21-5qmpe6/setup.sh
-python -m pip install -e .
+export TAUSFCCEE_DEPENDENCY_ROOT="$PWD/../tausfccee-dependencies"
+python -m venv --system-site-packages "$TAUSFCCEE_DEPENDENCY_ROOT/venv"
+source "$TAUSFCCEE_DEPENDENCY_ROOT/venv/bin/activate"
+python -m pip install --no-build-isolation -e .
 ```
 
 At another site, source an explicitly chosen compatible stack. That is not a
-claim of regression validation against the frozen IFIC environment.
+claim of regression validation against the frozen IFIC environment. The
+virtual environment inherits Key4hep's external packages without attempting
+to write to the read-only CVMFS Python prefix.
 
 ## 2. Create an input manifest
 
