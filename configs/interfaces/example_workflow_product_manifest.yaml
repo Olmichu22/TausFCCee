@@ -1,0 +1,10 @@
+schema_version: fcc_tau_workflow_product_manifest_v1
+association_contract: fcc_tau_association_v1
+sample: EXAMPLE
+products:
+  - source_file_id: "000000001"
+    source_rec: /data/example_REC.edm4hep.root
+    direct_assignment: /data/example_Ldirect.parquet
+    ancestor_assignment: /data/example_Lancestor.parquet
+    truth_definition_version: selected_truth_v1
+    input_provenance: /data/example_summary.json

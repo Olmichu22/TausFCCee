@@ -1,0 +1,17 @@
+schema_version: fcc_tau_workflow_interface_v1
+accepted_association_contract: fcc_tau_association_v1
+accepted_product_manifest_schema: fcc_tau_workflow_product_manifest_v1
+transport: data_only
+python_import_from_workflow: forbidden
+authoritative_event_identity: [sample, source_file_id, event_in_file]
+direct_product:
+  version: truthlink_assignment_v1
+  required_columns: [source_file_id, event_in_file, pfo_index, truthlink_status, assigned_mc_index]
+ancestor_product:
+  version: truthlink_ancestor_assignment_v1
+  required_columns: [sample, source_file_id, event_in_file, pfo_index, ancestor_status, ancestor_mc_index]
+product_entry_provenance:
+  required_fields: [source_file_id, source_rec, direct_assignment, ancestor_assignment, truth_definition_version, input_provenance]
+notes:
+  - Product event_id columns are derived conveniences and must not replace the composite key.
+  - TausFCCee consumes exported Parquet products and manifests; it does not implement L_direct or L_ancestor.

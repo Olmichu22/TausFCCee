@@ -1,0 +1,27 @@
+schema_version: geometric_association_v1
+status: frozen
+distance:
+  coordinates: [theta, phi]
+  formula: sqrt((theta_gen - theta_reco)^2 + wrap(phi_gen - phi_reco)^2)
+  threshold: 0.1
+  comparison: strict_less_than
+truth_selection:
+  version: selected_truth_v1
+  generator_status: 1
+  excluded_abs_pdg: [12, 14, 16]
+  minimum_momentum_GeV: 1.0e-10
+  detector_signal_gate: preserve_if_any_truth_signal_collection_is_populated
+reco_selection:
+  collection: PandoraPFOs
+  minimum_momentum_GeV: 1.0e-10
+deduplication:
+  default_mode: reco
+  rule: shared PFO is retained by the truth with minimum distance
+  losing_truth_outcome: association_unmatched
+  unused_pfo_outcome: fake
+event_identity:
+  authoritative_fields: [source_file_id, event_in_file]
+  derived_integer: Cantor pairing only; never a cross-repository key
+separate_tau_cone:
+  dRMax: 0.4
+  note: This tau-cone parameter is not the geometric association threshold.

@@ -1,0 +1,5 @@
+schema_version: fcc_hit_analysis_input_manifest_v1
+sample: EXAMPLE
+inputs:
+  - source_file_id: "000000001"
+    path: /data/example_REC.edm4hep.root
