@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Build truth-normalized migration matrices from frozen FCC-tau products.
+"""Reproduce frozen W/P8 migration matrices from FCC-tau products.
 
 This is read-only scientific postprocessing.  It does not run matching,
 linking, HitAnalysis, reconstruction, simulation, or generation.  G outcomes
 come from the historical dR parquets.  L_direct and L_ancestor outcomes are
 the frozen PFO assignments inverted with the frozen representative-PFO rule.
+The CLI intentionally requires W, P8C, and P8O inventories and their frozen
+regression anchors; it is not a generic arbitrary-campaign API.
 """
 from __future__ import annotations
 
@@ -868,7 +870,9 @@ def rerender_contact_sheets() -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Reproduce the frozen W/P8 G/L_direct/L_ancestor migration-matrix study."
+    )
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--rerender-contact-sheets", action="store_true")
     cli = parser.parse_args()

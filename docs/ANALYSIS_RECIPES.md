@@ -16,14 +16,17 @@ REC paths in deterministic order; writable, non-existing output target.
 **Command.**
 
 ```bash
+export INPUT_MANIFEST=/path/to/hit_inputs.yaml
+export OUTPUT_ROOT=/path/to/new/writable/analysis-output
 scripts/analysis/run_hit_analysis.sh \
   --input-manifest "$INPUT_MANIFEST" --output-root "$OUTPUT_ROOT" \
   --workers 8 --prefix MY_SAMPLE_ --dedup-mode reco \
   --assoc-max-dr 0.1 --dry-run
 ```
 
-After review, remove `--dry-run` to process data. **The processing command was
-NOT EXECUTED IN STAGE 4.**
+After review, remove `--dry-run` to process data. The resulting command performs
+real HitAnalysis processing and writes outputs; verify the manifest and ensure
+the target directory does not exist first.
 
 **Outputs.** Standard HitAnalysis Parquet/plots plus `run_metadata.json` under
 the explicit output root.
@@ -46,6 +49,7 @@ provenance, and a `fcc_tau_workflow_product_manifest_v1` manifest.
 **Command.** First validate the interface and manifest:
 
 ```bash
+export WORKFLOW_MANIFEST=/path/to/workflow_products.yaml
 python scripts/validation/validate_fcc_contracts.py
 python -c 'import sys; from modules.fcc_workflow_interface import load_product_manifest; print(load_product_manifest(sys.argv[1]))' \
   "$WORKFLOW_MANIFEST"
@@ -65,10 +69,12 @@ common denominators, and frozen anchor tables must pass.
 reconstruction provenance, or mistaking a candidate relation for a final
 L_direct assignment.
 
-## C. Migration matrices
+## C. Reproduce the frozen W/P8 migration-matrix study
 
-**Purpose.** Produce inclusive and fiducial G/L_direct/L_ancestor matrices for
-W, P8C, and P8O while reproducing frozen numerical anchors.
+**Purpose.** Reproduce the frozen inclusive and fiducial
+G/L_direct/L_ancestor migration-matrix study for W, P8C, and P8O, including its
+numerical anchors. This maintained recipe is not a generic arbitrary-campaign
+API; a future generic tool would require a separate interface and validation.
 
 **Inputs.** A `fcc_migration_matrix_inputs_v1` YAML with G products, workflow
 campaign CSV manifests, fiducial and L_ancestor validation tables, historical
@@ -78,11 +84,13 @@ W=996, P8C=100, P8O=18 files.
 **Command.**
 
 ```bash
+export MATRIX_CONFIG=/path/to/frozen_W_P8_migration_inputs.yaml
 python scripts/analysis/produce_migration_matrices.py --help
 python scripts/analysis/produce_migration_matrices.py --config "$MATRIX_CONFIG"
 ```
 
-**NOT EXECUTED IN STAGE 4.** The script refuses an existing output/report.
+The processing command writes matrices, tables, plots, and a report. It refuses
+an existing output/report; verify every frozen input and target path first.
 
 **Outputs.** Absolute inclusive/fiducial matrices, difference matrices,
 contact sheets, CSV tables, validation tables, `summary.json`, and a report.
@@ -111,7 +119,9 @@ python scripts/analysis/extend_migration_matrices_tau_origin.py \
   --config "$MATRIX_CONFIG" --workers 8
 ```
 
-**NOT EXECUTED IN STAGE 4.**
+This command performs real postprocessing and writes an extension below the
+configured base output. Verify the completed Recipe-C output and all REC paths
+before running it.
 
 **Outputs.** `tau_origin/` matrices, difference tables, ancestry validation,
 and summary below the configured base output.

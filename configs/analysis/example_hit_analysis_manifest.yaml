@@ -1,5 +1,5 @@
 schema_version: fcc_hit_analysis_input_manifest_v1
-sample: EXAMPLE
+sample: W
 inputs:
-  - source_file_id: "000000001"
-    path: /data/example_REC.edm4hep.root
+  - source_file_id: "033851393"
+    path: /data/events_033851393_REC.edm4hep.root

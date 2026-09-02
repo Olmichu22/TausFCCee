@@ -1,10 +1,11 @@
 # FCC analysis quick start
 
-This path starts from reconstructed EDM4hep REC files and optionally consumes
-versioned G/L_direct/L_ancestor products. G is geometric selected-truth
-association; L_direct selects an immediate MC contributor; L_ancestor maps it
-to nearest unique selected generator-level ancestry. Commands that would process REC data
-are marked **NOT EXECUTED IN STAGE 4**.
+This path starts from reconstructed EDM4hep REC files. TausFCCee produces G,
+the analysis-side geometric selected-truth association, through HitAnalysis.
+It can optionally consume L_direct and L_ancestor products exported by
+FCC-tau-workflow; it does not consume a pre-produced G product in the standard
+golden path. Commands that process REC data perform real analysis and write
+outputs, so verify the input manifest and output root before running them.
 
 ## 1. Clone and prepare the environment
 
@@ -38,10 +39,10 @@ Use a stable source ID and an explicit REC path:
 
 ```yaml
 schema_version: fcc_hit_analysis_input_manifest_v1
-sample: MY_SAMPLE
+sample: W
 inputs:
-  - source_file_id: "000000001"
-    path: /data/my_sample_REC.edm4hep.root
+  - source_file_id: "033851393"
+    path: /data/events_033851393_REC.edm4hep.root
 ```
 
 Save it as `$INPUT_MANIFEST`. The maintained example is
@@ -56,7 +57,7 @@ scripts/analysis/run_hit_analysis.sh \
   --input-manifest "$INPUT_MANIFEST" \
   --output-root "$OUTPUT_ROOT" \
   --workers 8 \
-  --prefix MY_SAMPLE_ \
+  --prefix W_ \
   --dedup-mode reco \
   --assoc-max-dr 0.1 \
   --dry-run
@@ -76,22 +77,23 @@ scripts/analysis/run_hit_analysis.sh \
   --input-manifest "$INPUT_MANIFEST" \
   --output-root "$OUTPUT_ROOT" \
   --workers 8 \
-  --prefix MY_SAMPLE_ \
+  --prefix W_ \
   --dedup-mode reco \
   --assoc-max-dr 0.1
 ```
 
-**NOT EXECUTED IN STAGE 4.** The wrapper runs the hardened options
-`-v --min-energy-cuts 10 --all-plot 11 13 22 211`, refuses the known target
-directory if it already exists, and writes `run_metadata.json` with manifest
-hash, repository commit, contract versions, worker count, and matching setup.
+This command performs real HitAnalysis processing and writes outputs. The
+wrapper runs the hardened options `-v --min-energy-cuts 10 --all-plot 11 13 22
+211`, refuses the known target directory if it already exists, and writes
+`run_metadata.json` with manifest hash, repository commit, contract versions,
+worker count, and matching setup.
 
 ## 5. Inspect outputs
 
 ```bash
 find "$OUTPUT_ROOT" -maxdepth 3 -type f -print | sort
 python -m json.tool \
-  "$OUTPUT_ROOT/MY_SAMPLE_results0.4_tph0.0_tpi0.0_n0.0_g0.0/run_metadata.json"
+  "$OUTPUT_ROOT/W_results0.4_tph0.0_tpi0.0_n0.0_g0.0/run_metadata.json"
 ```
 
 Require worker completion without hidden exceptions, readable Parquet/plots,
@@ -103,10 +105,12 @@ ordinal. Map it through the manifest to the declared stable source ID before
 joining workflow L_direct/L_ancestor products; see
 [`SCIENTIFIC_DEFINITIONS.md`](SCIENTIFIC_DEFINITIONS.md#event-identity).
 
-## 6. Load workflow associations optionally
+## 6. Load workflow L associations optionally
 
-The repository interface is data only. Validate a product manifest without
-importing the workflow repository:
+TausFCCee produces G locally through HitAnalysis. L_direct and L_ancestor are
+instead exported by FCC-tau-workflow and consumed here through a data-only
+product manifest. Validate that manifest without importing the workflow
+repository:
 
 ```bash
 export WORKFLOW_MANIFEST=/path/to/products.yaml
@@ -114,9 +118,10 @@ python -c 'import sys; from modules.fcc_workflow_interface import load_product_m
   "$WORKFLOW_MANIFEST"
 ```
 
-The accepted schema is shown in
-`configs/interfaces/example_workflow_product_manifest.yaml`. Direct and
-ancestor Parquet schemas can be checked with
+The authoritative `fcc_tau_workflow_product_manifest_v1` schema and
+`fcc_tau_association_v1` contract are owned by FCC-tau-workflow. A consumer-side
+example is mirrored in `configs/interfaces/example_workflow_product_manifest.yaml`.
+Direct and ancestor Parquet schemas can be checked with
 `modules.fcc_workflow_interface.read_association_table`.
 
 ## 7. Validate a one-event G/L smoke result
@@ -127,7 +132,7 @@ data-only join with L_direct/L_ancestor:
 ```bash
 python scripts/validation/validate_hit_analysis_smoke.py \
   --hit-manifest /path/to/hit_analysis_smoke_input.yaml \
-  --result-dir /path/to/MY_SAMPLE_results0.4_tph0.0_tpi0.0_n0.0_g0.0 \
+  --result-dir /path/to/W_results0.4_tph0.0_tpi0.0_n0.0_g0.0 \
   --workflow-manifest /path/to/smoke_products.yaml \
   --golden-g-pfo /path/to/independent_historical_pfo_comparison.parquet \
   --output /path/to/new/g_hit_analysis_smoke_summary.json
@@ -138,16 +143,20 @@ zero-based input ordinal through the input manifest before joining the stable
 workflow key, rejects duplicate keys, and checks the independent historical
 PFO-to-MC mapping. It is a validator only and does not run HitAnalysis.
 
-## 8. Migration matrices
+## 8. Reproduce the frozen W/P8 migration-matrix study
 
 Copy `configs/analysis/example_migration_matrix_inputs.yaml`, replace every
 placeholder with the frozen G products, workflow campaign manifests,
 validation anchors, provenance paths, and a new output root, then run:
 
 ```bash
+export MATRIX_CONFIG=/path/to/frozen_W_P8_migration_inputs.yaml
 python scripts/analysis/produce_migration_matrices.py --config "$MATRIX_CONFIG"
 ```
 
-**NOT EXECUTED IN STAGE 4.** This maintained analysis requires complete W,
-P8C, and P8O inputs with their validated file counts; it is not a one-file
-smoke command. See [Analysis recipes](ANALYSIS_RECIPES.md).
+This command performs real postprocessing and writes matrices, tables, plots,
+and a report. It requires the complete frozen W, P8C, and P8O inputs, their
+validated file counts, and the frozen regression anchors; it is not a generic
+arbitrary-campaign API or a one-file smoke command. A future generic migration
+tool would require a separate interface and validation. See
+[Analysis recipes](ANALYSIS_RECIPES.md).

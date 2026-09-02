@@ -1,7 +1,7 @@
 # Tau Reconstruction at FCC-ee
 This repository contains tools and scripts for reconstructing tau leptons at the Future Circular Collider (FCC-ee) using the EDM4hep data format. The focus is on validating tau reconstruction algorithms (such as PandoraPFO).
 
-## FCC-ee tau workflow integration
+## Maintained FCC workflow
 
 The upstream TausFCCee tau, rho, and event-display tools remain the foundation
 of this repository. The maintained FCC analysis layer adds the authoritative G
@@ -28,8 +28,16 @@ Start with:
 The maintained FCC path requires explicit input manifests and output roots; it
 does not use the historical `Results/` tree as a cross-repository API.
 
+## Upstream and legacy workflows
+
+The sections below document upstream/legacy TausFCCee workflows and may use
+different environment, path, and `Results/` conventions. They are not part of
+the frozen FCC golden path. For the maintained FCC-ee analysis path, use the
+quick start, analysis recipes, scientific definitions, and troubleshooting
+pages linked above.
+
 The main tools included are:
-- Identification of the gennerator-level tau leptons and their decay products (decay type).
+- Identification of the generator-level tau leptons and their decay products (decay type).
 - Reconstruction of hadronic and leptonic tau decays from PandoraPFO collections.
 - Matching reconstructed taus to generator-level taus.
 - **Tau polarization analysis** (`RhoAnalysis/`): extraction of the polarization
