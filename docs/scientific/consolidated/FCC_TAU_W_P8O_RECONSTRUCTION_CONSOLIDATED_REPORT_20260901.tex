@@ -1,0 +1,328 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=19mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\definecolor{navy}{HTML}{17365D}
+\definecolor{teal}{HTML}{237B78}
+\hypersetup{colorlinks=true,linkcolor=navy,urlcolor=teal,pdftitle={FCC-ee tau photon/pion reconstruction: consolidated W--P8O report}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlist{nosep,leftmargin=*}
+\pagestyle{fancy}
+\setlength{\headheight}{14pt}
+\fancyhf{}
+\lhead{FCC-ee tau photon/pion diagnostics}
+\rhead{Scientific freeze: 2026-09-01}
+\cfoot{\thepage}
+\newcommand{\pct}{\,\%}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\fullfig}[3]{%
+  \begin{figure}[p]\centering
+  \includegraphics[width=0.96\textwidth,height=0.82\textheight,keepaspectratio]{#1}
+  \caption{#2}\label{#3}
+  \end{figure}}
+\begin{document}
+
+\begin{titlepage}
+\centering
+\vspace*{22mm}
+{\Huge\bfseries\color{navy} FCC-ee tau photon/pion reconstruction\par}
+\vspace{5mm}
+{\LARGE Consolidated W--P8O diagnostic report\par}
+\vspace{14mm}
+{\large Generator/sample composition $\rightarrow$ tau topology $\rightarrow$ photon origin\par}
+{\large $\rightarrow$ PFO association $\rightarrow$ conditional PID $\rightarrow$ migration matrices\par}
+\vfill
+\begin{tabular}{rl}
+Date: & 2026-09-01\\
+Freeze status: & \textbf{SCIENTIFIC ANALYSIS FROZEN AT 2026-09-01}\\
+Scientific status: & \textbf{PASS\_WITH\_WARNINGS}\\
+Scope: & documentation and provenance freeze only
+\end{tabular}
+\vfill
+{\small The warnings are explicit event-record limitations, not failed integrity checks or pending software bugs.\par}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\section{Executive summary}
+
+The large global W/P8O photon difference is driven primarily by sample/generator truth composition and truth-to-PFO association/reconstructability, not by a large change in conditional reconstructed photon PID. Tau topology, selected visible truth from tau decays, tau-decay photon kinematics, reconstructed PFO composition, and conditional PID are closely compatible between W and P8O.
+
+The validated factorization is
+\begin{center}
+\fbox{\small origin/composition $\rightarrow$ phase space $\rightarrow$ unique PFO association $\rightarrow$ conditional PID $\rightarrow$ global outcome}.
+\end{center}
+
+P8O contains 49,120 photons with positive stored genealogy evidence for \code{explicit\_ISR}; they are exceptionally soft and beam-collinear. W contains 25,879 parentless non-tau photons without stored photon-to-beam ancestry. They remain \code{parentless\_unresolved}; only ``partially similar'' or ``ISR-like kinematics'' is allowed. Direct tau daughters remain \code{tau\_direct\_daughter\_unresolved}: the records do not support a positive-evidence, cross-generator FSR definition.
+
+\section{Samples, provenance, and frozen definitions}
+
+\begin{table}[H]\centering
+\caption{Sample and event provenance.}
+\begin{tabular}{llll}
+\toprule Label & Generated sample & Reconstruction & Events \\
+\midrule
+W & WHIZARD & our reconstruction & 1,992,000 available; 18,000 detailed \\
+P8C & PYTHIA8 & collaborator reconstruction & migration baseline \\
+P8O & PYTHIA8 & our reconstruction & 18,000 available and detailed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+W versus P8O compares different generated samples under the same reconstruction chain. Detailed audits use 18,000 deterministic events per sample. Event-manifest SHA-256:
+\begin{center}\small\code{b2f81449579d33ec228b65c20a7927f8930ef19368aedd97244085c6e587cf3b}.\end{center}
+
+P8O event \code{out\_sim\_edm4hep\_1:838} has four terminal tau representatives and is retained as the sole inherited topology warning. All other 17,999 P8O events and all 18,000 W events have two.
+
+Selected truth is frozen as implemented: \code{generatorStatus == 1}, neutrinos excluded, non-zero truth momentum, and the established species mapping. \linebreak Reconstructed PID is $|\mathrm{PDG}|=11,13,22,211,310,2112,3122$ for electron, muon, photon, charged pion, $K^0_S$, neutron, and $\Lambda$.
+
+\begin{itemize}
+\item \textbf{G}: geometric selected-truth association.
+\item \textbf{L\_direct}: immediate detector-level MC contributor with frozen representative-PFO inversion.
+\item \textbf{L\_ancestor}: nearest unique selected generator-level ancestor with the same inversion.
+\end{itemize}
+
+Tau origin is true exactly when recursively stored ancestry contains $|\mathrm{PDG}|=15$. G/L\_direct/L\_ancestor differences are \emph{association-definition dependence}, not detector-efficiency variation.
+
+Frozen \code{photon\_origin\_v1} contains the three tau categories, \code{explicit\_ISR}, \code{parentless\_unresolved}, the unresolved electron/positron/photon-chain categories, and \code{resolved\_non\_tau\_other}. The full category names and precedence are frozen in the authoritative discovery report.
+
+\section{Global migration baseline}
+
+A truth-row-normalized migration matrix combines truth composition, PFO association/reconstruction, and conditional PID. Unmatched truth objects are not PID failures.
+
+\begin{table}[H]\centering
+\caption{Global photon migration headline.}
+\begin{tabular}{llrr}
+\toprule Association & Sample & photon$\rightarrow$photon & photon$\rightarrow$unmatched \\
+\midrule
+G & W & 51.249\pct & 46.610\pct \\
+G & P8C & 37.053\pct & 61.109\pct \\
+G & P8O & 36.846\pct & 61.379\pct \\
+L\_ancestor & W & 51.149\pct & 45.068\pct \\
+L\_ancestor & P8C & 39.526\pct & 57.496\pct \\
+L\_ancestor & P8O & 39.355\pct & 57.786\pct \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The dominant difference is diagonal $\leftrightarrow$ unmatched, not migration to a specific wrong PID. Charged-pion outcomes are much more stable.
+
+\fullfig{../artifacts/migration_matrices_W_P8_G_Ldirect_Lancestor_20260828/inclusive/migration_matrix_W_G_inclusive.png}{W inclusive G migration matrix. Rows are normalized independently to selected truth.}{fig:migw}
+\fullfig{../artifacts/migration_matrices_W_P8_G_Ldirect_Lancestor_20260828/inclusive/migration_matrix_P8O_G_inclusive.png}{P8O inclusive G migration matrix, with the same definitions and scale as Fig.~\ref{fig:migw}.}{fig:migp}
+
+\section{Tau topology and selected visible truth from tau decays}
+
+\begin{table}[H]\centering
+\caption{Principal tau decay categories.}
+\begin{tabular}{lrr}
+\toprule Category & W & P8O \\
+\midrule
+1-prong with $\pi^0$ & 36.797\pct & 36.892\pct \\
+electron & 18.336\pct & 17.688\pct \\
+muon & 17.583\pct & 17.493\pct \\
+1-prong no $\pi^0$ & 12.256\pct & 12.144\pct \\
+3-prong no $\pi^0$ & 9.744\pct & 9.991\pct \\
+3-prong with $\pi^0$ & 5.153\pct & 5.664\pct \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Representative tau means are $p=44.960/45.007$ GeV, $p_T=33.142/33.279$ GeV, and $\theta=89.961/89.983^\circ$ for W/P8O. The stored-tau-copy multiplicity plot is intentionally excluded from the scientific figures.
+
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/01_tau_decay_channels.png}{Tau decay channels. W and P8O show closely matching compact decay fractions.}{fig:tauchannels}
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/03_tau_p.png}{Representative tau momentum distributions.}{fig:taup}
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/04_tau_pt.png}{Representative tau transverse-momentum distributions.}{fig:taupt}
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/05_tau_theta.png}{Representative tau polar-angle distributions.}{fig:tautheta}
+
+Both tau decay chains are included and neutrinos excluded. Selected visible tau-decay truth occurs at 5.350/event W and 5.334/event P8O. Photon, charged-pion, electron, and muon fractions are respectively 50.329/49.478\pct, 34.701/35.444\pct, 7.237/7.242\pct, and 6.593/6.575\pct. Tau-origin photons are 65.190\pct of selected photons in the W 18k subset (65.481\pct full-sample reference) and 49.163\pct in P8O.
+
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/07_tau_decay_truth_composition.png}{Composition of selected visible truth particles from both tau decays; neutrinos are excluded.}{fig:taucomp}
+
+\section{The key non-tau photon difference}
+
+\begin{table}[H]\centering
+\caption{Non-tau photon population and kinematics.}
+\begin{tabular}{lrr}
+\toprule Quantity & W & P8O \\
+\midrule
+count & 25,879 & 49,121 \\
+photons/event & 1.438 & 2.729 \\
+mean $E$ [GeV] & 0.217 & 0.100 \\
+median $E$ [GeV] & $3.17\times10^{-4}$ & $1.41\times10^{-6}$ \\
+median $p_T$ [GeV] & $2.86\times10^{-5}$ & $9.88\times10^{-9}$ \\
+$|\cos\theta|>0.98$ & 50.191\pct & 83.748\pct \\
+$|\cos\theta|>0.999$ & 31.62\pct & 78.57\pct \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+P8O has 1.898 times the non-tau photon multiplicity. Physical $E$ and $p_T$ are shown on logarithmic axes with logarithmically spaced bins, common W/P8O ranges, and explicit ``/ log bin'' normalization. No $\log_{10}(X)$ variable is used.
+
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/16_non_tau_photon_energy_logx.png}{Non-tau photon physical energy. Left: independently unit-normalized shape. Right: yield per event. Logarithmically spaced bins in the physical variable.}{fig:nte}
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/17_non_tau_photon_pt_logx.png}{Non-tau photon physical $p_T$. Left: shape; right: yield. Logarithmically spaced bins in the physical variable.}{fig:ntpt}
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/19_non_tau_photon_costheta.png}{Non-tau photon angular topology. P8O is substantially more beam-collimated.}{fig:ntangle}
+
+\section{Reconstructed PFO content}
+
+\begin{table}[H]\centering
+\caption{Reconstructed PFO PID yield per event.}
+\begin{tabular}{lrr@{\qquad}lrr}
+\toprule PID & W & P8O & PID & W & P8O \\
+\midrule
+electron & 0.5403 & 0.5333 & charged pion & 1.8621 & 1.8847 \\
+muon & 0.3265 & 0.3228 & $K^0_S$ & 0.0152 & 0.0148 \\
+photon & 2.8321 & 2.8820 & neutron & 0.4409 & 0.4573 \\
+&&& $\Lambda$ & 0.0182 & 0.0193 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Despite 1.898 times more non-tau truth photons in P8O, photon-PFO yield differs by only 1.76\pct. Charged/neutral populations and the principal reconstructed PID populations are closely matched.
+
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/22_pfo_pid_composition.png}{Reconstructed PFO PID composition.}{fig:pfocomp}
+\fullfig{../artifacts/tau_topology_audit_W_P8O_equalstats_20260831/plot_revision_20260901/plots/primary/23_pfo_pid_yield.png}{Reconstructed PFO PID yield per event.}{fig:pfoyield}
+
+\section{Conditional PID}
+
+Conditional PID is $P(\text{correct reconstructed PID}\mid\text{unique associated PFO})$. Unmatched and ambiguous particles are excluded and are not PID failures.
+
+\begin{table}[H]\centering
+\caption{L\_ancestor conditional PID accuracy.}
+\begin{tabular}{lrrrr}
+\toprule Truth & W associated & W accuracy & P8O associated & P8O accuracy \\
+\midrule
+electron & 6,725 & 89.844\pct & 6,662 & 89.433\pct \\
+muon & 6,254 & 88.647\pct & 6,185 & 88.747\pct \\
+photon & 40,478 & 93.438\pct & 40,627 & 93.600\pct \\
+charged pion & 32,447 & 92.267\pct & 32,908 & 91.965\pct \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All four accuracies agree within 0.42 percentage points. Mis-ID populations are often lower-$p_T$ and, especially for pions, more forward/backward.
+
+\fullfig{../artifacts/pid_audit_W_P8O_equalstats_20260901/primary/01_conditional_pid_matrix_W_Lancestor.png}{W L\_ancestor conditional PID matrix.}{fig:pidw}
+\fullfig{../artifacts/pid_audit_W_P8O_equalstats_20260901/primary/02_conditional_pid_matrix_P8O_Lancestor.png}{P8O L\_ancestor conditional PID matrix.}{fig:pidp}
+\fullfig{../artifacts/pid_audit_W_P8O_equalstats_20260901/primary/03_pid_correct_misid_fractions_Lancestor.png}{Conditional correct and misidentified fractions.}{fig:pidfrac}
+\fullfig{../artifacts/pid_audit_W_P8O_equalstats_20260901/primary/05_truth_pion_pt_correct_vs_misid.png}{Selected charged-pion $p_T$: correct PID versus mis-ID.}{fig:pionfail}
+\fullfig{../artifacts/pid_audit_W_P8O_equalstats_20260901/primary/09_truth_photon_energy_pt_correct_vs_misid.png}{Selected-photon energy and $p_T$: correct PID versus mis-ID.}{fig:photonfail}
+
+\section{PFO association/reconstruction efficiency}
+
+Primary $\epsilon_{\rm unique}=N(\text{unique associated PFO})/N(\text{selected truth})$ uses L\_ancestor.
+
+\begin{table}[H]\centering
+\caption{L\_ancestor truth-to-PFO association efficiency.}
+\begin{tabular}{lrrrr}
+\toprule Species & W selected & W $\epsilon_{\rm unique}$ & P8O selected & P8O $\epsilon_{\rm unique}$ \\
+\midrule
+electron & 6,969 & 96.499\pct & 6,959 & 95.732\pct \\
+muon & 6,349 & 98.504\pct & 6,313 & 97.972\pct \\
+photon & 74,344 & 54.447\pct & 96,625 & 42.046\pct \\
+charged pion & 33,416 & 97.100\pct & 34,030 & 96.703\pct \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Electrons, muons, and charged pions usually obtain a unique PFO. Photons are exceptional.
+
+\fullfig{../artifacts/pfo_reconstruction_efficiency_W_P8O_equalstats_20260901/primary/02_global_epsilon_by_species.png}{L\_ancestor PFO association efficiency by selected-truth species.}{fig:effspecies}
+
+\subsection{Tau-origin versus non-tau photons}
+
+Tau-origin efficiency is 81.013/81.873\pct for W/P8O; non-tau efficiency is 4.695/3.530\pct. For non-tau photons, W/P8O efficiencies are 0.313/0.230\pct at $E<0.1$ GeV, 1.632/1.243\pct at $p_T<0.1$ GeV, and 2.048/0.887\pct for $|\cos\theta|>0.98$. The P8O excess therefore occupies extremely low-efficiency phase space.
+
+\fullfig{../artifacts/pfo_reconstruction_efficiency_W_P8O_equalstats_20260901/primary/09_tau_photon_efficiency_energy.png}{Tau-origin photon association efficiency versus physical energy.}{fig:taueff}
+\fullfig{../artifacts/pfo_reconstruction_efficiency_W_P8O_equalstats_20260901/primary/14_non_tau_photon_efficiency_energy.png}{Non-tau photon association efficiency versus physical energy.}{fig:nteff}
+\fullfig{../artifacts/pfo_reconstruction_efficiency_W_P8O_equalstats_20260901/primary/17_non_tau_photon_efficiency_costheta.png}{Non-tau photon association efficiency versus absolute polar cosine.}{fig:ntangeff}
+
+Charged pions are the control: association is about 97\pct, conditional PID about 92\pct, and W/P8O differences are small. Their main problematic region is low $p_T$ and strongly forward/backward phase space.
+
+\section{Photon origin and event-record semantics}
+
+P8O has 49,120 selected photons with a same-sign electron-copy ancestry chain ending on parentless incoming beam $e^-/e^+$ objects with approximately $E=45.595$ GeV and $|\cos\theta|=0.9999755$. This is positive evidence for \code{explicit\_ISR}.
+
+All 25,879 W non-tau photons are parentless. Beam objects exist, but no photon-to-beam ancestry is stored; they remain \code{parentless\_unresolved}. The two populations are partially similar in being soft and forward/backward, but P8O is substantially softer and more beam-collimated. Kinematics do not establish physical equivalence.
+
+\begin{table}[H]\centering
+\caption{Frozen photon-origin populations.}
+\begin{tabular}{lrr}
+\toprule \code{photon\_origin\_v1} & W & P8O \\
+\midrule
+\code{parentless\_unresolved} & 25,879 & 0 \\
+\code{explicit\_ISR} & 0 & 49,120 \\
+\code{electron\_parent\_non\_tau\_unresolved} & 0 & 1 \\
+\code{tau\_decay\_pi0} & 39,585 & 39,727 \\
+\code{tau\_direct\_daughter\_unresolved} & 8,640 & 7,697 \\
+\code{tau\_other\_descendant} & 240 & 80 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\fullfig{../artifacts/photon_origin_discovery_W_P8O_equalstats_20260901/plots/01_genealogy_class_composition.png}{Frozen photon-origin composition.}{fig:origincomp}
+\fullfig{../artifacts/photon_origin_discovery_W_P8O_equalstats_20260901/plots/13_initial_electron_chain_summary.png}{Stored incoming-electron-chain evidence. It supports P8O explicit ISR, not a W ISR label.}{fig:beamchain}
+
+Direct tau daughters number 8,640 W and 7,697 P8O and usually appear beside continuing tau copies. The mixture of radiation/bookkeeping and terminal decay configurations does not provide a positive-evidence, cross-generator FSR definition. They remain \code{tau\_direct\_daughter\_unresolved}.
+
+\section{\texorpdfstring{Origin $\rightarrow$ association $\rightarrow$ conditional PID}{Origin to association to conditional PID}}
+
+\begin{table}[H]\centering
+\caption{L\_ancestor origin-factorized photon performance. Each cell is W/P8O.}
+\begin{tabular}{lrrr}
+\toprule Origin pair & Association & Conditional photon PID & Full photon outcome \\
+\midrule
+parentless / explicit ISR & 4.695/3.530\pct & 94.239/94.348\pct & 4.424/3.330\pct \\
+$\pi^0$ descendant & 91.350/90.757\pct & 93.393/93.491\pct & 85.316/84.845\pct \\
+direct tau daughter & 33.854/36.001\pct & 93.573/94.551\pct & 31.678/34.040\pct \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Once a unique PFO exists, photon PID is stable at roughly 93--95\pct across samples and origins. The large variation occurs upstream, in truth population, phase space, and association.
+
+\fullfig{../artifacts/photon_origin_reco_audit_W_P8O_equalstats_20260901/primary/07_association_efficiency_by_origin.png}{L\_ancestor association efficiency by frozen photon origin.}{fig:origineff}
+\fullfig{../artifacts/photon_origin_reco_audit_W_P8O_equalstats_20260901/primary/13_conditional_photon_pid_accuracy.png}{Conditional photon PID accuracy by origin.}{fig:originpid}
+\fullfig{../artifacts/photon_origin_reco_audit_W_P8O_equalstats_20260901/primary/16_full_chain_outcomes.png}{Full truth-origin $\rightarrow$ association $\rightarrow$ reconstructed-PID outcome.}{fig:fullchain}
+
+For context, W parentless efficiencies under G/L\_direct/L\_ancestor are 4.475/3.938/4.695\pct and P8O explicit-ISR efficiencies are 3.361/3.013/3.530\pct. These are association-definition dependence, not detector-efficiency variation.
+
+\section{Frozen scientific interpretation}
+
+The large global W/P8O photon difference is primarily driven by the different non-tau photon populations and their phase-space composition. P8O contains an explicit-ISR population that is substantially softer and more beam-collinear than the unresolved W parentless population. Tau-decay photon populations have very similar truth kinematics and PFO association efficiencies. Once a unique PFO exists, conditional photon PID is very similar across samples and origins. The global migration difference is therefore dominated by \textbf{sample/generator truth composition plus truth-to-PFO association/reconstructability}, not a large difference in reconstructed photon PID.
+
+\section{Explicit limitations and freeze declaration}
+
+\begin{enumerate}
+\item W \code{parentless\_unresolved} photons cannot be called ISR.
+\item P8O \code{explicit\_ISR} is supported by stored generator genealogy.
+\item \code{tau\_direct\_daughter\_unresolved} photons cannot currently be called FSR.
+\item G/L\_direct/L\_ancestor are association semantics, not detector definitions.
+\item This is not a generator-physics validation of WHIZARD versus PYTHIA8.
+\item Raw all-photon outcomes cannot establish that one reconstruction globally reconstructs photons better.
+\item Equal-statistics detailed audits use only 18,000 events per sample.
+\end{enumerate}
+
+These are limitations of stored event-record information, not pending software bugs.
+
+\begin{center}
+\fbox{\parbox{0.88\textwidth}{\centering\textbf{STATUS: SCIENTIFIC ANALYSIS FROZEN AT 2026-09-01}\\[2mm]
+Frozen scope: W/P8C/P8O migration matrices; equal-statistics W/P8O tau topology; PID; PFO association efficiency; photon-origin discovery; and photon-origin reconstruction/PID factorization.}}
+\end{center}
+
+The individual reports, machine-readable tables, validation summaries, relevant scripts, and selected figures remain authoritative. Their sizes and SHA-256 hashes are recorded in \path{artifacts/fcc_tau_w_p8o_consolidated_freeze_20260901/}. No simulation, reconstruction, generator, linker, HitAnalysis, or scientific audit was rerun. No scientific definition changed, and no derived output was written to Lustre.
+
+\end{document}

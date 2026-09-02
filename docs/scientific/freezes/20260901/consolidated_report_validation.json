@@ -1,0 +1,492 @@
+{
+  "check_count": 63,
+  "checks": [
+    {
+      "actual": 0.3679722222222222,
+      "expected": 0.3679722222222222,
+      "name": "tau_decay_W_hadronic_1prong_with_pi0",
+      "pass": true,
+      "source": "tau_decay_channels.csv"
+    },
+    {
+      "actual": 0.3689239486695184,
+      "expected": 0.3689239486695184,
+      "name": "tau_decay_P8O_hadronic_1prong_with_pi0",
+      "pass": true,
+      "source": "tau_decay_channels.csv"
+    },
+    {
+      "actual": 0.1833611111111111,
+      "expected": 0.1833611111111111,
+      "name": "tau_decay_W_electron_leptonic",
+      "pass": true,
+      "source": "tau_decay_channels.csv"
+    },
+    {
+      "actual": 0.1768790622743181,
+      "expected": 0.1768790622743181,
+      "name": "tau_decay_P8O_electron_leptonic",
+      "pass": true,
+      "source": "tau_decay_channels.csv"
+    },
+    {
+      "actual": 0.17583333333333334,
+      "expected": 0.17583333333333334,
+      "name": "tau_decay_W_muon_leptonic",
+      "pass": true,
+      "source": "tau_decay_channels.csv"
+    },
+    {
+      "actual": 0.17493472584856398,
+      "expected": 0.17493472584856398,
+      "name": "tau_decay_P8O_muon_leptonic",
+      "pass": true,
+      "source": "tau_decay_channels.csv"
+    },
+    {
+      "actual": 44.96,
+      "expected": 44.96,
+      "name": "tau_mean_W_p",
+      "pass": true,
+      "source": "kinematic_summary.csv"
+    },
+    {
+      "actual": 45.007,
+      "expected": 45.007,
+      "name": "tau_mean_P8O_p",
+      "pass": true,
+      "source": "kinematic_summary.csv"
+    },
+    {
+      "actual": 33.142,
+      "expected": 33.142,
+      "name": "tau_mean_W_pt",
+      "pass": true,
+      "source": "kinematic_summary.csv"
+    },
+    {
+      "actual": 33.279,
+      "expected": 33.279,
+      "name": "tau_mean_P8O_pt",
+      "pass": true,
+      "source": "kinematic_summary.csv"
+    },
+    {
+      "actual": 89.961,
+      "expected": 89.961,
+      "name": "tau_mean_W_theta",
+      "pass": true,
+      "source": "kinematic_summary.csv"
+    },
+    {
+      "actual": 89.983,
+      "expected": 89.983,
+      "name": "tau_mean_P8O_theta",
+      "pass": true,
+      "source": "kinematic_summary.csv"
+    },
+    {
+      "actual": 25879,
+      "expected": 25879,
+      "name": "non_tau_count_W",
+      "pass": true,
+      "source": "non_tau_photon_summary.csv"
+    },
+    {
+      "actual": 1.4377222222222221,
+      "expected": 1.4377222222222221,
+      "name": "non_tau_mult_W",
+      "pass": true,
+      "source": "non_tau_photon_summary.csv"
+    },
+    {
+      "actual": 0.5019127477877816,
+      "expected": 0.5019127477877816,
+      "name": "non_tau_forward_W",
+      "pass": true,
+      "source": "non_tau_photon_summary.csv"
+    },
+    {
+      "actual": 49121,
+      "expected": 49121,
+      "name": "non_tau_count_P8O",
+      "pass": true,
+      "source": "non_tau_photon_summary.csv"
+    },
+    {
+      "actual": 2.7289444444444446,
+      "expected": 2.7289444444444446,
+      "name": "non_tau_mult_P8O",
+      "pass": true,
+      "source": "non_tau_photon_summary.csv"
+    },
+    {
+      "actual": 0.8374829502656704,
+      "expected": 0.8374829502656704,
+      "name": "non_tau_forward_P8O",
+      "pass": true,
+      "source": "non_tau_photon_summary.csv"
+    },
+    {
+      "actual": 2.8320555555555558,
+      "expected": 2.8320555555555558,
+      "name": "photon_pfo_yield_W",
+      "pass": true,
+      "source": "pfo_pid_composition.csv"
+    },
+    {
+      "actual": 2.882,
+      "expected": 2.882,
+      "name": "photon_pfo_yield_P8O",
+      "pass": true,
+      "source": "pfo_pid_composition.csv"
+    },
+    {
+      "actual": 89.844,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 89.844,
+      "name": "pid_W_electron",
+      "pass": true,
+      "source": "pid_audit_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 89.433,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 89.433,
+      "name": "pid_P8O_electron",
+      "pass": true,
+      "source": "pid_audit_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 88.647,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 88.647,
+      "name": "pid_W_muon",
+      "pass": true,
+      "source": "pid_audit_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 88.747,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 88.747,
+      "name": "pid_P8O_muon",
+      "pass": true,
+      "source": "pid_audit_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 93.438,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 93.438,
+      "name": "pid_W_photon",
+      "pass": true,
+      "source": "pid_audit_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 93.6,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 93.6,
+      "name": "pid_P8O_photon",
+      "pass": true,
+      "source": "pid_audit_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 92.267,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 92.267,
+      "name": "pid_W_charged_pion",
+      "pass": true,
+      "source": "pid_audit_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 91.965,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 91.965,
+      "name": "pid_P8O_charged_pion",
+      "pass": true,
+      "source": "pid_audit_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 96.499,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 96.499,
+      "name": "eff_W_electron",
+      "pass": true,
+      "source": "pfo_reconstruction_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 95.732,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 95.732,
+      "name": "eff_P8O_electron",
+      "pass": true,
+      "source": "pfo_reconstruction_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 98.504,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 98.504,
+      "name": "eff_W_muon",
+      "pass": true,
+      "source": "pfo_reconstruction_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 97.972,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 97.972,
+      "name": "eff_P8O_muon",
+      "pass": true,
+      "source": "pfo_reconstruction_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 54.447,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 54.447,
+      "name": "eff_W_photon",
+      "pass": true,
+      "source": "pfo_reconstruction_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 42.046,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 42.046,
+      "name": "eff_P8O_photon",
+      "pass": true,
+      "source": "pfo_reconstruction_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 97.1,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 97.1,
+      "name": "eff_W_charged_pion",
+      "pass": true,
+      "source": "pfo_reconstruction_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 96.703,
+      "comparison": "published rounding to 0.001 percentage point",
+      "expected": 96.703,
+      "name": "eff_P8O_charged_pion",
+      "pass": true,
+      "source": "pfo_reconstruction_outcomes.csv",
+      "unit": "percent"
+    },
+    {
+      "actual": 25879,
+      "expected": 25879,
+      "name": "origin_W_parentless_unresolved",
+      "pass": true,
+      "source": "photon_origin_discovery_summary.csv"
+    },
+    {
+      "actual": 49120,
+      "expected": 49120,
+      "name": "origin_P8O_explicit_ISR",
+      "pass": true,
+      "source": "photon_origin_discovery_summary.csv"
+    },
+    {
+      "actual": 39585,
+      "expected": 39585,
+      "name": "origin_W_tau_decay_pi0",
+      "pass": true,
+      "source": "photon_origin_discovery_summary.csv"
+    },
+    {
+      "actual": 39727,
+      "expected": 39727,
+      "name": "origin_P8O_tau_decay_pi0",
+      "pass": true,
+      "source": "photon_origin_discovery_summary.csv"
+    },
+    {
+      "actual": 8640,
+      "expected": 8640,
+      "name": "origin_W_tau_direct_daughter_unresolved",
+      "pass": true,
+      "source": "photon_origin_discovery_summary.csv"
+    },
+    {
+      "actual": 7697,
+      "expected": 7697,
+      "name": "origin_P8O_tau_direct_daughter_unresolved",
+      "pass": true,
+      "source": "photon_origin_discovery_summary.csv"
+    },
+    {
+      "actual": 0.046949,
+      "expected": 0.046949,
+      "name": "origin_eff_W_parentless_unresolved",
+      "pass": true,
+      "source": "photon_origin_reco_outcomes.csv"
+    },
+    {
+      "actual": 0.035301,
+      "expected": 0.035301,
+      "name": "origin_eff_P8O_explicit_ISR",
+      "pass": true,
+      "source": "photon_origin_reco_outcomes.csv"
+    },
+    {
+      "actual": 0.913503,
+      "expected": 0.913503,
+      "name": "origin_eff_W_tau_decay_pi0",
+      "pass": true,
+      "source": "photon_origin_reco_outcomes.csv"
+    },
+    {
+      "actual": 0.907569,
+      "expected": 0.907569,
+      "name": "origin_eff_P8O_tau_decay_pi0",
+      "pass": true,
+      "source": "photon_origin_reco_outcomes.csv"
+    },
+    {
+      "actual": 0.338542,
+      "expected": 0.338542,
+      "name": "origin_eff_W_tau_direct_daughter_unresolved",
+      "pass": true,
+      "source": "photon_origin_reco_outcomes.csv"
+    },
+    {
+      "actual": 0.36001,
+      "expected": 0.36001,
+      "name": "origin_eff_P8O_tau_direct_daughter_unresolved",
+      "pass": true,
+      "source": "photon_origin_reco_outcomes.csv"
+    },
+    {
+      "actual": 0.044244,
+      "expected": 0.044244,
+      "name": "full_chain_W_parentless_unresolved",
+      "pass": true,
+      "source": "photon_origin_full_chain.csv"
+    },
+    {
+      "actual": 0.033306,
+      "expected": 0.033306,
+      "name": "full_chain_P8O_explicit_ISR",
+      "pass": true,
+      "source": "photon_origin_full_chain.csv"
+    },
+    {
+      "actual": 0.853151,
+      "expected": 0.853151,
+      "name": "full_chain_W_tau_decay_pi0",
+      "pass": true,
+      "source": "photon_origin_full_chain.csv"
+    },
+    {
+      "actual": 0.848491,
+      "expected": 0.848491,
+      "name": "full_chain_P8O_tau_decay_pi0",
+      "pass": true,
+      "source": "photon_origin_full_chain.csv"
+    },
+    {
+      "actual": 0.316782,
+      "expected": 0.316782,
+      "name": "full_chain_W_tau_direct_daughter_unresolved",
+      "pass": true,
+      "source": "photon_origin_full_chain.csv"
+    },
+    {
+      "actual": 0.340392,
+      "expected": 0.340392,
+      "name": "full_chain_P8O_tau_direct_daughter_unresolved",
+      "pass": true,
+      "source": "photon_origin_full_chain.csv"
+    },
+    {
+      "actual": true,
+      "expected": true,
+      "name": "migration_headline_51.249% / 37.053% / 36.846%",
+      "pass": true,
+      "source": "MIGRATION_MATRICES_W_P8_G_LDIRECT_LANCESTOR_20260828.md"
+    },
+    {
+      "actual": true,
+      "expected": true,
+      "name": "migration_headline_46.610% / 61.109% / 61.379%",
+      "pass": true,
+      "source": "MIGRATION_MATRICES_W_P8_G_LDIRECT_LANCESTOR_20260828.md"
+    },
+    {
+      "actual": true,
+      "expected": true,
+      "name": "migration_headline_51.149% / 39.526% / 39.355%",
+      "pass": true,
+      "source": "MIGRATION_MATRICES_W_P8_G_LDIRECT_LANCESTOR_20260828.md"
+    },
+    {
+      "actual": true,
+      "expected": true,
+      "name": "migration_headline_45.068% / 57.496% / 57.786%",
+      "pass": true,
+      "source": "MIGRATION_MATRICES_W_P8_G_LDIRECT_LANCESTOR_20260828.md"
+    },
+    {
+      "actual": 26,
+      "expected": 26,
+      "name": "figure_count",
+      "pass": true,
+      "source": "consolidated TeX"
+    },
+    {
+      "actual": 9,
+      "expected": 9,
+      "name": "table_count",
+      "pass": true,
+      "source": "consolidated TeX"
+    },
+    {
+      "actual": true,
+      "expected": true,
+      "name": "latex_no_overfull",
+      "pass": true,
+      "source": "consolidated LaTeX log"
+    },
+    {
+      "actual": true,
+      "expected": true,
+      "name": "latex_no_undefined_reference",
+      "pass": true,
+      "source": "consolidated LaTeX log"
+    },
+    {
+      "actual": 20,
+      "expected": 20,
+      "name": "rendered_page_count",
+      "pass": true,
+      "source": "Ghostscript render"
+    }
+  ],
+  "failed_checks": 0,
+  "figure_count": 26,
+  "page_count": 20,
+  "scientific_sources_regenerated": false,
+  "status": "PASS",
+  "table_count": 9,
+  "visual_inspection": {
+    "blank_pages": 0,
+    "clipped_pages": 0,
+    "contact_sheets_inspected": 5,
+    "pages_inspected": 20,
+    "status": "PASS",
+    "unreadable_pages": 0
+  }
+}

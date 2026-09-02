@@ -1,0 +1,3 @@
+# The scientific freeze is committed byte-for-byte, including historical CRLF
+# and Markdown hard-break whitespace recorded by its authoritative hashes.
+docs/scientific/** -whitespace
