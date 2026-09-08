@@ -133,3 +133,44 @@ tau-origin rows sum to 100%.
 **Common issues.** Running before Recipe C, missing REC parent branches,
 incompatible compact-truth columns, excessive workers, or a residual partial
 output directory.
+
+## E. Four-sample truth/bookkeeping audit
+
+**Purpose.** Apply one unweighted audit implementation to W, P8C, P8O, and
+KKMCee without collapsing the two PYTHIA8 reconstruction chains.  The catalog
+is `configs/analysis/fcc_sample_catalog_v1.yaml`.  Its W row deliberately uses
+the frozen Talk-2 W18k nine-file scope; P8C and P8O use their complete 100k and
+18k scopes, respectively, and KKMCee expects the final 2k linked REC plus
+workflow-owned assignments.
+
+```bash
+export FCC_TAU_KKMCEE_MATERIAL=/path/to/kkmcee_material
+python scripts/analysis/audit_fcc_samples.py \
+  --catalog configs/analysis/fcc_sample_catalog_v1.yaml \
+  --audit W P8C P8O KKMCee --workers 8 \
+  --output-root "$FCC_TAU_KKMCEE_MATERIAL/audit"
+```
+
+The target must not exist. The command reads REC truth/PFO collections and
+already-produced L_direct/L_ancestor tables; it does not rebuild an
+association. It aborts before scanning when any configured prerequisite is
+missing or empty. Outputs include the wide CSV/JSON/Markdown audit plus
+machine-readable generator-status, assignment-status, ancestor-depth,
+parentless-species, and input-provenance tables.
+
+The frozen W/P8O PFO-coverage regression is explicit and read-only:
+
+```bash
+python scripts/validation/validate_fcc_audit_regression.py \
+  --audit-csv "$FCC_TAU_KKMCEE_MATERIAL/audit/truth_bookkeeping_audit.csv" \
+  --coverage-csv /path/to/frozen/W_vs_PYTHIA8_truth_association_coverage.csv \
+  --p8c-outcomes-csv /path/to/frozen/P8C_association_outcome_summary.csv \
+  --output-csv "$FCC_TAU_KKMCEE_MATERIAL/validation/audit_regression.csv"
+```
+
+For the planned equal-statistics WHIZARD/KKMCee comparison, the catalog pins
+W source `000242385`, the first deterministic source in the frozen Talk-2
+manifest, and the final KKMCee source ID `700000001`. Both represent exactly
+2,000 events. This catalog establishes inputs and provenance only; it does not
+claim that the archived Talk-2 plot builders are a maintained generic
+comparison API.
