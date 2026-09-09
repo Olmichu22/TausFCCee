@@ -1,0 +1,60 @@
+schema_version: fcc_mc_comparison_v1
+scientific_contract:
+  freeze: "2026-09-01"
+  selected_truth: selected_truth_v1
+  tau_origin: stored_recursive_ancestor_abs_pdg_15
+  geometric_association: {implementation: modules.NeutralRecover.get_reco_mc_links_by_dR, max_dR: 0.1, metric: theta_phi, dedup_mode: reco}
+  direct_assignment: truthlink_assignment_v1
+  ancestor_assignment: truthlink_ancestor_assignment_v1
+  representative_pfo: frozen_track_then_cluster_weight_ranking
+  pid_denominator: associated_unique_only
+  momentum_residual: (reco_p-truth_p)/truth_p
+  theta_residual: (reco_theta-truth_theta)*pi/180*1000_mrad
+  central68_halfwidth: (q84-q16)/2
+
+comparisons:
+  whizard_p8o_18k:
+    output_token: PYTHIA8
+    regression_reference: /lhome/ific/a/airqui/FCC/talk2_material
+    samples:
+      - internal_name: W
+        presentation_label: WHIZARD
+        adapter: frozen_products
+        expected_events: 18000
+        frozen_products: &frozen_products
+          selected_truth_outcomes: /lhome/ific/a/airqui/FCC/archive/ild-tau_pre_consolidation_active_20260902/artifacts/pfo_reconstruction_efficiency_W_P8O_equalstats_20260901/validation/selected_truth_association_rows.parquet
+          lancestor_pairs: /lhome/ific/a/airqui/FCC/archive/ild-tau_pre_consolidation_active_20260902/artifacts/pid_audit_W_P8O_equalstats_20260901/validation/pid_lancestor_associated_rows.parquet
+          tau_records: /lhome/ific/a/airqui/FCC/archive/ild-tau_pre_consolidation_active_20260902/artifacts/tau_topology_audit_W_P8O_equalstats_20260831/tau_decays/tau_records.csv
+          tau_decay_channels: /lhome/ific/a/airqui/FCC/archive/ild-tau_pre_consolidation_active_20260902/artifacts/tau_topology_audit_W_P8O_equalstats_20260831/tables/tau_decay_channels.csv
+          truth_composition: /lhome/ific/a/airqui/FCC/archive/ild-tau_pre_consolidation_active_20260902/artifacts/tau_topology_audit_W_P8O_equalstats_20260831/tables/truth_species_composition.csv
+          conditional_pid_matrices: /lhome/ific/a/airqui/FCC/archive/ild-tau_pre_consolidation_active_20260902/artifacts/pid_audit_W_P8O_equalstats_20260901/tables/conditional_pid_matrices.csv
+          coverage: /lhome/ific/a/airqui/FCC/talk2_material/part4/method_comparison/W_vs_PYTHIA8_truth_association_coverage.csv
+          presentation_pid_root: /lhome/ific/a/airqui/FCC/talk2_material/part4/method_comparison
+      - internal_name: P8O
+        presentation_label: PYTHIA8
+        adapter: frozen_products
+        expected_events: 18000
+        frozen_products: *frozen_products
+
+  whizard_kkmcee_2k:
+    output_token: KKMCee
+    samples:
+      - internal_name: W
+        presentation_label: WHIZARD
+        adapter: workflow_manifest
+        expected_events: 2000
+        events_per_file: 2000
+        manifest: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/ILD20260821_2k/truth_comparison_G_Ldirect_Lancestor_v1/ancestor_assignment/campaign_manifest.csv
+        include_source_ids: ["000242385"]
+        columns: {source_id: source_id, rec: source_rec, direct: direct, ancestor: ancestor_out}
+        provenance: canonical deterministic W unit, source_file_id 000242385
+      - internal_name: KKMCee
+        presentation_label: KKMCee
+        source_file_id: "700000001"
+        adapter: workflow_products
+        expected_events: 2000
+        rec: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/KKMCee/ILD20260908_2k/truthlink/kk_ee_Ztautau_4991_REC_TruthlinkV1.edm4hep.root
+        direct: ${FCC_TAU_KKMCEE_MATERIAL}/derived/KKMCee_2k_pfo_assignment.parquet
+        ancestor: ${FCC_TAU_KKMCEE_MATERIAL}/derived/KKMCee_2k_ancestor_assignment.parquet
+        preflight_receipt: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/KKMCee/ILD20260908_2k/validation/kkmcee_2k_truthlink_preflight.json
+        provenance: final 2000-event KKMCee sample; test10 prohibited for scientific output

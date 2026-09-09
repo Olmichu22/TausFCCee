@@ -5,6 +5,10 @@ Definitions referenced here are frozen in
 data inputs governed by `fcc_tau_association_v1`; TausFCCee does not implement
 L_direct or L_ancestor.
 
+The frozen-definition parameterized W/P8O and W/KKMCee comparison suite,
+including exact preflight and regression commands, is documented in
+[`MC_COMPARISON_PIPELINE.md`](MC_COMPARISON_PIPELINE.md).
+
 ## A. Basic G / HitAnalysis
 
 **Purpose.** Produce geometric selected-truth association (G), efficiency,
