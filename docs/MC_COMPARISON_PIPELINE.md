@@ -97,3 +97,12 @@ python scripts/analysis/build_mc_comparison.py \
 P8O starts from historical SIM, whereas P8H simulation and both reconstruction
 chains use stable Key4hep 2026-04-08.  Therefore the comparison is symmetric
 from reconstruction onward, not at simulation level.
+
+Current stable diagnostic anchors are approximately `12.25/12.20 mrad` for
+the P8O/P8H selected-photon theta central-68 half-widths and `0.84 mrad` for
+the W stable control. Moving Key4hep release did not remove the broad P8
+component, changing from the historical P8 source to P8H did not remove it, and
+the W stable control remained essentially consistent with its historical
+nightly result. These are observable-level comparisons, not a claim that the
+difference is intrinsic detector or ECAL angular resolution; the event-record
+diagnostics show contributions from geometry, association, and topology.

@@ -114,9 +114,23 @@ outcomes remain distinct. This is not a truth-level selection.
 
 - G answers which selected truth and PFO are geometrically compatible.
 - L_direct answers which immediate detector-level MC contributor wins the
-  frozen exact packed-weight rule.
-- L_ancestor answers whether that direct contributor maps to a unique nearest
-  selected ancestor through stored parents.
+  frozen exact packed-weight rule. The relation weight is decoded as
+  `W = 10000*C + T`, `T = int(W) % 10000`, and `C = int(W) // 10000`. A
+  relation with packed zero remains a relation; no relation is a distinct
+  state. The immediate linked MC may have any `generatorStatus`.
+- L_ancestor starts only from a unique L_direct MC. If it satisfies
+  `selected_truth_v1`, it is retained at depth zero; otherwise a parent-only
+  breadth-first traversal promotes to exactly one qualifying selected truth at
+  the nearest depth. Several qualifying nearest ancestors are ambiguous, none
+  gives `no_selected_ancestor`, and a stored cycle is fatal. It never reruns or
+  reweights T/C and cannot repair missing or ambiguous L_direct.
+
+When an MC-to-PFO inversion needs one reconstructed object, the authoritative
+`truthlink_representative` helper ranks the underlying direct TruthLink weights:
+maximum T then C on the track branch, or maximum C on the cluster branch. Exact
+terminal ties remain `ambiguous_multiple_pfo`; index, order, PID, energy,
+residual, and PDG are not tie-breakers. This selects one PFO for one-truth/
+one-PFO observables and does not redefine the persisted PFO-to-MC assignments.
 
 They answer different questions, are complementary diagnostics, and must not
 be substituted for one another. L_direct/L_ancestor are produced by

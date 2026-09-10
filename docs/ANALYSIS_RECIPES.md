@@ -178,3 +178,115 @@ manifest, and the final KKMCee source ID `700000001`. Both represent exactly
 2,000 events. This catalog establishes inputs and provenance only; it does not
 claim that the archived Talk-2 plot builders are a maintained generic
 comparison API.
+
+## F. Inspect one stored MC event record
+
+`dump_mc_event_record.py` renders the complete stored `MCParticles` genealogy
+and `PandoraPFOs` together with existing L_direct and L_ancestor assignment
+rows. It never regenerates an association. Supply one REC, its two assignment
+Parquets, the stable source ID, and a new output directory. For the stable
+2026-04-08 products, use the matching environment:
+
+```bash
+source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
+python scripts/analysis/dump_mc_event_record.py \
+  --rec "$REC" --ldirect "$LDIRECT" --lancestor "$LANCESTOR" \
+  --source-file-id "$SOURCE_ID" --first-events 10 \
+  --output-dir /path/to/new/event-records
+```
+
+Select one exact event with `--event-key "$SOURCE_ID:7"` (or use
+`--events 3,7,14` and ranges such as `--events 100-109`). A diagnostic search
+for photon pairs with `10 <= |delta theta| <= 20 mrad` is:
+
+```bash
+python scripts/analysis/dump_mc_event_record.py \
+  --rec "$REC" --ldirect "$LDIRECT" --lancestor "$LANCESTOR" \
+  --source-file-id "$SOURCE_ID" --find-pdg 22 \
+  --find-method L_ancestor --abs-theta-residual 10:20 --max-events 20 \
+  --output-dir /path/to/new/photon-event-records
+```
+
+Each event produces `.detail.txt`, `.tree.txt`, and JSON. `MC#37` and `PFO#12`
+mean the actual `MCParticles[37]` and `PandoraPFOs[12]` collection indices;
+the JSON also records the fully qualified source/event/object identities. Every
+persisted PFO association remains visible. `[REP]` marks the unique PFO chosen
+by the maintained underlying-direct T/C representative rule; a terminal tie is
+shown as `ambiguous_multiple_pfo` and is not resolved arbitrarily. Residual
+searches use ANY associated PFO by default. Add `--representative-only` to use
+only that unique representative, as in the maintained Part3b-style reduction.
+`[REP]` resolves MC-to-one-PFO reduction for one-truth/one-PFO observables; it
+does not change PFO ownership. Several PFOs may each be uniquely assigned to
+the same MC, and the inspector continues to display all of them. `[MATCH]`,
+when present, is display metadata only.
+
+MC production vertices/endpoints and neutral single-cluster directions from the
+nominal IP and MC production vertex are diagnostic metadata only. They do not
+replace the official PFO-minus-truth residual or alter search/association. A
+parent endpoint/daughter vertex is marked as a local coordinate match only when
+its stored coordinates agree within `1e-6 mm`, a numerical equality tolerance,
+not a physics distance cut. Multiple clusters are listed and never silently
+reduced. The identical inspector implementation applies to P8H and W. The
+frozen `selected_truth_v1` requirement is `generatorStatus == 1`,
+`p >= 1e-10 GeV`, and `abs(PDG) not in {12,14,16}`.
+
+The v2 inspector supports persisted L_direct and L_ancestor only: G and
+presentation filters such as hadronization collapsing are intentionally
+unsupported. The genealogy
+is shown exactly as stored, including shared nodes, disconnected components,
+and explicitly marked cycles.
+
+### Stable photon-theta diagnostic examples
+
+The following are event-level facts from existing stable REC and assignment
+products, not new physics classifications. For P8H source `910000000`, event
+1, photon `MC#15` has three L_ancestor-associated PFOs: `PFO#1` has
+`T=1000`, `C=995`, and `dtheta=+1.213303 mrad` and is `[REP]`; `PFO#3` has
+`T=0`, `C=946`, and `+10.037690 mrad`; `PFO#4` has `T=0`, `C=1000`, and
+`+23.178000 mrad`. Thus this truth photon passes an ANY-PFO `>10 mrad` test
+but does not contribute to the representative-PFO `>10 mrad` tail.
+
+In P8H event 5, photons `MC#27` and `MC#28` share the stored production vertex
+`(-0.272001,-3.617490,-34.312023) mm`. Their representative pairs have:
+
+| Pair | official dtheta [mrad] | cluster-IP [mrad] | cluster-from-MC-vertex [mrad] | PFO-vs-cluster-IP [mrad] |
+|---|---:|---:|---:|---:|
+| `MC#27/PFO#3` | +17.122258 | +16.849890 | -0.516398 | +0.272369 |
+| `MC#28/PFO#2` | +17.265029 | +16.945914 | -1.460408 | +0.319115 |
+
+For this event, the large official residual is dominated by comparing the truth
+momentum direction at a displaced production vertex with a neutral
+reconstructed direction approximately pointing from the nominal IP to the
+cluster. This one-event observation must not be generalized into an intrinsic
+ECAL angular-resolution statement. The maintained photon-theta observable is
+the official residual of the maintained representative PFO associated with a
+selected-truth photon; it can contain geometry, association, and topology
+effects.
+
+A capped W stable search found representative photon residuals in the same
+10--20 mrad interval in events `262, 288, 371, 394, 448` and then stopped; this
+is not a population count. Event 394 is largely corrected by pointing from its
+displaced MC vertex, whereas event 371 retains about 16 mrad after that
+diagnostic correction. Other inspected cases include mixed topology, ancestry,
+and representative-PFO effects. These observations are not automatic classifier
+labels and do not assign physics-process names to stored genealogy edges.
+
+### P8H primary-vertex provenance
+
+The standalone `out_0.hepmc` record already contains longitudinally displaced
+primary vertices before detector simulation; examples include approximately
+`z = -20.01, -49.15, -11.30, +11.09, -33.96, +50.78, -64.37, +83.47 mm`. REC
+MC primary vertices preserve this scale up to later transformations and decays,
+so Geant4/Pandora did not create the large primary-z displacement.
+
+The Pythia card enables `Beams:allowVertexSpread` with
+`Beams:sigmaVertexX=5.96e-3`, `Beams:sigmaVertexY=23.8e-6`,
+`Beams:sigmaVertexZ=0.397`, and `Beams:sigmaTime=10.89`; Pythia spatial values
+are in mm and time is in mm/c. Separately, the k4Gen example configuration uses
+`GaussSmearVertex` with `xVertexSigma=yVertexSigma=0.5 mm`,
+`zVertexSigma=40.0 mm`, and `tVertexSigma=180 ps`. The observed O(40 mm) z
+spread is strong evidence for an additional large k4Gen vertex smearing on top
+of Pythia's internal spread, rather than `sigmaVertexZ=0.397 mm` alone. This is
+a provenance/diagnostic observation: the generation configuration is unchanged,
+and no k4Gen time-unit bug is claimed without validation of the exact production
+version and configuration.
