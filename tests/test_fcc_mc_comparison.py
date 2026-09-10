@@ -19,11 +19,14 @@ class ComparisonContractTest(unittest.TestCase):
         path = ROOT / "configs/analysis/fcc_mc_comparisons_v1.yaml"
         p8 = load_comparison(path, "whizard_p8o_18k")
         kk = load_comparison(path, "whizard_kkmcee_2k")
+        stable = load_comparison(path, "p8o_p8h_stable10k")
         self.assertEqual(p8["contract"], kk["contract"])
         self.assertEqual([x["internal_name"] for x in p8["samples"]], ["W", "P8O"])
         self.assertEqual([x["internal_name"] for x in kk["samples"]], ["W", "KKMCee"])
         self.assertEqual(kk["samples"][0]["include_source_ids"], ["000242385"])
         self.assertEqual(kk["samples"][1]["expected_events"], 2000)
+        self.assertEqual(stable["association_truth_scope"], "inclusive")
+        self.assertEqual([x["internal_name"] for x in stable["samples"]], ["P8O", "P8H"])
 
     def test_representative_rule_is_track_then_cluster_without_index_tiebreak(self):
         rows = [

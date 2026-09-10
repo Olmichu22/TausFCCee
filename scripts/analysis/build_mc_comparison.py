@@ -13,18 +13,23 @@ import tempfile
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 from modules.fcc_mc_comparison import load_comparison, load_sample, write_csv  # noqa: E402
-from modules.fcc_mc_comparison_outputs import build_all  # noqa: E402
+from modules.fcc_mc_comparison_outputs import (  # noqa: E402
+    build_all, build_part12, build_part3, build_part3b, build_part4,
+    build_photon_diagnostic,
+)
 
 
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
-    result.add_argument("--comparison", required=True,
-                        choices=("whizard_p8o_18k", "whizard_kkmcee_2k"))
+    result.add_argument("--comparison", required=True)
     result.add_argument("--config", type=Path, default=REPO / "configs/analysis/fcc_mc_comparisons_v1.yaml")
     result.add_argument("--output-root", type=Path, required=True)
     result.add_argument("--validation-mode", action="store_true",
                         help="compare generated CSV products against frozen Talk-2 references")
     result.add_argument("--overwrite", action="store_true")
+    result.add_argument("--families", nargs="+",
+                        choices=("part12", "part3", "part3b", "part4", "photon_diagnostic"),
+                        help="output families; default is the complete maintained suite")
     return result
 
 
@@ -124,16 +129,46 @@ def main() -> None:
     samples = [load_sample(spec) for spec in comparison["samples"]]
     if [sample.expected_events for sample in samples] != [int(spec["expected_events"]) for spec in comparison["samples"]]:
         raise AssertionError("configured event-scope mismatch")
-    generated = build_all(samples, args.output_root, comparison["output_token"])
+    first_token = comparison.get("first_output_token", "W")
+    truth_scope = comparison.get("association_truth_scope", "tau_origin")
+    truth_tau = {"tau_origin": True, "inclusive": None}[truth_scope]
+    if args.families:
+        generated = []
+        if "part12" in args.families:
+            generated += build_part12(samples, args.output_root, comparison["output_token"])
+        if "part3" in args.families:
+            generated += build_part3(samples, args.output_root, comparison["output_token"], first_token, truth_tau)
+        if "part3b" in args.families:
+            generated += build_part3b(samples, args.output_root, comparison["output_token"], first_token)
+        if "part4" in args.families:
+            generated += build_part4(samples, args.output_root, comparison["output_token"])
+        if "photon_diagnostic" in args.families:
+            generated += build_photon_diagnostic(samples, args.output_root, first_token, comparison["output_token"])
+    else:
+        generated = build_all(samples, args.output_root, comparison["output_token"])
     manifest = [{"path": str(path.relative_to(args.output_root)), "kind": path.suffix.lstrip(".")}
                 for path in sorted(generated)]
     write_csv(args.output_root / "manifest/generated_products.csv", manifest)
     provenance = {"comparison": args.comparison, "scientific_contract": comparison["contract"],
                   "samples": [sample.provenance for sample in samples],
                   "event_scopes": {sample.internal_name: sample.expected_events for sample in samples},
+                  "families": args.families or ["part12", "part3", "part3b", "part4"],
+                  "association_truth_scope": truth_scope,
                   "test10_scientific_use": False}
     (args.output_root / "manifest/provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
-    write_summary(args.output_root, comparison, samples)
+    if args.families:
+        summary = {"comparison": comparison["name"], "status": "PASS",
+                   "event_scopes": provenance["event_scopes"], "families": provenance["families"],
+                   "association_truth_scope": truth_scope,
+                   "caveat": "Generator-record and simulation provenance differ; no ISR/FSR interpretation is assigned."}
+        (args.output_root / "summary").mkdir(parents=True, exist_ok=True)
+        (args.output_root / "summary/comparison_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
+        (args.output_root / "README.md").write_text(
+            f"# {samples[0].presentation_label} versus {samples[1].presentation_label}\n\n"
+            f"Scope: {samples[0].expected_events:,} versus {samples[1].expected_events:,} events.\n\n"
+            "Frozen 2026-09-01 definitions are used. Generator-record and simulation provenance differ; no ISR/FSR interpretation is assigned.\n")
+    else:
+        write_summary(args.output_root, comparison, samples)
     if args.validation_mode:
         validation = regression(generated, args.output_root, Path(comparison["regression_reference"]))
         write_csv(args.output_root / "validation/talk2_numerical_regression.csv", validation)

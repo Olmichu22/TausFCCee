@@ -17,6 +17,7 @@ from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
+from statistics import median
 
 import pyarrow.parquet as pq
 
@@ -39,8 +40,10 @@ def scan_rec(path: Path) -> dict:
     status = Counter()
     parentless_species = Counter()
     selected_species = Counter()
+    selected_per_event = []
     reader = root_io.Reader(str(path))
     for event in reader.get("events"):
+        event_selected = 0
         counts["events"] += 1
         mc = event.get("MCParticles")
         pfos = event.get("PandoraPFOs")
@@ -53,6 +56,7 @@ def scan_rec(path: Path) -> dict:
             status[str(int(p.getGeneratorStatus()))] += 1
             if not selected_truth_particle(p):
                 continue
+            event_selected += 1
             counts["selected"] += 1
             pdg = int(p.getPDG())
             species = SPECIES.get(abs(pdg), "other")
@@ -69,11 +73,13 @@ def scan_rec(path: Path) -> dict:
                 counts["photons_tau" if tau else "photons_non_tau"] += 1
                 if not p.getParents():
                     counts["photons_parentless"] += 1
+        selected_per_event.append(event_selected)
     return {
         "counts": dict(counts),
         "generator_status": dict(status),
         "parentless_species": dict(parentless_species),
         "selected_species": dict(selected_species),
+        "selected_per_event": selected_per_event,
     }
 
 
@@ -102,6 +108,7 @@ def audit_sample(name: str, config: dict, workers: int = 1):
     gen_status = Counter()
     parentless_species = Counter()
     selected_species = Counter()
+    selected_per_event = []
     direct_status = Counter()
     ancestor_status = Counter()
     depths = Counter()
@@ -113,6 +120,7 @@ def audit_sample(name: str, config: dict, workers: int = 1):
         gen_status.update(scanned["generator_status"])
         parentless_species.update(scanned["parentless_species"])
         selected_species.update(scanned["selected_species"])
+        selected_per_event.extend(scanned["selected_per_event"])
         direct = pq.read_table(required[1])
         ancestor = pq.read_table(required[2])
         if len(direct) != scanned["counts"].get("pfos", 0) or len(ancestor) != len(direct):
@@ -163,6 +171,7 @@ def audit_sample(name: str, config: dict, workers: int = 1):
         "selected_charged_pions": selected_species["charged_pion"],
         "selected_other": selected_species["other"],
         "selected_truth_per_event": raw["selected"] / raw["events"],
+        "selected_truth_per_event_median": float(median(selected_per_event)),
         "selected_truth_parentless": raw["selected_parentless"],
         "selected_truth_parentless_fraction": frac(raw["selected_parentless"], raw["selected"]),
         "selected_photons": raw["photons"],

@@ -18,7 +18,11 @@ def load_catalog(path: Path) -> dict:
     if data.get("schema_version") != CATALOG_SCHEMA:
         raise ValueError("unsupported sample catalog")
     required = {"W", "P8C", "P8O", "KKMCee"}
-    if set(data.get("samples", {})) != required:
+    samples = data.get("samples", {})
+    if data.get("catalog_scope") == "generic":
+        if not isinstance(samples, dict) or not samples:
+            raise ValueError("generic catalog must contain at least one sample")
+    elif set(samples) != required:
         raise ValueError("catalog must distinguish W, P8C, P8O, and KKMCee")
     return data
 

@@ -367,7 +367,7 @@ def extract_workflow_sample(spec: dict) -> SampleData:
             base = {"sample": internal, "source_file": rec.name,
                     "source_file_id": str(spec.get("source_file_id", "")), "event_in_file": event_index,
                     "truth_index": index, "truth_species": species, "truth_pdg": pdgs[index],
-                    "tau_ancestor": tau, **kine}
+                    "tau_ancestor": tau, "parentless": not parents[index], **kine}
             truth.append(base)
             truth_counts[("tau_origin" if tau else "non_tau_origin", species)] += 1
             if species not in TRUTH_SPECIES:

@@ -17,3 +17,8 @@ def test_resolve_records(tmp_path, monkeypatch):
     monkeypatch.delenv("FCC_TAU_KKMCEE_MATERIAL", raising=False)
     with pytest.raises(ValueError, match="unresolved"):
         resolve_records({"single_source":{"source_id":"7","source_rec":"$FCC_TAU_KKMCEE_MATERIAL/x"}})
+
+def test_generic_catalog_accepts_named_campaign_samples(tmp_path):
+    catalog = tmp_path / "generic.yaml"
+    catalog.write_text("schema_version: fcc_sample_catalog_v1\ncatalog_scope: generic\nsamples:\n  A: {}\n  B: {}\n")
+    assert set(load_catalog(catalog)["samples"]) == {"A", "B"}

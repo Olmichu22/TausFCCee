@@ -78,3 +78,22 @@ python scripts/analysis/audit_fcc_samples.py \
   --catalog configs/analysis/fcc_sample_catalog_v1.yaml \
   --output-root /lhome/ific/a/airqui/FCC/kkmcee_material/audit
 ```
+
+## Stable P8O/P8H 10k comparison
+
+`p8o_p8h_stable10k` compares the controlled 10,000-event samples with an
+inclusive selected-truth denominator.  It consumes the existing integrated
+TruthLinkV1, L_direct, and L_ancestor products; it does not rebuild them.  To
+avoid running the unrequested PID family:
+
+```bash
+export FCC_TAU_PYTHIA_20260909_MATERIAL=/lhome/ific/a/airqui/FCC/pythia_20260909_material
+python scripts/analysis/build_mc_comparison.py \
+  --comparison p8o_p8h_stable10k \
+  --output-root "$FCC_TAU_PYTHIA_20260909_MATERIAL/comparison_P8O_P8H_stable10k" \
+  --families part3 part3b photon_diagnostic
+```
+
+P8O starts from historical SIM, whereas P8H simulation and both reconstruction
+chains use stable Key4hep 2026-04-08.  Therefore the comparison is symmetric
+from reconstruction onward, not at simulation level.

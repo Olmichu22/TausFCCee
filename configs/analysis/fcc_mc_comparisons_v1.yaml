@@ -58,3 +58,27 @@ comparisons:
         ancestor: ${FCC_TAU_KKMCEE_MATERIAL}/derived/KKMCee_2k_ancestor_assignment.parquet
         preflight_receipt: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/KKMCee/ILD20260908_2k/validation/kkmcee_2k_truthlink_preflight.json
         provenance: final 2000-event KKMCee sample; test10 prohibited for scientific output
+
+  p8o_p8h_stable10k:
+    first_output_token: P8O
+    output_token: P8H
+    association_truth_scope: inclusive
+    samples:
+      - internal_name: P8O
+        presentation_label: P8O
+        adapter: workflow_manifest
+        expected_events: 10000
+        events_per_file: 1000
+        manifest: ${FCC_TAU_PYTHIA_20260909_MATERIAL}/audit_P8O_P8H_stable10k/workflow_products_manifest.csv
+        include_source_ids: ["900000001", "900000032", "900000118", "900000246", "900000256", "900000301", "900000366", "900000448", "900000485", "900000518"]
+        columns: {source_id: source_id, rec: source_rec, direct: direct, ancestor: ancestor}
+        provenance: historical P8O SIM; stable 2026-04-08 reconstruction and integrated TruthLinkV1
+      - internal_name: P8H
+        presentation_label: P8H
+        adapter: workflow_manifest
+        expected_events: 10000
+        events_per_file: 1000
+        manifest: ${FCC_TAU_PYTHIA_20260909_MATERIAL}/audit_P8O_P8H_stable10k/workflow_products_manifest.csv
+        include_source_ids: ["910000000", "910000001", "910000002", "910000003", "910000004", "910000005", "910000006", "910000007", "910000008", "910000009"]
+        columns: {source_id: source_id, rec: source_rec, direct: direct, ancestor: ancestor}
+        provenance: PYTHIA8 20260909 HepMC; stable 2026-04-08 SIM, reconstruction and integrated TruthLinkV1
