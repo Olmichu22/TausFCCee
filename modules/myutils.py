@@ -13,6 +13,8 @@ import pickle
 import numpy as np
 import pprint
 from pathlib import Path
+
+from modules.analysis_hardening import remap_prediction_keys
 from modules.ParticleObjects import GenParticle, RecoParticle
 
 
@@ -572,6 +574,12 @@ def setup_analysis_config(
         "--prefix", required=False
     )
     parser.add_argument(
+        "--output-root",
+        type=str,
+        default=None,
+        help="Explicit base directory for analysis outputs; defaults preserve upstream behavior.",
+    )
+    parser.add_argument(
         "--samples-config",
         type=str,
         default="config/samples/samples.yaml",
@@ -649,7 +657,9 @@ def setup_analysis_config(
         decay_str = "decayAll" + suffix
     file_out = f"{outfile}{decay_str}.root"
 
-    # Output path logic
+    # Output path logic. An explicit root removes Results/ as an implicit API.
+    if args.output_root:
+        output_base = os.path.abspath(args.output_root) + os.sep
     base = output_base + outfile + suffix[1:] + "/"
     if args.gatr_result and args.test_pfo and not args.prefix:
         path = output_base + "PFO_" + outfile + suffix[1:] + "/"
@@ -788,10 +798,9 @@ def apply_shard(filenames, mlpf_results, shard, loggers):
     Files are split with a stride (``filenames[I::N]``) so the shards stay
     balanced even when file sizes vary.
 
-    ``mlpf_results`` is keyed as ``file_position * 1000 + local_event`` — the
-    same convention the event loop relies on when it looks up predictions by a
-    running event id over ``root_io.Reader(filenames)``. Dropping files shifts
-    every position, so the keys are rebuilt against the new positions.
+    ``mlpf_results`` is keyed as ``(file_position, event_in_file)``. Dropping
+    files shifts every position, so tuple keys are rebuilt against the new
+    positions without assuming a maximum number of events per file.
     """
     spec = parse_shard_spec(shard)
     if spec is None:
@@ -805,13 +814,7 @@ def apply_shard(filenames, mlpf_results, shard, loggers):
 
     if mlpf_results:
         new_pos_of = {old_pos: new_pos for new_pos, (old_pos, _) in enumerate(kept)}
-        remapped = {}
-        for key, value in mlpf_results.items():
-            old_pos, local = divmod(key, 1000)
-            new_pos = new_pos_of.get(old_pos)
-            if new_pos is not None:
-                remapped[new_pos * 1000 + local] = value
-        mlpf_results = remapped
+        mlpf_results = remap_prediction_keys(mlpf_results, new_pos_of)
 
     filenames = [name for _, name in kept]
     loggers["io"].info(
@@ -884,7 +887,7 @@ def get_root_trees_path(sample, gatr_results_path, loggers, test, args=None, ski
             loggers["io"].debug("Read %d GATr results", len(mlpf_results))
                 
             for key, value in mlpf_preds_i.items():
-                key_id = n_files*1000 + key - 1
+                key_id = (n_files, key - 1)
                 mlpf_results[key_id] = value
                 n_preds += 1
             n_files += 1

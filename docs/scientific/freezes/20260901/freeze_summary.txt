@@ -1,0 +1,20 @@
+FCC tau W/P8O consolidated scientific freeze
+STATUS: SCIENTIFIC ANALYSIS FROZEN AT 2026-09-01
+Scientific status: PASS_WITH_WARNINGS
+Hashed files: 127
+Selected figures: 26
+Event manifest SHA-256: b2f81449579d33ec228b65c20a7927f8930ef19368aedd97244085c6e587cf3b
+
+Authoritative artifact roots:
+- artifacts/migration_matrices_W_P8_G_Ldirect_Lancestor_20260828
+- artifacts/tau_topology_audit_W_P8O_equalstats_20260831
+- artifacts/pid_audit_W_P8O_equalstats_20260901
+- artifacts/pfo_reconstruction_efficiency_W_P8O_equalstats_20260901
+- artifacts/photon_origin_discovery_W_P8O_equalstats_20260901
+- artifacts/photon_origin_reco_audit_W_P8O_equalstats_20260901
+
+Open event-record limitations:
+- W parentless_unresolved is not ISR.
+- tau_direct_daughter_unresolved is not FSR.
+
+No large datasets or REC/SIM files were copied.

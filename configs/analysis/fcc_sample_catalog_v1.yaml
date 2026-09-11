@@ -1,0 +1,55 @@
+schema_version: fcc_sample_catalog_v1
+scientific_definitions:
+  selected_truth: selected_truth_v1
+  geometric_association: geometric_association_v1
+  direct_assignment: truthlink_assignment_v1
+  ancestor_assignment: truthlink_ancestor_assignment_v1
+samples:
+  W:
+    presentation_label: WHIZARD
+    generator: WHIZARD 3.0.3
+    sqrt_s_GeV: 91.2
+    reconstruction_chain: our ILD reconstruction
+    audit_scope: frozen Talk-2 W18k
+    expected_events: 18000
+    manifest: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/ILD20260821_2k/truth_comparison_G_Ldirect_Lancestor_v1/ancestor_assignment/campaign_manifest.csv
+    columns: {source_id: source_id, source_rec: source_rec, direct: direct, ancestor: ancestor_out, selected_truth: truth_out}
+    selected_truth_product_scope: photon_and_charged_pion
+    include_source_ids: ["000242385", "000358005", "000497029", "000879444", "000898343", "000966520", "001218437", "001434184", "001714006"]
+  P8C:
+    presentation_label: PYTHIA8 / collaborator reco
+    generator: PYTHIA8
+    reconstruction_chain: collaborator reconstruction
+    audit_scope: complete P8C 100k campaign
+    expected_events: 100000
+    manifest: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/samples_pythia_20260821/truthlink_assignment_ancestor_v1_collab/manifests/input_manifest.csv
+    columns: {source_id: source_file_id, source_rec: input_REC, direct: assignment_output, ancestor: ancestor_output}
+    selected_truth_product_scope: all_selected_truth
+  P8O:
+    presentation_label: PYTHIA8 / our reco
+    generator: PYTHIA8
+    reconstruction_chain: our ILD reconstruction
+    audit_scope: complete P8O 18k campaign
+    expected_events: 18000
+    manifest: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/samples_pythia_20260821/truthlink_assignment_ancestor_v1_ourReco/manifests/input_manifest.csv
+    columns: {source_id: source_file_id, source_rec: input_REC, direct: assignment_output, ancestor: ancestor_output}
+    selected_truth_product_scope: all_selected_truth
+  KKMCee:
+    presentation_label: KKMCee
+    generator: KKMCee
+    sqrt_s_GeV: 91.188
+    reconstruction_chain: our ILD reconstruction
+    audit_scope: expected final KKMCee 2k campaign
+    expected_events: 2000
+    single_source:
+      source_id: "700000001"
+      source_rec: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/KKMCee/ILD20260908_2k/truthlink/kk_ee_Ztautau_4991_REC_TruthlinkV1.edm4hep.root
+      direct: ${FCC_TAU_KKMCEE_MATERIAL}/derived/KKMCee_2k_pfo_assignment.parquet
+      ancestor: ${FCC_TAU_KKMCEE_MATERIAL}/derived/KKMCee_2k_ancestor_assignment.parquet
+comparisons:
+  whizard_kkmcee_2k:
+    samples: [W, KKMCee]
+    expected_events_each: 2000
+    W_source_id: "000242385"
+    W_selection_reason: deterministic file-order 0 in the frozen Talk-2 equal-statistics manifest
+    output_subdirectory: comparison_W2k_KKMCee2k

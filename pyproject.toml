@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tausfccee-analysis"
+version = "0.1.0"
+description = "Upstream TausFCCee analysis with maintained FCC helper contracts"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+analysis = ["numpy", "pandas", "matplotlib", "pyarrow", "PyYAML"]
+test = ["pytest", "PyYAML"]
+
+[tool.setuptools]
+packages = ["modules"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Legacy upstream scripts under test/ are executable smoke programs, not pytest modules.

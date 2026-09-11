@@ -1182,6 +1182,7 @@ def plot_confusion_matrices(
             print(f"  Saved → {fname}")
 
         general_figs.append(fig)
+        plt.close(fig)
 
     combined_figs.extend(general_figs)
 
@@ -1222,6 +1223,7 @@ def plot_confusion_matrices(
                     print(f"  Saved → {fname}")
 
                 bin_figs.append(fig)
+                plt.close(fig)
 
             combined_figs.extend(bin_figs)
 

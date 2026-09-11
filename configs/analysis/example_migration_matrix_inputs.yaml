@@ -1,0 +1,17 @@
+schema_version: fcc_migration_matrix_inputs_v1
+g_products:
+  W: /data/W_G.parquet
+  P8C: /data/P8C_G.parquet
+  P8O: /data/P8O_G.parquet
+workflow_manifests:
+  W: /data/W_workflow_manifest.csv
+  P8C: /data/P8C_workflow_manifest.csv
+  P8O: /data/P8O_workflow_manifest.csv
+validation_inputs:
+  fiducial_tables: /data/frozen_validation/fiducial
+  lancestor_tables: /data/frozen_validation/lancestor
+provenance:
+  historical_definition_source: source_port_manifest_stage3.csv:compare_campaigns.py
+  historical_comparison_reference: frozen_20260901
+output_root: /analysis-output/migration_matrices
+report_path: /analysis-output/MIGRATION_MATRICES.md

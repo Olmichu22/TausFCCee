@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""Build the maintained frozen-definition W-versus-second-MC plot suite."""
+from __future__ import annotations
+
+import argparse
+import json
+import math
+from pathlib import Path
+import shutil
+import sys
+import tempfile
+
+REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO))
+from modules.fcc_mc_comparison import (  # noqa: E402
+    load_comparison, load_sample, normalize_performance_config, write_csv,
+)
+from modules.fcc_mc_comparison_outputs import (  # noqa: E402
+    build_all, build_part12, build_part3, build_part3b, build_part4,
+    build_performance_report, build_photon_diagnostic,
+)
+
+
+def parser() -> argparse.ArgumentParser:
+    result = argparse.ArgumentParser(description=__doc__)
+    result.add_argument("--comparison", required=True)
+    result.add_argument("--config", type=Path, default=REPO / "configs/analysis/fcc_mc_comparisons_v1.yaml")
+    result.add_argument("--output-root", type=Path, required=True)
+    result.add_argument("--validation-mode", action="store_true",
+                        help="compare generated CSV products against frozen Talk-2 references")
+    result.add_argument("--overwrite", action="store_true")
+    result.add_argument("--truth-p-min", type=float,
+                        help="additional inclusive truth-p cut; omitted means configured no-cut default")
+    result.add_argument("--truth-theta-min-deg", type=float,
+                        help="additional inclusive truth-theta minimum")
+    result.add_argument("--truth-theta-max-deg", type=float,
+                        help="additional inclusive truth-theta maximum")
+    result.add_argument("--families", nargs="+",
+                        choices=("part12", "part3", "part3b", "part4", "photon_diagnostic", "performance"),
+                        help="output families; default is the complete maintained suite")
+    return result
+
+
+def _cell_equal(left, right) -> bool:
+    if left == right:
+        return True
+    try:
+        a, b = float(left), float(right)
+    except (TypeError, ValueError):
+        return str(left) == str(right)
+    if math.isnan(a) and math.isnan(b):
+        return True
+    return math.isclose(a, b, rel_tol=2e-12, abs_tol=2e-14)
+
+
+def compare_csv(generated: Path, reference: Path) -> tuple[bool, int, str]:
+    import csv
+    with generated.open(newline="") as stream:
+        new_rows = list(csv.DictReader(stream)); new_fields = list(new_rows[0]) if new_rows else []
+    with reference.open(newline="") as stream:
+        old_rows = list(csv.DictReader(stream)); old_fields = list(old_rows[0]) if old_rows else []
+    if new_fields != old_fields:
+        return False, 0, f"columns differ: {new_fields} != {old_fields}"
+    if len(new_rows) != len(old_rows):
+        return False, 0, f"row count differs: {len(new_rows)} != {len(old_rows)}"
+    differences = 0
+    first = ""
+    for index, (new, old) in enumerate(zip(new_rows, old_rows), start=2):
+        for field in new_fields:
+            if not _cell_equal(new[field], old[field]):
+                differences += 1
+                if not first:
+                    first = f"row {index} field {field}: {new[field]!r} != {old[field]!r}"
+    return differences == 0, differences, first
+
+
+def regression(generated: list[Path], output_root: Path, reference_root: Path) -> list[dict]:
+    families = {"part12": 0, "part3": 0, "part3b": 0, "part4": 0}
+    rows = []
+    for path in generated:
+        if path.suffix != ".csv":
+            continue
+        relative = path.relative_to(output_root)
+        reference = reference_root / relative
+        if not reference.is_file():
+            continue
+        passed, differences, detail = compare_csv(path, reference)
+        family = relative.parts[0]; families[family] += 1
+        rows.append({"family": family, "product": str(relative), "reference": str(reference),
+                     "status": "PASS" if passed else "FAIL", "cell_discrepancies": differences,
+                     "first_discrepancy": detail})
+    missing = [family for family, count in families.items() if count == 0]
+    if missing:
+        raise AssertionError(f"no regression products checked for families: {missing}")
+    return rows
+
+
+def _read_rows(path: Path) -> list[dict]:
+    import csv
+    with path.open(newline="") as stream:
+        return list(csv.DictReader(stream))
+
+
+def write_summary(output_root: Path, comparison: dict, samples) -> None:
+    token = comparison["output_token"]
+    coverage = _read_rows(output_root / f"part4/method_comparison/W_vs_{token}_truth_association_coverage.csv")
+    integrated = []
+    for file_token in ("W", token):
+        for method in ("G", "Ldirect", "Lancestor"):
+            integrated.extend(_read_rows(output_root / f"part3/{file_token}_{method}_reco_efficiency.csv"))
+    residuals = _read_rows(output_root / f"part3b/W_vs_{token}_pfo_residual_summary.csv")
+    pid = _read_rows(output_root / f"part4/W_vs_{token}_conditional_pid_efficiency.csv")
+    payload = {"comparison": comparison["name"],
+        "event_scopes": {sample.internal_name: sample.expected_events for sample in samples},
+        "pfo_coverage": coverage, "integrated_association": integrated,
+        "residual_summary": residuals, "conditional_pid_diagonal": pid,
+        "caveat": "Truth particle multiplicities and photon ancestry categories are generator-record dependent. No ISR/FSR interpretation is assigned at this stage."}
+    destination = output_root / "summary/comparison_summary.json"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    lines = [f"# {samples[0].presentation_label} versus {samples[1].presentation_label}", "",
+             f"Scope: {samples[0].expected_events:,} versus {samples[1].expected_events:,} events.", "",
+             "The suite uses the frozen 2026-09-01 selected-truth, G, L_direct, L_ancestor, tau-origin, representative-PFO, PID and residual definitions.", "",
+             "> Truth particle multiplicities and photon ancestry categories are generator-record dependent. No ISR/FSR interpretation is assigned at this stage.", "",
+             "Machine-readable headline values are in `summary/comparison_summary.json`; exact inputs are in `manifest/provenance.json`.", ""]
+    (output_root / "README.md").write_text("\n".join(lines))
+
+
+def main() -> None:
+    args = parser().parse_args()
+    comparison = load_comparison(args.config, args.comparison)
+    performance = dict(comparison["performance"])
+    for field, value in (("truth_p_min", args.truth_p_min),
+                         ("truth_theta_min_deg", args.truth_theta_min_deg),
+                         ("truth_theta_max_deg", args.truth_theta_max_deg)):
+        if value is not None:
+            performance[field] = value
+    comparison["performance"] = normalize_performance_config(performance)
+    if args.validation_mode and "regression_reference" not in comparison:
+        raise ValueError("validation mode is only configured for the frozen W/P8O comparison")
+    if args.output_root.exists() and any(args.output_root.iterdir()) and not args.overwrite:
+        raise FileExistsError(f"non-empty output root (use --overwrite): {args.output_root}")
+    args.output_root.mkdir(parents=True, exist_ok=True)
+    samples = [load_sample(spec) for spec in comparison["samples"]]
+    if [sample.expected_events for sample in samples] != [int(spec["expected_events"]) for spec in comparison["samples"]]:
+        raise AssertionError("configured event-scope mismatch")
+    first_token = comparison.get("first_output_token", "W")
+    truth_scope = comparison.get("association_truth_scope", "tau_origin")
+    truth_tau = {"tau_origin": True, "inclusive": None}[truth_scope]
+    if args.families:
+        generated = []
+        if "part12" in args.families:
+            generated += build_part12(samples, args.output_root, comparison["output_token"])
+        if "part3" in args.families:
+            generated += build_part3(samples, args.output_root, comparison["output_token"], first_token,
+                                     truth_tau, comparison["performance"])
+        if "part3b" in args.families:
+            generated += build_part3b(samples, args.output_root, comparison["output_token"], first_token)
+        if "part4" in args.families:
+            generated += build_part4(samples, args.output_root, comparison["output_token"])
+        if "photon_diagnostic" in args.families:
+            generated += build_photon_diagnostic(samples, args.output_root, first_token, comparison["output_token"])
+        if "performance" in args.families:
+            generated += build_performance_report(samples, args.output_root, first_token,
+                                                  comparison["output_token"], truth_tau,
+                                                  comparison["performance"])
+    else:
+        generated = build_all(samples, args.output_root, comparison["output_token"],
+                              first_token, truth_tau, comparison["performance"])
+    manifest = [{"path": str(path.relative_to(args.output_root)), "kind": path.suffix.lstrip(".")}
+                for path in sorted(generated)]
+    write_csv(args.output_root / "manifest/generated_products.csv", manifest)
+    provenance = {"comparison": args.comparison, "scientific_contract": comparison["contract"],
+                  "samples": [sample.provenance for sample in samples],
+                  "event_scopes": {sample.internal_name: sample.expected_events for sample in samples},
+                  "families": args.families or ["part12", "part3", "part3b", "part4"],
+                  "association_truth_scope": truth_scope,
+                  "performance": comparison["performance"],
+                  "test10_scientific_use": False}
+    (args.output_root / "manifest/provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
+    if args.families:
+        summary = {"comparison": comparison["name"], "status": "PASS",
+                   "event_scopes": provenance["event_scopes"], "families": provenance["families"],
+                   "association_truth_scope": truth_scope,
+                   "caveat": "Generator-record and simulation provenance differ; no ISR/FSR interpretation is assigned."}
+        (args.output_root / "summary").mkdir(parents=True, exist_ok=True)
+        (args.output_root / "summary/comparison_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
+        (args.output_root / "README.md").write_text(
+            f"# {samples[0].presentation_label} versus {samples[1].presentation_label}\n\n"
+            f"Scope: {samples[0].expected_events:,} versus {samples[1].expected_events:,} events.\n\n"
+            "Frozen 2026-09-01 definitions are used. Generator-record and simulation provenance differ; no ISR/FSR interpretation is assigned.\n")
+    else:
+        write_summary(args.output_root, comparison, samples)
+    if args.validation_mode:
+        validation = regression(generated, args.output_root, Path(comparison["regression_reference"]))
+        write_csv(args.output_root / "validation/talk2_numerical_regression.csv", validation)
+        failures = [row for row in validation if row["status"] != "PASS"]
+        summary = {"status": "PASS" if not failures else "FAIL", "products_checked": len(validation),
+                   "failures": len(failures), "pixel_identity_required": False}
+        (args.output_root / "validation/regression_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+        if failures:
+            raise AssertionError(f"{len(failures)} numerical regression products failed")
+    print(json.dumps({"status": "PASS", "comparison": args.comparison,
+                      "generated_products": len(generated), "output_root": str(args.output_root)}, indent=2))
+
+
+if __name__ == "__main__":
+    main()

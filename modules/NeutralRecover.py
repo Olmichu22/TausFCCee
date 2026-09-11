@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import ROOT
 from modules.myutils import dRAngle
+from modules.analysis_hardening import has_any_detector_signal
+from modules.fcc_truth_definitions import selected_truth_particle
 from itertools import combinations
 import os
 import edm4hep
@@ -733,11 +735,7 @@ def get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=
             mc_stats[mc_idx]['n_track'] += 1
         except Exception:
             pass
-    all_0 = True    
-    for mc_id in mc_stats.keys():
-        for ke in mc_stats[mc_id]:
-            if mc_stats[mc_idx][ke]!=0:
-                all_0 = False
+    all_0 = not has_any_detector_signal(mc_stats)
             
     # Construir lista de partículas gen válidas (status 1, sin neutrinos, con señal)
     valid_gen_particles = []
@@ -745,20 +743,10 @@ def get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=
     for idex, part in enumerate(mc_particles):
         # print(idex)
         try:
-            gen_status = part.getGeneratorStatus()
-            # print(gen_status)
-            if gen_status not in VALID_GEN_STATUS:
+            if not selected_truth_particle(part):
                 continue
-            
             pid_raw = part.getPDG()
-            if abs(pid_raw) in NEUTRINO_PDGS:
-                continue
-            # print(pid_raw)
-            
             momentum = part.getMomentum()
-            p = math.sqrt(momentum.x**2 + momentum.y**2 + momentum.z**2)
-            if p < 1e-10:
-                continue
             
             idx = part.getObjectID().index
             
