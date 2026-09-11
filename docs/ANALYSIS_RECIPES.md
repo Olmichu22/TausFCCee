@@ -9,6 +9,35 @@ The frozen-definition parameterized W/P8O and W/KKMCee comparison suite,
 including exact preflight and regression commands, is documented in
 [`MC_COMPARISON_PIPELINE.md`](MC_COMPARISON_PIPELINE.md).
 
+## Six-species performance report
+
+**Purpose.** Report maintained L_ancestor association efficiency and residuals
+for electron, muon, photon, charged pion, charged kaon, and K0L, while retaining
+all other selected PDGs in `other_selected_truth` inventory rows.
+
+**Command.** Select a configured comparison and a new output root:
+
+```bash
+python scripts/analysis/build_mc_comparison.py \
+  --comparison whizard_p8h_stable_performance \
+  --output-root /path/to/new/performance-report \
+  --families performance
+```
+
+The configured `truth_p_min`, `truth_theta_min_deg`, and
+`truth_theta_max_deg` defaults are all `null`, so no extra acceptance is applied.
+Optional CLI values are inclusive truth-side cuts and never use reconstructed
+kinematics. Outputs include integrated efficiency, differential efficiency
+versus truth p/theta/phi, the five maintained residuals, binning/configuration
+provenance, and supported reconstructed-PID accounting. Zero-denominator and
+underflow/overflow bins remain machine-readable without fake plotted points.
+
+Charged-kaon association, efficiency, and residuals are reported as truth
+performance. Kaon PID performance is not evaluated because the maintained
+reconstructed-PID categorization has no dedicated kaon category. Photon
+residuals describe the maintained representative PFO and are not
+unconditionally intrinsic ECAL resolution.
+
 ## A. Basic G / HitAnalysis
 
 **Purpose.** Produce geometric selected-truth association (G), efficiency,

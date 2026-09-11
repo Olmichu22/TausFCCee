@@ -32,6 +32,34 @@ unique association.  Residuals, bins, visible ranges, under/overflow
 normalization and omission of zero-missed points from logarithmic curves are
 shared constants, not sample configuration.
 
+## Six-species performance reporting
+
+The additive `performance` family reports electron, muon, photon, charged-pion,
+charged-kaon, and K0L reconstruction performance from persisted association
+products. It writes the selected-truth inventory, integrated and differential
+efficiencies versus truth p/theta/phi, all five maintained residuals, and the
+existing Pandora-type PID accounting for supported reconstructed categories.
+Charged-kaon truth performance does not include kaon PID evaluation because the
+maintained reconstructed-PID categorization has no dedicated kaon category.
+Non-nominal selected PDGs remain in the
+inventory without spawning plots.
+
+The optional `truth_p_min`, `truth_theta_min_deg`, and
+`truth_theta_max_deg` settings are truth-side reporting cuts. Their defaults are
+`null` (no additional fiducial cut), and every output records the active values
+and binning provenance. The photon residual remains that of the maintained
+representative PFO; it is not unconditionally an intrinsic ECAL resolution.
+
+Example CLI overrides are:
+
+```text
+--truth-p-min 0.5 --truth-theta-min-deg 10 --truth-theta-max-deg 170
+```
+
+The implementation continues to call
+`modules.fcc_workflow_interface.truthlink_representative`; it does not define a
+second representative-PFO rule.
+
 ## W/P8O regression
 
 Generate into a disposable directory; `talk2_material` is read-only:

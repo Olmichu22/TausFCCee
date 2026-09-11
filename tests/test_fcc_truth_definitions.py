@@ -23,6 +23,8 @@ class FrozenTruthDefinitionsTest(unittest.TestCase):
             310: "K0S", 2112: "neutron", 3122: "Lambda",
         }
         self.assertEqual({pdg: reconstructed_pid_category(pdg) for pdg in expected}, expected)
+        with self.assertRaisesRegex(ValueError, "unsupported"):
+            reconstructed_pid_category(321)
         with self.assertRaisesRegex(ValueError, "sentinel"):
             reconstructed_pid_category(999)
 

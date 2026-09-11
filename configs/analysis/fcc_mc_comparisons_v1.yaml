@@ -12,6 +12,18 @@ scientific_contract:
   theta_residual: (reco_theta-truth_theta)*pi/180*1000_mrad
   central68_halfwidth: (q84-q16)/2
 
+# Optional truth-side acceptance for additive machine-readable performance
+# tables. Null means no cut and therefore preserves selected_truth_v1 exactly.
+performance:
+  association_method: Lancestor
+  truth_p_min: null
+  truth_theta_min_deg: null
+  truth_theta_max_deg: null
+  efficiency_bins:
+    p: [0.0, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0]
+    theta: [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0]
+    phi: [-3.141592653589793, -2.6179938779914944, -2.0943951023931957, -1.5707963267948966, -1.0471975511965979, -0.5235987755982988, 0.0, 0.5235987755982988, 1.0471975511965976, 1.5707963267948966, 2.094395102393195, 2.617993877991494, 3.141592653589793]
+
 comparisons:
   whizard_p8o_18k:
     output_token: PYTHIA8
@@ -78,6 +90,35 @@ comparisons:
         adapter: workflow_manifest
         expected_events: 10000
         events_per_file: 1000
+        manifest: ${FCC_TAU_PYTHIA_20260909_MATERIAL}/audit_P8O_P8H_stable10k/workflow_products_manifest.csv
+        include_source_ids: ["910000000", "910000001", "910000002", "910000003", "910000004", "910000005", "910000006", "910000007", "910000008", "910000009"]
+        columns: {source_id: source_id, rec: source_rec, direct: direct, ancestor: ancestor}
+        provenance: PYTHIA8 20260909 HepMC; stable 2026-04-08 SIM, reconstruction and integrated TruthLinkV1
+
+  whizard_p8h_stable_performance:
+    first_output_token: W
+    output_token: P8H
+    association_truth_scope: inclusive
+    samples:
+      - internal_name: W
+        presentation_label: WHIZARD
+        adapter: workflow_products
+        expected_events: 2000
+        source_file_id: "000242385"
+        association_methods: [Lancestor]
+        collect_tau_topology: false
+        rec: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/W_stable20260408_2k/reco/W_source000242385_stable20260408_integratedTruthlinkV1_REC.edm4hep.root
+        direct: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/W_stable20260408_2k/assignments/direct/W_source000242385_pfo_assignment.parquet
+        ancestor: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/W_stable20260408_2k/assignments/ancestor/W_source000242385_ancestor_assignment.parquet
+        preflight_receipt: /lustre/ific.uv.es/prj/gl/abehep.flc/FCC/W_stable20260408_2k/validation/chunks/W_source000242385_preflight.json
+        provenance: WHIZARD source 000242385; stable 2026-04-08 reconstruction and integrated TruthLinkV1
+      - internal_name: P8H
+        presentation_label: P8H
+        adapter: workflow_manifest
+        expected_events: 10000
+        events_per_file: 1000
+        association_methods: [Lancestor]
+        collect_tau_topology: false
         manifest: ${FCC_TAU_PYTHIA_20260909_MATERIAL}/audit_P8O_P8H_stable10k/workflow_products_manifest.csv
         include_source_ids: ["910000000", "910000001", "910000002", "910000003", "910000004", "910000005", "910000006", "910000007", "910000008", "910000009"]
         columns: {source_id: source_id, rec: source_rec, direct: direct, ancestor: ancestor}

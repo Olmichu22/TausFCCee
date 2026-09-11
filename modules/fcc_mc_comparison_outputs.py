@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from collections import Counter
+import json
 import math
 from pathlib import Path
 
@@ -12,15 +13,18 @@ from matplotlib.colors import LogNorm
 import numpy as np
 
 from modules.fcc_mc_comparison import (
-    ASSOCIATIONS, OUTCOMES, PID_CATEGORIES, TRUTH_SPECIES, SampleData,
-    hist_with_flow, quantile_summary, write_csv,
+    ASSOCIATIONS, NOMINAL_TRUTH_SPECIES, OUTCOMES, PID_CATEGORIES, TRUTH_SPECIES,
+    SampleData, binned_efficiency, fiducial_outcomes, fiducial_provenance,
+    hist_with_flow, normalize_performance_config, quantile_summary,
+    selected_truth_inventory, truth_fiducial_accepts, write_csv,
 )
 
 COLORS = ("#2369bd", "#d85b2a")
 METHOD_COLORS = {"G": "#2369bd", "Ldirect": "#d85b2a", "Lancestor": "#2a9d55",
                  "L_direct": "#d85b2a", "L_ancestor": "#2a9d55"}
 SPECIES_LABEL = {"electron": "Electron", "muon": "Muon", "photon": "Photon",
-                 "charged_pion": "Charged pion"}
+                 "charged_pion": "Charged pion", "charged_kaon": "Charged kaon",
+                 "K0L": "K0L"}
 SHORT = {"electron": "e", "muon": "mu", "photon": "gamma", "charged_pion": "pi"}
 PRESENTATION_RANGES = {
     "momentum": {"electron": (-.2, .1), "muon": (-.05, .05), "photon": (-.4, .4), "charged_pion": (-.05, .05)},
@@ -189,12 +193,71 @@ def _binned_inefficiency(data: SampleData, method: str, variable: str, tau: bool
     return rows
 
 
+def _fiducial_efficiency_tables(data: SampleData, truth_tau: bool | None,
+                                performance: dict) -> tuple[list[dict], dict[str, list[dict]]]:
+    """Build additive six-species tables; existing four-species products stay unchanged."""
+    configured = normalize_performance_config(performance)
+    method = configured["association_method"]
+    method_label = method.replace("Ldirect", "L_direct").replace("Lancestor", "L_ancestor")
+    provenance = fiducial_provenance(configured)
+    integrated = []
+    differential = {variable: [] for variable in ("p", "theta", "phi")}
+    for species in NOMINAL_TRUTH_SPECIES:
+        denominator = fiducial_outcomes(_outcomes(data, method, species, truth_tau), configured)
+        counts = Counter(row["outcome"] for row in denominator)
+        numerator = counts["associated_unique"]
+        if numerator > len(denominator):
+            raise AssertionError("integrated efficiency numerator exceeds denominator")
+        truth_scope = "inclusive" if truth_tau is None else "tau_origin" if truth_tau else "non_tau_origin"
+        source_scope = ("legacy_frozen_input_may_be_partial"
+                        if data.provenance.get("adapter") == "frozen_products" else "complete")
+        common = {"sample": data.presentation_label, "association_method": method_label,
+                  "species": species, "truth_scope": truth_scope,
+                  "selected_truth_source_scope": source_scope,
+                  "representative_pfo": "modules.fcc_workflow_interface.truthlink_representative",
+                  **provenance}
+        integrated.append({
+            **common, "N_truth": len(denominator), "N_associated_unique": numerator,
+            "denominator_count": len(denominator), "numerator_count": numerator,
+            "N_unmatched": counts["association_unmatched"],
+            "N_ambiguous": counts["ambiguous_multiple_pfo"],
+            "efficiency_percent": "" if not denominator else 100 * numerator / len(denominator),
+        })
+        for variable in differential:
+            edges = configured["efficiency_bins"][variable]
+            available = all(variable in row for row in denominator)
+            if available:
+                rows = binned_efficiency(denominator, variable, edges)
+                for row in rows:
+                    row.update({
+                        **common, "denominator_count": row["N_truth"],
+                        "numerator_count": row["N_associated_unique"], "availability": "complete",
+                    })
+            else:
+                rows = [{
+                    **common, **template,
+                    "N_truth": "", "N_associated_unique": "", "denominator_count": "",
+                    "numerator_count": "", "efficiency_percent": "", "availability": "unavailable",
+                } for template in binned_efficiency([], variable, edges)]
+            differential[variable].extend(rows)
+    return integrated, differential
+
+
 def build_part3(samples: list[SampleData], root: Path, second_token: str,
-                first_token: str = "W", truth_tau: bool | None = True) -> list[Path]:
+                first_token: str = "W", truth_tau: bool | None = True,
+                performance: dict | None = None) -> list[Path]:
     out = root / "part3"; (out / "method_comparison").mkdir(parents=True, exist_ok=True)
     (out / "non_tau_backup").mkdir(parents=True, exist_ok=True); written = []
     tokens = (first_token, second_token)
     for data, token in zip(samples, tokens):
+        fiducial_integrated, fiducial_differential = _fiducial_efficiency_tables(
+            data, truth_tau, normalize_performance_config(performance))
+        method = normalize_performance_config(performance)["association_method"]
+        path = out / f"{token}_{method}_nominal_fiducial_reco_efficiency.csv"
+        write_csv(path, fiducial_integrated); written.append(path)
+        for variable, rows in fiducial_differential.items():
+            path = out / f"{token}_{method}_nominal_fiducial_reco_efficiency_vs_{variable}.csv"
+            write_csv(path, rows); written.append(path)
         all_integrated = []
         for method in ASSOCIATIONS:
             integrated = _integrated_rows(data, method, truth_tau)
@@ -286,9 +349,260 @@ def _residual(pair, residual):
     return (float(pair["reco_theta"]) - float(pair["truth_theta"])) * math.pi / 180 * 1000
 
 
+def _nominal_performance_tables(samples: list[SampleData], performance: dict | None = None,
+                                truth_tau: bool | None = None) -> tuple[list[dict], list[dict]]:
+    configured = normalize_performance_config(performance)
+    method = configured["association_method"]
+    method_label = method.replace("Ldirect", "L_direct").replace("Lancestor", "L_ancestor")
+    provenance = fiducial_provenance(configured)
+    truth_scope = "inclusive" if truth_tau is None else "tau_origin" if truth_tau else "non_tau_origin"
+    inventory = []
+    summaries = []
+    residuals = ("dp_over_p", "dtheta_mrad", "dphi_mrad", "de_over_e", "angle3d_mrad")
+    for data in samples:
+        inventory_scope = ("complete" if data.provenance.get("adapter") != "frozen_products"
+                           else "legacy_frozen_input_may_be_partial")
+        inventory.extend({"sample": data.presentation_label, "availability": inventory_scope, **row}
+                         for row in selected_truth_inventory(data.truth))
+        for species in NOMINAL_TRUTH_SPECIES:
+            pairs = [row for row in _pairs(data, method, species, truth_tau)
+                     if not row.get("aggregate_pid_only") and truth_fiducial_accepts(row, configured)]
+            for residual in residuals:
+                values = [float(row[residual]) for row in pairs if row.get(residual) is not None]
+                availability = "complete" if len(values) == len(pairs) else "unavailable" if not values else "partial"
+                base = {"sample": data.presentation_label, "association_method": method_label,
+                        "species": species, "truth_scope": truth_scope,
+                        "selected_truth_source_scope": inventory_scope,
+                        "representative_pfo": "modules.fcc_workflow_interface.truthlink_representative",
+                        **provenance,
+                        "residual": residual,
+                        "N_pairs": len(pairs), "N_defined": len(values), "availability": availability,
+                        "median": "", "q16": "", "q84": "", "central68_halfwidth": "",
+                        "q68": "", "q95": ""}
+                if values and residual == "angle3d_mrad":
+                    median, q68, q95 = np.quantile(np.asarray(values), (.5, .68, .95))
+                    base.update({"median": float(median), "q68": float(q68), "q95": float(q95)})
+                elif values:
+                    base.update(quantile_summary(values))
+                summaries.append(base)
+    return inventory, summaries
+
+
+def _accepted_pairs(data: SampleData, species: str, truth_tau: bool | None,
+                    performance: dict) -> list[dict]:
+    configured = normalize_performance_config(performance)
+    return [row for row in _pairs(data, configured["association_method"], species, truth_tau)
+            if not row.get("aggregate_pid_only") and truth_fiducial_accepts(row, configured)]
+
+
+def _nominal_residual_plot(path: Path, data: SampleData, residual: str,
+                           truth_tau: bool | None, performance: dict) -> None:
+    labels = {
+        "dp_over_p": "(p_PFO - p_truth) / p_truth",
+        "de_over_e": "(E_PFO - E_truth) / E_truth",
+        "dtheta_mrad": "theta_PFO - theta_truth [mrad]",
+        "dphi_mrad": "wrapped phi_PFO - phi_truth [mrad]",
+        "angle3d_mrad": "Unsigned 3D opening angle [mrad]",
+    }
+    fig, axes = plt.subplots(2, 3, figsize=(13.5, 7.4), constrained_layout=True)
+    usable = 0
+    for axis, species in zip(axes.flat, NOMINAL_TRUTH_SPECIES):
+        values = np.asarray([float(row[residual]) for row in _accepted_pairs(
+            data, species, truth_tau, performance) if row.get(residual) is not None], dtype=float)
+        axis.set_title(f"{SPECIES_LABEL[species]} (N={len(values):,})")
+        if not len(values):
+            axis.text(.5, .5, "No usable associated entries", ha="center", va="center",
+                      transform=axis.transAxes)
+            axis.set_axis_off()
+            continue
+        usable += len(values)
+        low, high = np.quantile(values, (.005, .995))
+        if residual == "angle3d_mrad":
+            low = 0.0
+        else:
+            low, high = min(float(low), 0.0), max(float(high), 0.0)
+        span = float(high - low)
+        if span <= 0:
+            span = max(abs(float(low)), 1.0) * .1
+        low = max(0.0, float(low) - .05 * span) if residual == "angle3d_mrad" else float(low) - .05 * span
+        high = float(high) + .05 * span
+        counts, edges = np.histogram(values, bins=80, range=(low, high))
+        axis.stairs(counts / len(values), edges, color=COLORS[0], linewidth=1.5)
+        if residual != "angle3d_mrad":
+            axis.axvline(0, color="0.4", linewidth=.8, linestyle="--")
+            summary = quantile_summary(values)
+            annotation = (f"median={summary['median']:.4g}\n"
+                          f"h68={summary['central68_halfwidth']:.4g}")
+        else:
+            median, q68, q95 = np.quantile(values, (.5, .68, .95))
+            annotation = f"median={median:.4g}\nq68={q68:.4g}\nq95={q95:.4g}"
+        axis.text(.97, .95, annotation, ha="right", va="top", transform=axis.transAxes,
+                  fontsize=8, bbox={"facecolor": "white", "alpha": .75, "edgecolor": "none"})
+        axis.set_xlabel(labels[residual]); axis.set_ylabel("Fraction / bin"); axis.grid(alpha=.2)
+    if not usable:
+        plt.close(fig)
+        return
+    acceptance = fiducial_provenance(performance)
+    fig.suptitle(f"{data.presentation_label}: nominal-species {labels[residual]}")
+    fig.text(.5, .005,
+             "Central 99% display; normalization includes all usable pairs. "
+             f"Fiducial p/theta: {acceptance['truth_p_min']}, "
+             f"{acceptance['truth_theta_min_deg']}, {acceptance['truth_theta_max_deg']}",
+             ha="center", fontsize=8)
+    path.parent.mkdir(parents=True, exist_ok=True); fig.savefig(path, dpi=170); plt.close(fig)
+
+
+def _integrated_efficiency_plot(path: Path, rows: list[dict], title: str) -> None:
+    present = [row for row in rows if int(row["denominator_count"]) > 0]
+    fig, axis = plt.subplots(figsize=(8.8, 4.8), constrained_layout=True)
+    x = np.arange(len(present)); values = [float(row["efficiency_percent"]) for row in present]
+    axis.bar(x, values, color=COLORS[0])
+    axis.set_xticks(x, [SPECIES_LABEL[row["species"]] for row in present], rotation=25, ha="right")
+    axis.set_ylabel("Reconstruction efficiency [%]"); axis.set_ylim(0, 105); axis.grid(axis="y", alpha=.2)
+    axis.set_title(title)
+    for xpos, value, row in zip(x, values, present):
+        axis.text(xpos, value + 1, f"{value:.1f}%\nN={row['denominator_count']}",
+                  ha="center", va="bottom", fontsize=8)
+    path.parent.mkdir(parents=True, exist_ok=True); fig.savefig(path, dpi=170); plt.close(fig)
+
+
+def _differential_efficiency_plot(path: Path, rows: list[dict], variable: str,
+                                  title: str) -> None:
+    labels = {"p": "Truth p [GeV]", "theta": "Truth theta [deg]", "phi": "Truth phi [rad]"}
+    fig, axes = plt.subplots(2, 3, figsize=(13.5, 7.4), constrained_layout=True)
+    for axis, species in zip(axes.flat, NOMINAL_TRUTH_SPECIES):
+        selected = [row for row in rows if row["species"] == species
+                    and row["bin_kind"] == "regular" and row["availability"] == "complete"
+                    and int(row["denominator_count"]) > 0]
+        axis.set_title(SPECIES_LABEL[species])
+        if not selected:
+            axis.text(.5, .5, "No populated denominator bins", ha="center", va="center",
+                      transform=axis.transAxes)
+            axis.set_axis_off()
+            continue
+        centers = [(float(row["bin_low"]) + float(row["bin_high"])) / 2 for row in selected]
+        axis.plot(centers, [float(row["efficiency_percent"]) for row in selected],
+                  marker="o", markersize=3, linewidth=1.2, color=COLORS[0])
+        if variable == "p":
+            axis.set_xscale("log")
+        axis.set_xlabel(labels[variable]); axis.set_ylabel("Reconstruction efficiency [%]")
+        axis.set_ylim(0, 105); axis.grid(alpha=.2)
+    fig.suptitle(title + " (flow bins retained in CSV only)")
+    path.parent.mkdir(parents=True, exist_ok=True); fig.savefig(path, dpi=170); plt.close(fig)
+
+
+def _nominal_pid_tables(data: SampleData, truth_tau: bool | None,
+                        performance: dict) -> tuple[list[dict], list[dict]]:
+    configured = normalize_performance_config(performance)
+    method = configured["association_method"]
+    method_label = method.replace("Ldirect", "L_direct").replace("Lancestor", "L_ancestor")
+    provenance = fiducial_provenance(configured)
+    confusion = []
+    track_summary = []
+    expected = {"electron": "electron", "muon": "muon",
+                "charged_pion": "charged_pion"}
+    truth_scope = "inclusive" if truth_tau is None else "tau_origin" if truth_tau else "non_tau_origin"
+    common = {"sample": data.presentation_label, "association_method": method_label,
+              "truth_scope": truth_scope,
+              "selected_truth_source_scope": "legacy_frozen_input_may_be_partial"
+              if data.provenance.get("adapter") == "frozen_products" else "complete",
+              "representative_pfo": "modules.fcc_workflow_interface.truthlink_representative",
+              **provenance}
+    for species in NOMINAL_TRUTH_SPECIES:
+        if species == "charged_kaon":
+            continue
+        pairs = _accepted_pairs(data, species, truth_tau, configured)
+        counts = Counter(row["reco_category"] for row in pairs)
+        for category in PID_CATEGORIES:
+            confusion.append({**common, "truth_species": species, "reco_category": category,
+                              "count": counts[category], "N_associated_unique": len(pairs),
+                              "conditional_fraction_percent": "" if not pairs
+                              else 100 * counts[category] / len(pairs), **provenance})
+        if species in expected:
+            correct = counts[expected[species]]
+            track_summary.append({**common, "truth_species": species,
+                                  "N_associated_unique": len(pairs),
+                                  "N_correct_pid": correct, "correct_pid_fraction_percent": "" if not pairs
+                                  else 100 * correct / len(pairs), **provenance})
+    return confusion, track_summary
+
+
+def _charged_pid_plot(path: Path, rows: list[dict], title: str) -> None:
+    present = [row for row in rows if int(row["N_associated_unique"]) > 0]
+    fig, axis = plt.subplots(figsize=(7.8, 4.8), constrained_layout=True)
+    x = np.arange(len(present)); values = [float(row["correct_pid_fraction_percent"]) for row in present]
+    axis.bar(x, values, color=COLORS[0])
+    axis.set_xticks(x, [SPECIES_LABEL[row["truth_species"]] for row in present], rotation=20, ha="right")
+    axis.set_ylabel("Correct reconstructed-PID fraction [%]"); axis.set_ylim(0, 105)
+    axis.set_title(title); axis.grid(axis="y", alpha=.2)
+    path.parent.mkdir(parents=True, exist_ok=True); fig.savefig(path, dpi=170); plt.close(fig)
+
+
+def build_performance_report(samples: list[SampleData], root: Path, first_token: str,
+                             second_token: str, truth_tau: bool | None,
+                             performance: dict) -> list[Path]:
+    """Write compact six-species reporting from already-computed maintained rows."""
+    configured = normalize_performance_config(performance)
+    out = root / "performance"; out.mkdir(parents=True, exist_ok=True); written = []
+    inventory, residual_summaries = _nominal_performance_tables(samples, configured, truth_tau)
+    path = out / "selected_truth_inventory.csv"; write_csv(path, inventory); written.append(path)
+    path = out / "nominal_residual_summary.csv"; write_csv(path, residual_summaries); written.append(path)
+    configuration = {**configured, "representative_pfo": "modules.fcc_workflow_interface.truthlink_representative",
+                     "truth_scope": "inclusive" if truth_tau is None else "tau_origin" if truth_tau else "non_tau_origin"}
+    path = out / "performance_configuration.json"
+    path.write_text(json.dumps(configuration, indent=2, sort_keys=True) + "\n"); written.append(path)
+    report_lines = ["# Nominal-species performance report", "",
+                    f"Association: `{configured['association_method']}`.", "",
+                    f"Truth fiducial: `{fiducial_provenance(configured)}`.", ""]
+    for data, token in zip(samples, (first_token, second_token)):
+        integrated, differential = _fiducial_efficiency_tables(data, truth_tau, configured)
+        path = out / f"{token}_nominal_integrated_efficiency.csv"
+        write_csv(path, integrated); written.append(path)
+        plot = path.with_suffix(".png"); _integrated_efficiency_plot(
+            plot, integrated, f"{data.presentation_label}: nominal-species reconstruction efficiency")
+        written.append(plot)
+        for variable, rows in differential.items():
+            path = out / f"{token}_nominal_efficiency_vs_truth_{variable}.csv"
+            write_csv(path, rows); written.append(path)
+            plot = path.with_suffix(".png"); _differential_efficiency_plot(
+                plot, rows, variable, f"{data.presentation_label}: efficiency versus truth {variable}")
+            written.append(plot)
+        confusion, charged_pid = _nominal_pid_tables(data, truth_tau, configured)
+        path = out / f"{token}_nominal_pid_confusion.csv"; write_csv(path, confusion); written.append(path)
+        path = out / f"{token}_charged_pid_efficiency.csv"; write_csv(path, charged_pid); written.append(path)
+        plot = path.with_suffix(".png"); _charged_pid_plot(
+            plot, charged_pid, f"{data.presentation_label}: charged-species reconstructed PID")
+        written.append(plot)
+        for residual in ("dp_over_p", "de_over_e", "dtheta_mrad", "dphi_mrad", "angle3d_mrad"):
+            path = out / f"{token}_nominal_{residual}.png"
+            _nominal_residual_plot(path, data, residual, truth_tau, configured)
+            if path.exists():
+                written.append(path)
+        report_lines.extend([f"## {data.presentation_label}", ""])
+        for row in (item for item in inventory if item["sample"] == data.presentation_label):
+            label = row["species"] if row["category"] == "nominal_species" else f"PDG {row['pdg']} (other)"
+            report_lines.append(f"- {label}: {row['count']}")
+        report_lines.append("")
+    report_lines.extend([
+        "Charged kaons are nominal truth species for association, efficiency and residual studies. "
+        "Kaon PID performance is not evaluated because the maintained reconstructed-PID "
+        "categorization has no dedicated kaon category.",
+        "",
+        "Residuals use the maintained representative PFO associated to selected truth; photon angular residuals are not labelled as intrinsic ECAL resolution.",
+        "", "Exact efficiency bins, flow accounting, residual summaries and PID counts are in the companion CSV/JSON files.", "",
+    ])
+    path = out / "README.md"; path.write_text("\n".join(report_lines)); written.append(path)
+    return written
+
+
 def build_part3b(samples: list[SampleData], root: Path, second_token: str,
                  first_token: str = "W") -> list[Path]:
     out = root / "part3b"; out.mkdir(parents=True, exist_ok=True); written = []; suffix = f"{first_token}_vs_{second_token}"
+    inventory, nominal_summaries = _nominal_performance_tables(samples)
+    path = out / f"selected_truth_species_inventory_{suffix}.csv"
+    write_csv(path, inventory); written.append(path)
+    path = out / f"nominal_species_residual_summary_{suffix}.csv"
+    write_csv(path, nominal_summaries); written.append(path)
     summaries_by_key = {}
     for residual in ("momentum", "theta_mrad"):
         rows = []
@@ -510,8 +824,11 @@ def _pid_non_tau(path, rows, label):
     _bar_categories(path, rows, "reco_pid", "conditional_fraction_percent", f"{label}: non-tau photon conditional PID")
 
 
-def build_all(samples: list[SampleData], root: Path, second_token: str) -> list[Path]:
+def build_all(samples: list[SampleData], root: Path, second_token: str,
+              first_token: str = "W", truth_tau: bool | None = True,
+              performance: dict | None = None) -> list[Path]:
     paths=[]
-    paths.extend(build_part12(samples,root,second_token)); paths.extend(build_part3(samples,root,second_token))
-    paths.extend(build_part3b(samples,root,second_token)); paths.extend(build_part4(samples,root,second_token))
+    paths.extend(build_part12(samples,root,second_token))
+    paths.extend(build_part3(samples,root,second_token,first_token,truth_tau,performance))
+    paths.extend(build_part3b(samples,root,second_token,first_token)); paths.extend(build_part4(samples,root,second_token))
     return paths

@@ -12,10 +12,12 @@ import tempfile
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
-from modules.fcc_mc_comparison import load_comparison, load_sample, write_csv  # noqa: E402
+from modules.fcc_mc_comparison import (  # noqa: E402
+    load_comparison, load_sample, normalize_performance_config, write_csv,
+)
 from modules.fcc_mc_comparison_outputs import (  # noqa: E402
     build_all, build_part12, build_part3, build_part3b, build_part4,
-    build_photon_diagnostic,
+    build_performance_report, build_photon_diagnostic,
 )
 
 
@@ -27,8 +29,14 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--validation-mode", action="store_true",
                         help="compare generated CSV products against frozen Talk-2 references")
     result.add_argument("--overwrite", action="store_true")
+    result.add_argument("--truth-p-min", type=float,
+                        help="additional inclusive truth-p cut; omitted means configured no-cut default")
+    result.add_argument("--truth-theta-min-deg", type=float,
+                        help="additional inclusive truth-theta minimum")
+    result.add_argument("--truth-theta-max-deg", type=float,
+                        help="additional inclusive truth-theta maximum")
     result.add_argument("--families", nargs="+",
-                        choices=("part12", "part3", "part3b", "part4", "photon_diagnostic"),
+                        choices=("part12", "part3", "part3b", "part4", "photon_diagnostic", "performance"),
                         help="output families; default is the complete maintained suite")
     return result
 
@@ -121,6 +129,13 @@ def write_summary(output_root: Path, comparison: dict, samples) -> None:
 def main() -> None:
     args = parser().parse_args()
     comparison = load_comparison(args.config, args.comparison)
+    performance = dict(comparison["performance"])
+    for field, value in (("truth_p_min", args.truth_p_min),
+                         ("truth_theta_min_deg", args.truth_theta_min_deg),
+                         ("truth_theta_max_deg", args.truth_theta_max_deg)):
+        if value is not None:
+            performance[field] = value
+    comparison["performance"] = normalize_performance_config(performance)
     if args.validation_mode and "regression_reference" not in comparison:
         raise ValueError("validation mode is only configured for the frozen W/P8O comparison")
     if args.output_root.exists() and any(args.output_root.iterdir()) and not args.overwrite:
@@ -137,15 +152,21 @@ def main() -> None:
         if "part12" in args.families:
             generated += build_part12(samples, args.output_root, comparison["output_token"])
         if "part3" in args.families:
-            generated += build_part3(samples, args.output_root, comparison["output_token"], first_token, truth_tau)
+            generated += build_part3(samples, args.output_root, comparison["output_token"], first_token,
+                                     truth_tau, comparison["performance"])
         if "part3b" in args.families:
             generated += build_part3b(samples, args.output_root, comparison["output_token"], first_token)
         if "part4" in args.families:
             generated += build_part4(samples, args.output_root, comparison["output_token"])
         if "photon_diagnostic" in args.families:
             generated += build_photon_diagnostic(samples, args.output_root, first_token, comparison["output_token"])
+        if "performance" in args.families:
+            generated += build_performance_report(samples, args.output_root, first_token,
+                                                  comparison["output_token"], truth_tau,
+                                                  comparison["performance"])
     else:
-        generated = build_all(samples, args.output_root, comparison["output_token"])
+        generated = build_all(samples, args.output_root, comparison["output_token"],
+                              first_token, truth_tau, comparison["performance"])
     manifest = [{"path": str(path.relative_to(args.output_root)), "kind": path.suffix.lstrip(".")}
                 for path in sorted(generated)]
     write_csv(args.output_root / "manifest/generated_products.csv", manifest)
@@ -154,6 +175,7 @@ def main() -> None:
                   "event_scopes": {sample.internal_name: sample.expected_events for sample in samples},
                   "families": args.families or ["part12", "part3", "part3b", "part4"],
                   "association_truth_scope": truth_scope,
+                  "performance": comparison["performance"],
                   "test10_scientific_use": False}
     (args.output_root / "manifest/provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
     if args.families:

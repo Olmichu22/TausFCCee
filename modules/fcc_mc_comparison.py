@@ -26,13 +26,28 @@ from modules.fcc_truth_definitions import (
     reconstructed_pid_category,
     selected_truth_particle,
 )
+from modules.fcc_workflow_interface import truthlink_representative
 
 COMPARISON_SCHEMA = "fcc_mc_comparison_v1"
+# Legacy four-panel products remain unchanged; new machine-readable performance
+# products use the complete explicit nominal inventory below.
 TRUTH_SPECIES = ("electron", "muon", "photon", "charged_pion")
+NOMINAL_TRUTH_SPECIES = (
+    "electron", "muon", "photon", "charged_pion", "charged_kaon", "K0L",
+)
 PID_CATEGORIES = ("electron", "muon", "photon", "charged_pion", "K0S", "neutron", "Lambda")
 ASSOCIATIONS = ("G", "Ldirect", "Lancestor")
 OUTCOMES = ("associated_unique", "association_unmatched", "ambiguous_multiple_pfo")
-PDG_TO_TRUTH = {11: "electron", 13: "muon", 22: "photon", 211: "charged_pion"}
+PDG_TO_TRUTH = {
+    11: "electron", 13: "muon", 22: "photon", 211: "charged_pion",
+    321: "charged_kaon", 130: "K0L",
+}
+FIDUCIAL_FIELDS = ("truth_p_min", "truth_theta_min_deg", "truth_theta_max_deg")
+DEFAULT_EFFICIENCY_BINS = {
+    "p": (0.0, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0),
+    "theta": tuple(float(value) for value in range(0, 181, 10)),
+    "phi": tuple(float(-math.pi + index * math.pi / 6) for index in range(13)),
+}
 
 
 def read_csv(path: Path) -> list[dict]:
@@ -68,16 +83,26 @@ def load_comparison(path: Path, name: str) -> dict:
         raise ValueError(f"unknown comparison: {name}") from error
     if len(comparison.get("samples", [])) != 2:
         raise ValueError("a comparison must contain exactly two samples")
-    return {"name": name, "contract": payload["scientific_contract"], **comparison}
+    configured = dict(payload.get("performance", {}))
+    override = dict(comparison.get("performance", {}))
+    configured.update({key: value for key, value in override.items() if key != "efficiency_bins"})
+    configured["efficiency_bins"] = {
+        **configured.get("efficiency_bins", {}), **override.get("efficiency_bins", {}),
+    }
+    return {"name": name, "contract": payload["scientific_contract"], **comparison,
+            "performance": normalize_performance_config(configured)}
 
 
 def kine_values(energy: float, px: float, py: float, pz: float) -> dict:
-    p = math.sqrt(float(px) ** 2 + float(py) ** 2 + float(pz) ** 2)
-    pt = math.hypot(float(px), float(py))
+    px, py, pz = float(px), float(py), float(pz)
+    p = math.sqrt(px ** 2 + py ** 2 + pz ** 2)
+    pt = math.hypot(px, py)
     return {
         "energy": float(energy), "p": p, "pt": pt,
-        "theta": math.degrees(math.atan2(pt, float(pz))) if p else 0.0,
-        "costheta": float(pz) / p if p else 1.0,
+        "theta": math.degrees(math.atan2(pt, pz)) if p else 0.0,
+        "phi": math.atan2(py, px),
+        "costheta": pz / p if p else 1.0,
+        "px": px, "py": py, "pz": pz,
     }
 
 
@@ -90,8 +115,18 @@ def object_index(obj) -> int:
     return int(obj.getObjectID().index)
 
 
+def nominal_truth_species(pdg: int) -> str | None:
+    """Return the explicit nominal performance category, never an inferred one."""
+    pdg = int(pdg)
+    if abs(pdg) in (11, 13, 211, 321):
+        return PDG_TO_TRUTH[abs(pdg)]
+    if pdg in (22, 130):
+        return PDG_TO_TRUTH[pdg]
+    return None
+
+
 def truth_species(pdg: int, charge: float) -> str:
-    known = PDG_TO_TRUTH.get(abs(int(pdg)))
+    known = nominal_truth_species(pdg)
     if known:
         return known
     if abs(int(pdg)) > 100 and float(charge) != 0:
@@ -101,26 +136,183 @@ def truth_species(pdg: int, charge: float) -> str:
     return "other"
 
 
-def truthlink_representative(rows: list[dict]) -> dict:
-    """Exact port of the frozen W/P8O representative-PFO inversion."""
-    if not rows:
-        return {"status": "unmatched", "pfo_index": None, "multiplicity": 0}
-    if len(rows) == 1:
-        return {"status": "assigned", "pfo_index": int(rows[0]["pfo_index"]), "multiplicity": 1}
-    track = [row for row in rows if int(row["track_permille"]) > 0]
-    if track:
-        best_t = max(int(row["track_permille"]) for row in track)
-        stage = [row for row in track if int(row["track_permille"]) == best_t]
-        best_c = max(int(row["cluster_permille"]) for row in stage)
-        winners = [row for row in stage if int(row["cluster_permille"]) == best_c]
-    else:
-        best_c = max(int(row["cluster_permille"]) for row in rows)
-        winners = [row for row in rows if int(row["cluster_permille"]) == best_c]
-    if len(winners) != 1:
-        return {"status": "ambiguous_multiple_pfo", "pfo_index": None,
-                "multiplicity": len(rows), "tied_pfo_count": len(winners)}
-    return {"status": "assigned", "pfo_index": int(winners[0]["pfo_index"]),
-            "multiplicity": len(rows)}
+def wrap_delta_phi(phi_reco: float, phi_truth: float) -> float:
+    """Return phi_reco-phi_truth in the canonical interval (-pi, pi]."""
+    wrapped = (float(phi_reco) - float(phi_truth) + math.pi) % (2 * math.pi) - math.pi
+    return math.pi if wrapped <= -math.pi else wrapped
+
+
+def clamped_acos_mrad(cosine: float) -> float:
+    return math.acos(max(-1.0, min(1.0, float(cosine)))) * 1000.0
+
+
+def angle3d_mrad(truth_xyz: Iterable[float], reco_xyz: Iterable[float]) -> float | None:
+    truth = tuple(float(value) for value in truth_xyz)
+    reco = tuple(float(value) for value in reco_xyz)
+    if len(truth) != 3 or len(reco) != 3:
+        raise ValueError("3D opening angle requires exactly three components per vector")
+    truth_norm = math.sqrt(sum(value * value for value in truth))
+    reco_norm = math.sqrt(sum(value * value for value in reco))
+    if truth_norm == 0.0 or reco_norm == 0.0:
+        return None
+    cosine = sum(left * right for left, right in zip(truth, reco)) / (truth_norm * reco_norm)
+    return clamped_acos_mrad(cosine)
+
+
+def relative_residual(reco: float, truth: float) -> float | None:
+    return None if float(truth) == 0.0 else (float(reco) - float(truth)) / float(truth)
+
+
+def performance_residuals(pair: dict) -> dict:
+    """Additive residual columns for one maintained truth/representative pair."""
+    result = {
+        "dp_over_p": relative_residual(pair["reco_p"], pair["truth_p"]),
+        "dtheta_mrad": (float(pair["reco_theta"]) - float(pair["truth_theta"])) * math.pi / 180 * 1000,
+        "de_over_e": relative_residual(pair["reco_energy"], pair["truth_energy"]),
+        "dphi_mrad": None,
+        "angle3d_mrad": None,
+    }
+    if "reco_phi" in pair and "truth_phi" in pair:
+        result["dphi_mrad"] = wrap_delta_phi(pair["reco_phi"], pair["truth_phi"]) * 1000
+    vector_keys = tuple(f"{side}_{axis}" for side in ("truth", "reco") for axis in ("px", "py", "pz"))
+    if all(key in pair for key in vector_keys):
+        result["angle3d_mrad"] = angle3d_mrad(
+            (pair["truth_px"], pair["truth_py"], pair["truth_pz"]),
+            (pair["reco_px"], pair["reco_py"], pair["reco_pz"]),
+        )
+    return result
+
+
+def selected_truth_inventory(rows: Iterable[dict]) -> list[dict]:
+    """Count every selected-truth row as nominal species or explicit other PDG."""
+    nominal = Counter()
+    other = Counter()
+    for row in rows:
+        pdg = int(row["truth_pdg"])
+        species = nominal_truth_species(pdg)
+        if species is None:
+            other[pdg] += 1
+        else:
+            nominal[species] += 1
+    result = [
+        {"category": "nominal_species", "species": species, "pdg": "", "count": nominal[species]}
+        for species in NOMINAL_TRUTH_SPECIES
+    ]
+    result.extend(
+        {"category": "other_selected_truth", "species": "other_selected_truth", "pdg": pdg, "count": count}
+        for pdg, count in sorted(other.items())
+    )
+    if sum(int(row["count"]) for row in result) != sum(nominal.values()) + sum(other.values()):
+        raise AssertionError("selected-truth inventory accounting failed")
+    return result
+
+
+def normalize_performance_config(config: dict | None = None) -> dict:
+    """Return validated optional truth-fiducial and differential-bin settings."""
+    configured = dict(config or {})
+    result = {field: configured.get(field) for field in FIDUCIAL_FIELDS}
+    for field in FIDUCIAL_FIELDS:
+        if result[field] is not None:
+            result[field] = float(result[field])
+    if result["truth_p_min"] is not None and result["truth_p_min"] < 0:
+        raise ValueError("truth_p_min must be non-negative or null")
+    low, high = result["truth_theta_min_deg"], result["truth_theta_max_deg"]
+    if low is not None and high is not None and low > high:
+        raise ValueError("truth theta minimum exceeds maximum")
+    result["association_method"] = str(configured.get("association_method", "Lancestor"))
+    if result["association_method"] not in ASSOCIATIONS:
+        raise ValueError("performance association_method is not maintained")
+    supplied_bins = configured.get("efficiency_bins", {})
+    result["efficiency_bins"] = {}
+    for variable, defaults in DEFAULT_EFFICIENCY_BINS.items():
+        edges = tuple(float(value) for value in supplied_bins.get(variable, defaults))
+        if len(edges) < 2 or any(not left < right for left, right in zip(edges[:-1], edges[1:])):
+            raise ValueError(f"{variable} efficiency bins must be strictly increasing")
+        result["efficiency_bins"][variable] = edges
+    p_edges, theta_edges, phi_edges = (result["efficiency_bins"][name]
+                                        for name in ("p", "theta", "phi"))
+    if p_edges[0] > 0:
+        raise ValueError("truth-p bins must start at or below zero")
+    if theta_edges[0] > 0 or theta_edges[-1] < 180:
+        raise ValueError("truth-theta bins must cover [0,180] degrees")
+    if not (math.isclose(phi_edges[0], -math.pi) and math.isclose(phi_edges[-1], math.pi)):
+        raise ValueError("truth-phi bins must span exactly [-pi,+pi]")
+    return result
+
+
+def _truth_fiducial_accepts_normalized(row: dict, configured: dict) -> bool:
+    if configured["truth_p_min"] is not None:
+        truth_p = float(row["p"] if "p" in row else row["truth_p"])
+        if truth_p < configured["truth_p_min"]:
+            return False
+    if configured["truth_theta_min_deg"] is not None or configured["truth_theta_max_deg"] is not None:
+        truth_theta = float(row["theta"] if "theta" in row else row["truth_theta"])
+        if (configured["truth_theta_min_deg"] is not None
+                and truth_theta < configured["truth_theta_min_deg"]):
+            return False
+        if (configured["truth_theta_max_deg"] is not None
+                and truth_theta > configured["truth_theta_max_deg"]):
+            return False
+    return True
+
+
+def truth_fiducial_accepts(row: dict, config: dict | None = None) -> bool:
+    """Apply optional inclusive cuts to truth p/theta only."""
+    return _truth_fiducial_accepts_normalized(row, normalize_performance_config(config))
+
+
+def fiducial_outcomes(rows: Iterable[dict], config: dict | None = None) -> list[dict]:
+    """Filter already-selected truth outcome rows without consulting reco values."""
+    configured = normalize_performance_config(config)
+    return [row for row in rows if _truth_fiducial_accepts_normalized(row, configured)]
+
+
+def fiducial_provenance(config: dict | None = None) -> dict:
+    configured = normalize_performance_config(config)
+    return {field: "none" if configured[field] is None else configured[field]
+            for field in FIDUCIAL_FIELDS}
+
+
+def canonical_truth_phi(phi: float) -> float:
+    """Return one truth phi in the same canonical interval (-pi,pi] as dphi."""
+    return wrap_delta_phi(float(phi), 0.0)
+
+
+def binned_efficiency(rows: Iterable[dict], variable: str,
+                      bins: Iterable[float]) -> list[dict]:
+    """Count maintained associated-unique successes in truth-variable bins."""
+    population = list(rows)
+    edges = np.asarray(tuple(float(value) for value in bins), dtype=float)
+    if len(edges) < 2 or np.any(edges[1:] <= edges[:-1]):
+        raise ValueError("efficiency bins must be strictly increasing")
+    values = np.asarray([
+        canonical_truth_phi(row["phi"]) if variable == "phi" else float(row[variable])
+        for row in population
+    ], dtype=float)
+    successes = np.asarray([row["outcome"] == "associated_unique" for row in population], dtype=bool)
+    denominator, _ = np.histogram(values, bins=edges)
+    numerator, _ = np.histogram(values[successes], bins=edges)
+    under = values < edges[0]
+    over = values > edges[-1]
+    records = [{"bin_kind": "underflow", "bin_low": -math.inf, "bin_high": float(edges[0]),
+                "N_truth": int(under.sum()), "N_associated_unique": int((under & successes).sum())}]
+    records.extend(
+        {"bin_kind": "regular", "bin_low": float(low), "bin_high": float(high),
+         "N_truth": int(total), "N_associated_unique": int(passed)}
+        for low, high, total, passed in zip(edges[:-1], edges[1:], denominator, numerator)
+    )
+    records.append({"bin_kind": "overflow", "bin_low": float(edges[-1]), "bin_high": math.inf,
+                    "N_truth": int(over.sum()), "N_associated_unique": int((over & successes).sum())})
+    if sum(row["N_truth"] for row in records) != len(population):
+        raise AssertionError(f"truth-{variable} binning does not account for the denominator")
+    if (any(row["N_associated_unique"] > row["N_truth"] for row in records)
+            or sum(row["N_associated_unique"] for row in records) != int(successes.sum())):
+        raise AssertionError("efficiency numerator is not a subset of the denominator")
+    for row in records:
+        total, passed = row["N_truth"], row["N_associated_unique"]
+        row.update({"variable": variable,
+                    "efficiency_percent": "" if total == 0 else 100 * passed / total})
+    return records
 
 
 def strict_outcome(rows: list[dict]) -> tuple[str, int | None]:
@@ -197,7 +389,7 @@ def _normalize_frozen_rows(rows: list[dict], sample: str) -> list[dict]:
         for key in ("event_in_file", "truth_index", "truth_pdg"):
             if key in item:
                 item[key] = int(item[key])
-        for key in ("energy", "p", "pt", "theta", "costheta"):
+        for key in ("energy", "p", "pt", "theta", "phi", "costheta", "px", "py", "pz"):
             if key in item:
                 item[key] = float(item[key])
             for prefix in ("truth_", "reco_"):
@@ -227,6 +419,7 @@ def load_frozen_sample(spec: dict) -> SampleData:
         anchor = truth_lookup[key]
         row["tau_ancestor"] = anchor["tau_ancestor"]
         row["association_method"] = "Lancestor"
+        row.update(performance_residuals(row))
         pairs.append(row)
     terminal = []
     for row in read_csv(expand_path(sources["tau_records"])):
@@ -298,13 +491,19 @@ def _assignment_maps(direct_path: Path, ancestor_path: Path):
 def extract_workflow_sample(spec: dict) -> SampleData:
     """Build normalized rows from a final REC and frozen workflow assignments.
 
-    This calls the maintained HitAnalysis G implementation and only inverts
-    already-produced L_direct/L_ancestor PFO rows.  It never rebuilds either L.
+    It only loads the configured maintained association methods. G is computed
+    only when explicitly requested; L_direct/L_ancestor are always read from
+    existing assignment products and are never rebuilt here.
     """
     import podio.root_io as root_io
-    from modules.NeutralRecover import get_reco_mc_links_by_dR
 
     internal, label = spec["internal_name"], spec["presentation_label"]
+    methods = tuple(spec.get("association_methods", ASSOCIATIONS))
+    if not methods or any(method not in ASSOCIATIONS for method in methods):
+        raise ValueError("association_methods contains an unsupported method")
+    collect_topology = bool(spec.get("collect_tau_topology", True))
+    if "G" in methods:
+        from modules.NeutralRecover import get_reco_mc_links_by_dR
     expected = int(spec["expected_events"])
     rec = expand_path(spec["rec"])
     direct_path, ancestor_path = expand_path(spec["direct"]), expand_path(spec["ancestor"])
@@ -322,24 +521,28 @@ def extract_workflow_sample(spec: dict) -> SampleData:
     pfo_map, direct, ancestor, direct_by_event, ancestor_by_event = _assignment_maps(direct_path, ancestor_path)
     truth, outcomes, pairs, terminal, decay = [], [], [], [], Counter()
     truth_counts = Counter()
-    coverage = {method: Counter() for method in ASSOCIATIONS}
+    coverage = {method: Counter() for method in methods}
     n_events = 0
     reader = root_io.Reader(str(rec))
     for event_index, event in enumerate(reader.get("events")):
         n_events += 1
-        mc = list(event.get("MCParticles")); pfos = list(event.get("PandoraPFOs"))
+        mc = list(event.get("MCParticles"))
+        pfos = list(event.get("PandoraPFOs")) if "G" in methods else []
         pdgs = [int(particle.getPDG()) for particle in mc]
         parents = [[object_index(parent) for parent in particle.getParents()] for particle in mc]
         daughters = [[object_index(child) for child in particle.getDaughters()] for particle in mc]
         selected = [index for index, particle in enumerate(mc) if selected_truth_particle(particle)]
         selected_set = set(selected)
-        gframe = get_reco_mc_links_by_dR(event, {}, {}, max_dR=0.1, dedup_mode="reco")
-        grows = {int(row.gen): row for row in gframe.itertuples() if int(row.gen) >= 0}
-        matched_g_pfos = {int(row.reco) for row in gframe.itertuples() if int(row.gen) >= 0 and int(row.reco) >= 0}
-        coverage["G"]["usable"] += len(matched_g_pfos)
-        coverage["G"]["all"] += len(pfos)
+        grows = {}
+        if "G" in methods:
+            gframe = get_reco_mc_links_by_dR(event, {}, {}, max_dR=0.1, dedup_mode="reco")
+            grows = {int(row.gen): row for row in gframe.itertuples() if int(row.gen) >= 0}
+            matched_g_pfos = {int(row.reco) for row in gframe.itertuples()
+                              if int(row.gen) >= 0 and int(row.reco) >= 0}
+            coverage["G"]["usable"] += len(matched_g_pfos)
+            coverage["G"]["all"] += len(pfos)
 
-        for row in direct_by_event.get(event_index, []):
+        for row in (direct_by_event.get(event_index, []) if "Ldirect" in methods else ()):
             coverage["Ldirect"]["all"] += 1
             status, assigned = row.get("truthlink_status"), row.get("assigned_mc_index")
             if status == "assigned" and assigned is not None and int(assigned) in selected_set:
@@ -348,15 +551,17 @@ def extract_workflow_sample(spec: dict) -> SampleData:
                 coverage["Ldirect"]["ambiguous"] += 1
             elif status == "assigned":
                 coverage["Ldirect"]["non_analysis"] += 1
-        for promoted in ancestor_by_event.get(event_index, []):
+        for promoted in (ancestor_by_event.get(event_index, []) if "Lancestor" in methods else ()):
             coverage["Lancestor"]["all"] += 1
             coverage["Lancestor"]["usable"] += int(promoted is not None)
 
-        terminal_indices = [index for index, pdg in enumerate(pdgs)
-                            if abs(pdg) == 15 and not any(abs(pdgs[child]) == 15 for child in daughters[index])]
-        for index in terminal_indices:
-            terminal.append(kine_particle(mc[index]))
-            decay[classify_terminal_tau(mc, daughters, index)] += 1
+        if collect_topology:
+            terminal_indices = [index for index, pdg in enumerate(pdgs)
+                                if abs(pdg) == 15
+                                and not any(abs(pdgs[child]) == 15 for child in daughters[index])]
+            for index in terminal_indices:
+                terminal.append(kine_particle(mc[index]))
+                decay[classify_terminal_tau(mc, daughters, index)] += 1
 
         event_pfos = {object_index(pfo): pfo for pfo in pfos}
         for index in selected:
@@ -370,15 +575,18 @@ def extract_workflow_sample(spec: dict) -> SampleData:
                     "tau_ancestor": tau, "parentless": not parents[index], **kine}
             truth.append(base)
             truth_counts[("tau_origin" if tau else "non_tau_origin", species)] += 1
-            if species not in TRUTH_SPECIES:
+            if species not in NOMINAL_TRUTH_SPECIES:
                 continue
             grow = grows.get(index)
             g_pfo = None if grow is None or int(grow.reco) < 0 else int(grow.reco)
-            method_rows = {
-                "G": ("association_unmatched", None) if g_pfo is None else ("associated_unique", g_pfo),
-                "Ldirect": strict_outcome(direct.get((event_index, index), [])),
-                "Lancestor": strict_outcome(ancestor.get((event_index, index), [])),
-            }
+            method_rows = {}
+            if "G" in methods:
+                method_rows["G"] = (("association_unmatched", None) if g_pfo is None
+                                    else ("associated_unique", g_pfo))
+            if "Ldirect" in methods:
+                method_rows["Ldirect"] = strict_outcome(direct.get((event_index, index), []))
+            if "Lancestor" in methods:
+                method_rows["Lancestor"] = strict_outcome(ancestor.get((event_index, index), []))
             for method, (outcome, pfo_index) in method_rows.items():
                 outcomes.append({**base, "truth_definition": method, "outcome": outcome})
                 if outcome != "associated_unique":
@@ -389,28 +597,39 @@ def extract_workflow_sample(spec: dict) -> SampleData:
                     category = reconstructed_pid_category(int(pfo.getPDG()))
                 else:
                     item = pfo_map[event_index, pfo_index]
-                    reco = {key: item[key] for key in ("energy", "p", "pt", "theta", "costheta")}
+                    reco = {key: item[key] for key in (
+                        "energy", "p", "pt", "theta", "phi", "costheta", "px", "py", "pz",
+                    )}
                     category = item["reco_category"]
-                pairs.append({**base, "association_method": method,
-                              "representative_pfo_index": pfo_index, "reco_category": category,
-                              **{f"truth_{key}": kine[key] for key in ("energy", "p", "pt", "theta", "costheta")},
-                              **{f"reco_{key}": reco[key] for key in ("energy", "p", "pt", "theta", "costheta")}})
+                pair = {**base, "association_method": method,
+                        "representative_pfo_index": pfo_index, "reco_category": category,
+                        **{f"truth_{key}": kine[key] for key in (
+                            "energy", "p", "pt", "theta", "phi", "costheta", "px", "py", "pz",
+                        )},
+                        **{f"reco_{key}": reco[key] for key in (
+                            "energy", "p", "pt", "theta", "phi", "costheta", "px", "py", "pz",
+                        )}}
+                pair.update(performance_residuals(pair))
+                pairs.append(pair)
     if n_events != expected:
         raise AssertionError(f"{internal}: expected {expected} events, found {n_events}")
     coverage_rows = []
-    for method in ASSOCIATIONS:
+    for method in methods:
         count = coverage[method]
+        all_pfos = count["all"]
         coverage_rows.append({"sample": label, "association_method": method,
-            "N_all_PFO": count["all"], "N_usable_truth_link": count["usable"],
-            "N_not_usable": count["all"] - count["usable"],
-            "coverage_percent": 100 * count["usable"] / count["all"],
+            "N_all_PFO": all_pfos, "N_usable_truth_link": count["usable"],
+            "N_not_usable": all_pfos - count["usable"],
+            "coverage_percent": "" if not all_pfos else 100 * count["usable"] / all_pfos,
             "N_ambiguous": count["ambiguous"], "N_linked_to_non_analysis_MC": count["non_analysis"],
             "definition": "unique PFO link to selected stable analysis-level truth particle",
             "source": "maintained G rows / Ldirect assignments / Lancestor assignments"})
     return SampleData(internal, label, expected, truth, outcomes, pairs, terminal, decay,
                       truth_counts, coverage_rows, {"adapter": "workflow_products",
                                       "source_file_id": str(spec.get("source_file_id", "")), "rec": str(rec),
-                                      "direct": str(direct_path), "ancestor": str(ancestor_path)})
+                                      "direct": str(direct_path), "ancestor": str(ancestor_path),
+                                      "association_methods": list(methods),
+                                      "collect_tau_topology": collect_topology})
 
 
 def load_sample(spec: dict) -> SampleData:
@@ -464,10 +683,11 @@ def _sum_coverage(parts: list[SampleData], label: str) -> list[dict]:
                         "N_linked_to_non_analysis_MC"):
                 combined[method][key] += int(row[key])
     rows = []
-    for method in ASSOCIATIONS:
+    for method in combined:
         count = combined[method]
+        all_pfos = count["N_all_PFO"]
         rows.append({"sample": label, "association_method": method, **count,
-            "coverage_percent": 100 * count["N_usable_truth_link"] / count["N_all_PFO"],
+            "coverage_percent": "" if not all_pfos else 100 * count["N_usable_truth_link"] / all_pfos,
             "definition": "unique PFO link to selected stable analysis-level truth particle",
             "source": "maintained G rows / Ldirect assignments / Lancestor assignments"})
     return rows

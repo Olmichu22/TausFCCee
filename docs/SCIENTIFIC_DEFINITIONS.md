@@ -16,6 +16,56 @@ An MCParticle is selected truth when all conditions hold:
   explicitly excluded;
 - momentum magnitude is at least `1e-10 GeV`.
 
+## Nominal species and additive performance residuals
+
+Detailed nominal performance products use exactly `abs(PDG)=11` electron,
+`abs(PDG)=13` muon, `PDG=22` photon, `abs(PDG)=211` charged pion,
+`abs(PDG)=321` charged kaon, and `PDG=130` K0L. Pi0 (`PDG=111`) and K0S
+(`PDG=310`) are not nominal final-species categories. Any selected-truth PDG
+outside the six nominal categories remains visible in the machine-readable
+`other_selected_truth` inventory by signed PDG; it is never silently dropped or
+automatically promoted to a new nominal plot category.
+
+Charged kaons are included as nominal truth species for association, efficiency
+and residual studies. Kaon PID performance is not evaluated because the current
+maintained reconstructed-PID categorization has no dedicated kaon category.
+
+For a maintained truth/representative-PFO pair, the existing `dp/p` and
+`dtheta` definitions remain unchanged. Additive quantities are:
+
+- `dphi_mrad = wrap(phi_reco-phi_truth) * 1000`, with the wrapped angle in
+  `(-pi,pi]`;
+- `angle3d_mrad = acos(clamp(dot(p_reco,p_truth)/(|p_reco||p_truth|),-1,1))*1000`,
+  the unsigned exact three-dimensional opening angle, not
+  `sqrt(dtheta^2+dphi^2)`;
+- `dE/E = (E_reco-E_truth)/E_truth`.
+
+Signed residuals retain the existing median/q16/q84/central-68 summaries. The
+unsigned 3D angle is summarized by median, q68, and q95. Historical frozen pair
+tables that did not persist phi or momentum components report those quantities
+as unavailable rather than reconstructing or inventing them.
+
+## Optional truth-side fiducial performance layer
+
+Fiducial acceptance is an optional layer applied **after**
+`selected_truth_v1`; it does not redefine that population. The maintained
+comparison configuration exposes `truth_p_min`, `truth_theta_min_deg`, and
+`truth_theta_max_deg`. All three default to `null`, meaning no additional cut.
+Configured cuts are inclusive and use truth quantities only: `p >= p_min`,
+`theta >= theta_min`, and `theta <= theta_max`.
+
+Integrated and differential efficiencies use the same accepted denominator.
+Their numerator is the subset with the maintained `associated_unique`
+representative-PFO outcome; unmatched and ambiguous outcomes remain failures.
+Differential tables bin truth `p`, truth `theta` in degrees, and truth `phi`
+using the explicit YAML edges. Phi is canonicalized to `(-pi,pi]`, and the
+configured phi edges span `[-pi,+pi]` so each boundary entry is counted once.
+Machine-readable rows record the three active acceptance parameters; `none`
+means no added cut. Explicit underflow and overflow rows preserve denominator
+accounting outside configured finite p/theta ranges. Efficiency plots
+consume these maintained table rows; regular bins are plotted, while
+underflow and overflow remain in the CSV accounting only.
+
 ## G: geometric selected-truth association
 
 G compares selected truth with non-zero-momentum `PandoraPFOs` using
