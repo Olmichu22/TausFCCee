@@ -467,10 +467,12 @@ def main(
     # TABLA DE CONTEOS DE EVENTOS (usando histos _full)
     # =================================================
     def _integral(hname):
+        # ROOT devuelve el mismo objeto en memoria que ya escalo dofit(), asi que
+        # no hay que volver a aplicar lumi_scale (se estaria escalando dos veces).
         h = file.Get(hname)
         if not h:
             return 0.0
-        return h.Integral() * lumi_scale
+        return h.Integral()
 
     n_sig  = _integral(f"{var}_SIGNAL_full")
     n_mig  = _integral(f"{var}_BG_migrations_full")
