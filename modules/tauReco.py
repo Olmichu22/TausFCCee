@@ -563,7 +563,269 @@ def electromagnetic_direction_error_p4_extremes(p4, cfg):
     return out
 
 
-def buildTauFromPion(lead, allPfs, DRCone=1, minP_photon=0, minP_pion=0, PNeutron=1, genminP = 0.5, charge_condition=True):
+# ---------------------------------------------------------------------------
+# Correcciones extra sobre el tau ya construido (extraTauRecoCorrection)
+# ---------------------------------------------------------------------------
+# La reconstruccion base cuenta todo lo que cae en el cono: un foton extra
+# convierte un tau->pi nu (DM 0) en un pi+gamma (DM 1). El origen de ese foton
+# esta estudiado en docs/pi_extra_photon/REPORT.md: ~55 % es FSR real de la
+# linea del tau y ~43 % un fragmento del shower del pion. Un corte fijo en P
+# del foton no vale porque destroza pi 2pi0 / pi 3pi0, asi que la correccion
+# se aplica solo a los fotones que no tienen pareja de pi0 en el cono.
+#
+# El registro permite anadir modos nuevos sin tocar buildTauFromPion: basta
+# decorar una funcion con @registerExtraCorrection("nombre") y pedirla desde
+# el YAML (seccion extra_reco_correction) o por linea de comandos.
+
+EXTRA_CORRECTIONS = {}
+
+
+def registerExtraCorrection(name):
+   """Decorador para registrar un modo de correccion extra bajo `name`."""
+   def _wrap(fn):
+      EXTRA_CORRECTIONS[name] = fn
+      return fn
+   return _wrap
+
+
+def availableExtraCorrections():
+   """Nombres de los modos de correccion registrados."""
+   return sorted(EXTRA_CORRECTIONS.keys())
+
+
+def particleP4(part):
+   """4-momento de un PFO/GenParticle, tolerando los dos accesores (edm4hep vs objetos propios)."""
+   p4 = ROOT.TLorentzVector()
+   mom = part.getMomentum()
+   try:
+      p4.SetXYZM(mom.x, mom.y, mom.z, part.getMass())
+   except AttributeError:
+      p4.SetXYZM(mom.X(), mom.Y(), mom.Z(), part.getMass())
+   return p4
+
+
+def assignTauID(countPions, countPhotons, countNeutrons):
+   """ID del tau a partir del recuento de constituyentes (misma convencion que el tree).
+
+   Args:
+      countPions (int): numero de pi+- (kaones incluidos) en el cono.
+      countPhotons (int): numero de fotones (ojo: fotones, no pi0s).
+      countNeutrons (int): numero de neutrones sobre el corte.
+
+   Returns:
+      int: 0-9 para 1 prong, 10+N para 3 prong, -20 / -21 para el misID
+         pion->neutron de Pandora, -1 si la combinacion no es un tau.
+   """
+   if countPions == 1 and countNeutrons == 0:
+      # careful: here counting photons and not pi0s. Account for merged/lost photons.
+      return countPhotons if countPhotons < 10 else 9
+
+   if countPions == 3 and countNeutrons == 0:
+      return countPhotons + 10  # 3 pions + photons
+
+   if countPions == 3 and countNeutrons > 0:  # Pandora FIXME: pion -> neutron misID
+      # Mismo caso que el -20 pero con 3 prongs: el neutron se suma al P4 del
+      # tau, asi que estos eventos sesgaban la resolucion de la DM10 al colarse
+      # como ID 10. Id propio para poder verlos como categoria aparte.
+      return -21
+
+   if countPions == 1 and countNeutrons > 0:  # Future FIXME: Pandora pion->neutron misID issue
+      return -20  # To not interact with the other IDs
+
+   return -1
+
+
+def _countConstituents(const, PNeutron=0, minP_photon=0, minP_pion=0):
+   """Recuenta piones / fotones / neutrones de un diccionario de constituyentes."""
+   countPions = countPhotons = countNeutrons = 0
+   for part in const.values():
+      pdg = abs(part.getPDG())
+      if pdg == 211:  # mismo criterio que buildTauFromPion (Pandora da 211 a todo hadron cargado)
+         countPions += 1
+      elif pdg == 22:
+         countPhotons += 1
+      elif pdg == 2112:
+         countNeutrons += 1
+   return countPions, countPhotons, countNeutrons
+
+
+def _rebuildTauState(state):
+   """Recalcula P4, carga, cono maximo, recuentos e ID desde `state["const"]`.
+
+   Se usa despues de que un modo de correccion quite constituyentes. El primer
+   constituyente (clave 0) sigue siendo el pion lider, que nunca se elimina.
+   """
+   const = {i: part for i, part in enumerate(state["const"].values())}
+   lead_p4 = particleP4(const[0])
+
+   tauP4 = ROOT.TLorentzVector(0, 0, 0, 0)
+   chargeTau = 0
+   maxCone = 0.0
+   for part in const.values():
+      p4 = particleP4(part)
+      tauP4 += p4
+      chargeTau += part.getCharge()
+      dR = myutils.dRAngle(p4, lead_p4)
+      if dR > maxCone:
+         maxCone = dR
+
+   countPions, countPhotons, countNeutrons = _countConstituents(const)
+
+   state["const"] = const
+   state["nConst"] = len(const)
+   state["p4"] = tauP4
+   state["charge"] = chargeTau
+   state["maxCone"] = maxCone
+   state["counts"] = {"pions": countPions, "photons": countPhotons, "neutrons": countNeutrons}
+   state["id"] = assignTauID(countPions, countPhotons, countNeutrons)
+   return state
+
+
+_PI0_MASS = 0.1349768
+
+_PION_PHOTON_FSR_DEFAULTS = {
+   # Un fotón con pareja a masa de pi0 se protege: es un pi0 de verdad.
+   "pi0_mass": _PI0_MASS,
+   "pi0_mass_window": 0.05,
+   # Fotón blando pegado al pión: fragmento del shower hadronico.
+   "soft_frac": 0.05,
+   # Fotón duro: FSR de la linea del tau. Un rho no pasa de m_rho, asi que
+   # m(pi+gamma) alta senala que el fotón no viene de un pi0 perdido.
+   "hard_p_min": 2.0,
+   "mass_min": 1.2,
+   # Solo 1 prong sin neutrones (DM 0/1/...): es donde vive la migracion.
+   "max_photons": 0,   # 0 = sin limite
+}
+
+
+@registerExtraCorrection("pion_photon_fsr")
+def recoverPionFromExtraPhoton(state, params=None):
+   """Recupera tau->pi nu quitando fotones de FSR / shower del cono.
+
+   Un fotón se elimina del tau si **no** tiene pareja de pi0 en el cono y ademas
+   cumple una de las dos condiciones:
+
+   - ``P_gamma / P_pion < soft_frac``: fragmento del shower hadronico del pion.
+   - ``P_gamma > hard_p_min`` y ``m(pi+gamma) > mass_min``: FSR duro de la linea
+     del tau (un rho no puede superar su masa, un pi0 huerfano da m(pi+gamma)
+     por debajo de 1 GeV en el 90 % de los casos).
+
+   Args:
+      state (dict): estado del tau (ver :func:`extraTauRecoCorrection`).
+      params (dict, optional): sobreescribe :data:`_PION_PHOTON_FSR_DEFAULTS`.
+
+   Returns:
+      dict: el estado, recalculado si se quito algun fotón.
+   """
+   cfg = dict(_PION_PHOTON_FSR_DEFAULTS)
+   cfg.update(params or {})
+
+   counts = state["counts"]
+   if counts["pions"] != 1 or counts["neutrons"] != 0 or counts["photons"] < 1:
+      return state
+   if cfg["max_photons"] and counts["photons"] > cfg["max_photons"]:
+      return state
+
+   const = state["const"]
+   pion_p4 = particleP4(const[0])
+   photons = [(k, particleP4(p)) for k, p in const.items()
+              if k != 0 and abs(p.getPDG()) == 22]
+   if not photons:
+      return state
+
+   # Fotones con pareja a masa de pi0: intocables.
+   paired = set()
+   for i, (ki, p4i) in enumerate(photons):
+      for kj, p4j in photons[i + 1:]:
+         if abs((p4i + p4j).M() - cfg["pi0_mass"]) < cfg["pi0_mass_window"]:
+            paired.add(ki)
+            paired.add(kj)
+
+   dropped = []
+   for k, p4g in photons:
+      if k in paired:
+         continue
+      frac = p4g.P() / pion_p4.P() if pion_p4.P() > 0 else 0.
+      if frac < cfg["soft_frac"]:
+         dropped.append(k)
+      elif p4g.P() > cfg["hard_p_min"] and (pion_p4 + p4g).M() > cfg["mass_min"]:
+         dropped.append(k)
+
+   if not dropped:
+      return state
+
+   for k in dropped:
+      del const[k]
+   state["const"] = const
+   state.setdefault("corrections", []).append(("pion_photon_fsr", len(dropped)))
+   return _rebuildTauState(state)
+
+
+def extraTauRecoCorrection(tauP4, tauID, chargeTau, maxConeTau, nConsts, const, cfg):
+   """Aplica las correcciones extra configuradas sobre un tau ya construido.
+
+   Cada modo recibe un estado con las claves ``p4``, ``id``, ``charge``,
+   ``maxCone``, ``nConst``, ``const`` (dict indexado desde 0, con el pion lider
+   en el 0) y ``counts`` (``pions`` / ``photons`` / ``neutrons``); devuelve el
+   estado, recalculado con :func:`_rebuildTauState` si ha tocado constituyentes.
+
+   Args:
+      tauP4 (TLorentzVector), tauID (int), chargeTau (float), maxConeTau (float),
+      nConsts (int), const (dict): salida de :func:`buildTauFromPion`.
+      cfg (dict | list | str | None): configuracion. Un dict con ``enable``,
+         ``modes`` (lista de nombres registrados) y ``params`` (dict por modo);
+         una lista o un string se interpretan como la lista de modos con los
+         parametros por defecto. ``None`` o vacio: no se hace nada.
+
+   Returns:
+      Tuple: ``(tauP4, tauID, chargeTau, maxConeTau, nConsts, const)`` corregidos.
+   """
+   if not cfg:
+      return tauP4, tauID, chargeTau, maxConeTau, nConsts, const
+
+   if isinstance(cfg, str):
+      cfg = {"modes": [cfg]}
+   elif isinstance(cfg, (list, tuple)):
+      cfg = {"modes": list(cfg)}
+   if not cfg.get("enable", True):
+      return tauP4, tauID, chargeTau, maxConeTau, nConsts, const
+
+   modes = cfg.get("modes") or []
+   if isinstance(modes, str):
+      modes = [modes]
+   if not modes:
+      return tauP4, tauID, chargeTau, maxConeTau, nConsts, const
+
+   all_params = cfg.get("params") or {}
+   countPions, countPhotons, countNeutrons = _countConstituents(const)
+   state = {
+      "p4": tauP4,
+      "id": tauID,
+      "charge": chargeTau,
+      "maxCone": maxConeTau,
+      "nConst": nConsts,
+      "const": const,
+      "counts": {"pions": countPions, "photons": countPhotons, "neutrons": countNeutrons},
+      "corrections": [],
+   }
+
+   for mode in modes:
+      fn = EXTRA_CORRECTIONS.get(mode)
+      if fn is None:
+         raise KeyError(
+            f"extraTauRecoCorrection: modo '{mode}' desconocido. "
+            f"Disponibles: {availableExtraCorrections()}"
+         )
+      state = fn(state, all_params.get(mode, {}))
+
+   if state["corrections"] and logger is not None:
+      logger.debug("extraTauRecoCorrection: %s -> ID %d", state["corrections"], state["id"])
+
+   return (state["p4"], state["id"], state["charge"], state["maxCone"],
+           state["nConst"], state["const"])
+
+
+def buildTauFromPion(lead, allPfs, DRCone=1, minP_photon=0, minP_pion=0, PNeutron=1, genminP = 0.5, charge_condition=True, extra_correction=None):
    """ Starting from a pion, find particles in a cone around it, and build the tau.
 
    Args:
@@ -574,7 +836,9 @@ def buildTauFromPion(lead, allPfs, DRCone=1, minP_photon=0, minP_pion=0, PNeutro
       minP_pion (int, optional): Minimum pion momentum. Defaults to 0.
       PNeutron (int, optional): Minimum neutron momentum. Defaults to 10.
       genminP (int, optional): Minimum general level momentum. Defaults to 0.5.
-   
+      extra_correction (dict, optional): Configuracion de las correcciones extra
+         aplicadas al tau ya construido (ver extraTauRecoCorrection). None = ninguna.
+
    Returns:
       Tuple: Tuple with the 4-momentum of the tau, the tau ID, the charge, the maximum angle between constituents, the number of constituents, and the constituents.
    """
@@ -669,32 +933,13 @@ def buildTauFromPion(lead, allPfs, DRCone=1, minP_photon=0, minP_pion=0, PNeutro
    # print("\n")
    
    if abs(chargeTau)==1 or not charge_condition:
-      if (countPions==1 and countNeutrons==0):
-         if countPhotons<10:
-            tauID=countPhotons
-         else:
-            tauID=9
-         # if countPhotons<=4:
-            # tauID=countPhotons
-         # if countPhotons>4:
-               # tauID=5
+      tauID = assignTauID(countPions, countPhotons, countNeutrons)
 
-      elif (countPions==3 and countNeutrons==0): 
-         tauID = countPhotons+10 # 3 pions + photons
-            # if countPhotons<=2:
-            #    tauID=countPhotons+10 # more or less copied from the CMS convention for tauDecay
-            # if countPhotons>2:
-            #    tauID=countPhotons+10 # capping the number of photons
-
-      elif (countPions==3 and countNeutrons>0): # Pandora FIXME: pion -> neutron misID
-         # Mismo caso que el -20 pero con 3 prongs: el neutron se suma al P4 del
-         # tau, asi que estos eventos sesgaban la resolucion de la DM10 al colarse
-         # como ID 10. Id propio para poder verlos como categoria aparte.
-         tauID = -21
-
-      elif (countPions==1 and countNeutrons>0): # Future FIXME: Pandora pion->neutron misID issue 
-         # tauID=15
-         tauID = -20 # To not interact with the other IDs 
+      # Correcciones extra configurables (p.ej. quitar el foton de FSR que
+      # convierte tau->pi nu en pi+gamma). No hace nada si no se configura.
+      if extra_correction:
+         tauP4, tauID, chargeTau, maxConeTau, nConsts, const = extraTauRecoCorrection(
+            tauP4, tauID, chargeTau, maxConeTau, nConsts, const, extra_correction)
 
 
       # return an object with P4, ID, Charge, AngleMax, nConsts, constIdx 
@@ -853,7 +1098,8 @@ def findAllTaus(pfos,
                 minP_pion,
                 PNeutron,
                 genminP,
-                charge_condition=True,):
+                charge_condition=True,
+                extra_correction=None,):
    """ Find all tau candidates starting from PFO collection by recognizing the decay products.
 
    Args:
@@ -863,6 +1109,8 @@ def findAllTaus(pfos,
       minP_pion (float): Minimum pion momentum.
       PNeutron (float): Minimum neutron momentum.
       genminP (float): Minimum general level momentum.
+      extra_correction (dict, optional): Configuracion de las correcciones extra
+         (ver extraTauRecoCorrection). None = reconstruccion base sin tocar.
 
    Returns:
        taus (dict): Dictionary with the tau candidates containing tuples with the visible 4-momentum, the tau ID, and the charge.
@@ -890,7 +1138,7 @@ def findAllTaus(pfos,
       if pionP4.P() < minP_pion or  pionP4.P() < genminP:
          continue
 
-      recoTau_data, pions_id = buildTauFromPion(pf, pfos, dRMax, minP_photon, minP_pion, PNeutron, genminP, charge_condition)
+      recoTau_data, pions_id = buildTauFromPion(pf, pfos, dRMax, minP_photon, minP_pion, PNeutron, genminP, charge_condition, extra_correction)
       recoTau = RecoParticle(recoTau_data[0], recoTau_data[1], recoTau_data[2], recoTau_data[3], recoTau_data[4], recoTau_data[5])
       # logger.debug(
       #    f"Id del RecoTau {recoTau.getID()}"

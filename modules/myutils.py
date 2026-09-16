@@ -546,6 +546,28 @@ def setup_analysis_config(
     parser.add_argument(
         "-c", "--config", type=str, help="Configuration file"
     )
+    # Correcciones extra sobre el tau ya reconstruido (tauReco.extraTauRecoCorrection).
+    parser.add_argument(
+        "--extra-correction",
+        nargs="+",
+        metavar="MODE",
+        default=None,
+        help="Modos de correccion extra a aplicar (p.ej. pion_photon_fsr). "
+             "Sobreescribe extra_reco_correction.modes del YAML.",
+    )
+    parser.add_argument(
+        "--no-extra-correction",
+        action="store_true",
+        help="Desactiva las correcciones extra aunque el YAML las active.",
+    )
+    parser.add_argument(
+        "--extra-correction-param",
+        nargs="+",
+        metavar="MODE.PARAM=VALOR",
+        default=None,
+        help="Sobreescribe un parametro de un modo, p.ej. "
+             "pion_photon_fsr.mass_min=1.4 (varios separados por espacios).",
+    )
     parser.add_argument(
         "-v", "--verbose",
         action="count",
@@ -620,6 +642,31 @@ def setup_analysis_config(
         val = getattr(args, key) if getattr(args, key) is not None else cuts.get(key)
         cuts[key] = val
     config["cuts"] = cuts
+
+    # Correcciones extra de reconstruccion (ver tauReco.extraTauRecoCorrection).
+    # Seccion del YAML:
+    #   extra_reco_correction:
+    #     enable: true
+    #     modes: [pion_photon_fsr]
+    #     params:
+    #       pion_photon_fsr: {soft_frac: 0.05, hard_p_min: 2.0, mass_min: 1.2}
+    extra_corr = config.get("extra_reco_correction") or {}
+    if getattr(args, "extra_correction", None):
+        extra_corr["modes"] = list(args.extra_correction)
+        extra_corr["enable"] = True
+    if getattr(args, "no_extra_correction", False):
+        extra_corr["enable"] = False
+    for item in (getattr(args, "extra_correction_param", None) or []):
+        if "=" not in item or "." not in item.split("=", 1)[0]:
+            raise ValueError(
+                f"--extra-correction-param espera MODO.PARAM=VALOR, recibido '{item}'"
+            )
+        key, val = item.split("=", 1)
+        mode_name, param_name = key.split(".", 1)
+        extra_corr.setdefault("params", {}).setdefault(mode_name, {})[param_name] = yaml.safe_load(val)
+    if extra_corr.get("modes") and "enable" not in extra_corr:
+        extra_corr["enable"] = True
+    config["extra_reco_correction"] = extra_corr
 
     # Decay selection
     decay_list = config.setdefault("general", {}).setdefault("decay", [])
@@ -802,6 +849,15 @@ def apply_shard(filenames, mlpf_results, shard, loggers):
         return filenames, mlpf_results
 
     kept = [(pos, name) for pos, name in enumerate(filenames) if pos % n_shards == shard_index]
+
+    # Un shard vacío acabaría en root_io.Reader([]), que da segfault en C++
+    if not kept:
+        loggers["io"].error(
+            "Shard %d/%d is empty: only %d file(s) available for %d shards. "
+            "Use at most %d shards.",
+            shard_index, n_shards, len(filenames), n_shards, max(len(filenames), 1),
+        )
+        sys.exit(1)
 
     if mlpf_results:
         new_pos_of = {old_pos: new_pos for new_pos, (old_pos, _) in enumerate(kept)}

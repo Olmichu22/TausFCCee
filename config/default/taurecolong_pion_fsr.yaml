@@ -1,22 +1,23 @@
 cuts:
-  NeutronCut: 3
-  TauPhotonPCut: 0.35
-  TauPionPCut: 0
+  NeutronCut: 0.
+  TauPhotonPCut: 0.
+  TauPionPCut: 0.
   dRMax: 0.4
   MatchedGenMaxDR: 1
   generalPCut: 0.
+  # Cono de la asociación gen-reco por dR (get_reco_mc_links_by_dR).
+  # Domina la eficiencia y el fake rate de la rama dR del análisis a nivel de
+  # partícula: si se cambia, las matrices de confusión y los fake rate de
+  # confusion_matrices_particle_level/dR y fake_rate_plots/dR no son comparables
+  # con los producidos con otro valor.
+  AssocMaxDR: 0.1
 general:
   decay:
   - -777
-  outfile: tau_trained
-  sample: ZTauTau_SMPol_25Sept_MuonFix
-  matchedCM: "True"
+  outfile: results
+  # sample: /pnfs/ciemat.es/data/cms/store/user/cepeda/FCC/FullSim/ZTauTau_SMPol_25Sept_MuonFix/
+  matchedCM: "True" # Ignore
   test: 'False'
-output:
-  outputfile:
-  outputpath:
-  outputlabels:
-
 extra_reco_correction:
   # Quita del cono el foton que convierte tau->pi nu (DM 0) en pi+gamma (DM 1).
   # Origen del foton y calibracion de los cortes: docs/pi_extra_photon/REPORT.md
@@ -30,3 +31,8 @@ extra_reco_correction:
       hard_p_min: 2.0         # a partir de aqui el foton es candidato a FSR duro
       mass_min: 1.2           # m(pi+gamma) > m_rho -> no puede venir de un pi0 perdido
       max_photons: 0          # 0 = sin limite de fotones en el cono
+
+output:
+  outputfile:
+  outputpath:
+  outputlabels:

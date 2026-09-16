@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.ticker import MaxNLocator, AutoMinorLocator
+from matplotlib.lines import Line2D
 import itertools
 from collections import defaultdict
 
@@ -88,26 +89,28 @@ PID_COLORS = {
     15:   "#911eb4",   # τ±      morado
     22:   "#4363d8",   # γ       azul
     111:  "#f58231",   # π⁰      naranja
-    211:  "#46f0f0",   # π±      cian
+    211:  "#0f766e",   # π±      verde azulado oscuro (nada de cian: se lee mal)
     130:  "#f032e6",   # K⁰L     magenta
-    310:  "#bcf60c",   # K⁰S     lima
-    321:  "#fabebe",   # K±      rosa
-    2112: "#008080",   # n       teal
+    310:  "#a3c700",   # K⁰S     lima oscuro
+    321:  "#c2185b",   # K±      rosa oscuro
+    2112: "#b8860b",   # n       dorado oscuro (el gris chocaba con "unmatched")
     2212: "#9a6324",   # p       marrón
     3122: "#808000",   # Λ       oliva
     3112: "#000075",   # Σ⁻      azul marino
     3222: "#800000",   # Σ⁺      granate
-    3312: "#aaffc3",   # Ξ⁻      menta
-    3322: "#ffd8b1",   # Ξ⁰      albaricoque
+    3312: "#1b7a4a",   # Ξ⁻      verde oscuro
+    3322: "#d2691e",   # Ξ⁰      teja
     -999: "#808080",   # unmatched / fake   gris
     999:  "#808080",   # idem tras el abs() de Reco_pid
 }
 
 # Paleta de reserva para PDGs no listados; se asigna de forma determinista a
 # partir del propio PDG, así que tampoco depende del orden de aparición.
+# Todos son tonos oscuros/saturados y sin cian: los pasteles no se leen sobre
+# fondo blanco cuando la curva es fina.
 _PID_FALLBACK_COLORS = [
-    "#a9a9a9", "#7f7f7f", "#c49c94", "#dbdb8d", "#9edae5",
-    "#ff9896", "#c5b0d5", "#98df8a", "#ffbb78", "#aec7e8",
+    "#6b6b6b", "#4d4d4d", "#8c564b", "#8c8c00", "#3b6ea5",
+    "#b03a2e", "#6a3d9a", "#2e7d32", "#c1660a", "#1f4e79",
 ]
 
 
@@ -535,6 +538,7 @@ def plot_efficiency_vs_momentum(
     p_min=0.0,
     p_max=50.0,
     plot_type="default",
+    legend_fontsize=13,
 ):
     """
     Plot n(gen→reco)/n_gen vs |p_gen| for every (Gen_pid, Reco_pid) pair found in
@@ -542,6 +546,7 @@ def plot_efficiency_vs_momentum(
       - One PNG per (Gen_pid, Reco_pid): efficiency_{gen_pid}_{reco_pid}.png
       - One global PNG per Gen_pid with all reco destinations overlaid plus a
         dashed total line: efficiency_global_{gen_pid}.png
+    The global plots use a two-column legend with font size *legend_fontsize*.
     """
     os.makedirs(output_dir, exist_ok=True)
     
@@ -680,8 +685,17 @@ def plot_efficiency_vs_momentum(
         fig, ax = plt.subplots(figsize=(8, 6), constrained_layout=True)
 
         total_eff = np.zeros(n_bins)
+        handles = []
 
-        for reco_pid, sub in gen_group.groupby("Reco_pid"):
+        # La curva diagonal (gen == reco) va siempre la primera de la leyenda,
+        # el resto de migraciones detrás por PDG creciente: así la eficiencia
+        # propiamente dicha se lee arriba del todo en todos los ficheros.
+        reco_groups = sorted(
+            gen_group.groupby("Reco_pid"),
+            key=lambda item: (0 if int(item[0]) == int(gen_pid) else 1, int(item[0])),
+        )
+
+        for reco_pid, sub in reco_groups:
             eff_vals, eff_errs = _eff_arrays(sub)
             if not np.any(np.isfinite(eff_vals)):
                 continue
@@ -700,6 +714,10 @@ def plot_efficiency_vs_momentum(
                 color=color,
                 label=f"{gen_lbl} → {reco_lbl}",
             )
+            handles.append(
+                Line2D([], [], color=color, marker="o", markersize=4, linewidth=1.2,
+                       label=f"{gen_lbl} → {reco_lbl}")
+            )
             total_eff += np.where(np.isfinite(eff_vals), eff_vals, 0.0)
 
         ax.plot(
@@ -710,6 +728,8 @@ def plot_efficiency_vs_momentum(
             color="black",
             label="Total",
         )
+        handles.append(Line2D([], [], color="black", linestyle="--", linewidth=2.0,
+                              label="Total"))
         ax.set_xlim(p_min, p_max)
         ax.set_ylim(0, 1.15)
         if plot_type == "theta":
@@ -718,7 +738,10 @@ def plot_efficiency_vs_momentum(
             ax.set_xlabel("|p_gen| [GeV]")
         ax.set_ylabel("n(gen→reco) / n_gen")
         ax.set_title(f"Efficiency & migrations: {gen_lbl}")
-        ax.legend(fontsize=8, loc="best")
+        # Handles explícitos: matplotlib pondría el "Total" (Line2D) por delante
+        # de los errorbars y la diagonal dejaría de ser la primera entrada.
+        ax.legend(handles=handles, fontsize=legend_fontsize, ncol=2, loc="best",
+                  columnspacing=1.2, handlelength=1.8)
         _style_ax(ax)
 
         fname = os.path.join(output_dir, f"efficiency_global_{int(gen_pid)}.png")
@@ -1021,6 +1044,30 @@ def plot_fake_rate_vs_momentum(
         plt.close()
 
 
+def _fit_text_to_cells(ax, texts, n_cols, n_rows, fill_w=0.7, fill_h=0.5):
+    """
+    Agranda por igual las anotaciones *texts* de un imshow hasta el mayor tamaño
+    de fuente con el que la más ancha sigue cabiendo en su celda (fill_w/fill_h
+    son la fracción de anchura/altura de celda que puede ocupar el texto).
+    """
+    if not texts:
+        return
+    fig = ax.figure
+    # Dibujar antes de medir: constrained_layout fija aquí el tamaño final del eje
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    box = ax.get_window_extent(renderer)
+    cell_w = box.width / n_cols
+    cell_h = box.height / n_rows
+    scale = min(
+        min(fill_w * cell_w / bb.width, fill_h * cell_h / bb.height)
+        for bb in (t.get_window_extent(renderer) for t in texts)
+    )
+    size = texts[0].get_fontsize() * scale
+    for t in texts:
+        t.set_fontsize(size)
+
+
 def plot_confusion_matrices(
     association_results_df,
     output_dir=".",
@@ -1075,7 +1122,9 @@ def plot_confusion_matrices(
 
     # ── Colour / style constants ───────────────────────────────────────────────
     TITLE_FONT  = dict(fontsize=11, fontweight="bold", color="#1a1a2e")
-    LABEL_FONT  = dict(fontsize=9,  color="#2d2d2d")
+    LABEL_FONT  = dict(fontsize=14, color="#2d2d2d")
+    TICK_FONTSIZE = 13
+    CBAR_FONTSIZE = 12
     ANNOT_FONT_ABS = dict(fontsize=7.5, ha="center", va="center")
     SPINE_COLOR = "#cccccc"
 
@@ -1104,16 +1153,16 @@ def plot_confusion_matrices(
 
         # Colourbar
         cb = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cb.ax.tick_params(labelsize=7)
+        cb.ax.tick_params(labelsize=CBAR_FONTSIZE)
         if not fmt_abs:
-            cb.set_label("fraction", fontsize=7, color="#555")
+            cb.set_label("fraction", fontsize=CBAR_FONTSIZE, color="#555")
 
         # Axes ticks
         ax.set_xticks(range(n_reco))
         ax.set_yticks(range(n_gen))
         ax.set_xticklabels([pid_label(r) for r in reco_ids],
-                           rotation=45, ha="right", fontsize=8)
-        ax.set_yticklabels([pid_label(g) for g in gen_ids], fontsize=8)
+                           rotation=45, ha="right", fontsize=TICK_FONTSIZE)
+        ax.set_yticklabels([pid_label(g) for g in gen_ids], fontsize=TICK_FONTSIZE)
 
         ax.set_xlabel("Reco particle", **LABEL_FONT)
         ax.set_ylabel("Gen particle",  **LABEL_FONT)
@@ -1132,6 +1181,7 @@ def plot_confusion_matrices(
         # Annotations
         if annotate:
             thresh = matrix.max() / 2.0 if matrix.max() > 0 else 0.5
+            texts = []
             for i in range(n_gen):
                 for j in range(n_reco):
                     val = matrix[i, j]
@@ -1139,7 +1189,8 @@ def plot_confusion_matrices(
                         continue
                     color = "white" if val > thresh else "#333333"
                     txt = (f"{int(val):,}" if fmt_abs else f"{val:.2f}")
-                    ax.text(j, i, txt, color=color, **ANNOT_FONT_ABS)
+                    texts.append(ax.text(j, i, txt, color=color, **ANNOT_FONT_ABS))
+            _fit_text_to_cells(ax, texts, n_cols=n_reco, n_rows=n_gen)
 
         return im
 
@@ -1244,8 +1295,44 @@ def plot_confusion_matrices(
 
 
 # ─────────────────────────────────────────────
-#  Momentum resolution  (P_reco − P_gen) / P_gen
+#  Resolution  (momentum and polar angle)
 # ─────────────────────────────────────────────
+
+# Cada observable se describe una sola vez: la columna de residuo que añade
+# _residual_frame, cómo rotular el eje y el título, con cuántos decimales citar
+# las estadísticas y qué límites usar en el rango automático.  Todo lo demás
+# (histogramas, comparación, ficheros de salida) es común a los dos.
+RESOLUTION_SPECS = {
+    "p": dict(
+        column="p_res",
+        title_kind="Momentum resolution",
+        xlabel="(|p$_{reco}$| − |p$_{gen}$|) / |p$_{gen}$|",
+        xlabel_ascii="(|p$_{reco}$| - |p$_{gen}$|) / |p$_{gen}$|",
+        stat_fmt=".4f",
+        range_kwargs=dict(min_half_width=0.02, hard_lo=-1.0, hard_hi=3.0),
+    ),
+    "theta": dict(
+        column="theta_res",
+        title_kind="Theta resolution",
+        xlabel=r"$\theta_{reco}$ − $\theta_{gen}$ [mrad]",
+        xlabel_ascii=r"$\theta_{reco}$ - $\theta_{gen}$ [mrad]",
+        stat_fmt=".3f",
+        # El residuo en θ es absoluto y no tiene tope físico como el relativo en
+        # |p| (que no puede bajar de −1), así que no se recorta a mano.
+        range_kwargs=dict(min_half_width=1.0, hard_lo=-np.inf, hard_hi=np.inf),
+    ),
+}
+
+
+def _resolution_spec(observable):
+    try:
+        return RESOLUTION_SPECS[observable]
+    except KeyError:
+        raise ValueError(
+            f"Unknown resolution observable: {observable!r}. "
+            f"Expected one of {sorted(RESOLUTION_SPECS)}."
+        ) from None
+
 
 def _auto_residual_range(residuals, n_sigma=5.0, min_half_width=0.02,
                          hard_lo=-1.0, hard_hi=3.0):
@@ -1280,22 +1367,29 @@ def _auto_residual_range(residuals, n_sigma=5.0, min_half_width=0.02,
     return max(lo, hard_lo), min(hi, hard_hi)
 
 
-def _plot_residual_hist(residuals, title, fname, dpi, n_bins, r_range=None):
-    """Draw one (P_reco − P_gen)/P_gen histogram with its statistics box."""
+def _plot_residual_hist(residuals, title, fname, dpi, n_bins, r_range=None,
+                        spec=None, ctx="plot_momentum_resolution"):
+    """Draw one residual histogram with its statistics box.
+
+    spec selects the observable (see RESOLUTION_SPECS): it fixes the x-label,
+    the number of decimals of the statistics box and the automatic range.
+    """
+    spec = spec or RESOLUTION_SPECS["p"]
+    fmt = spec["stat_fmt"]
     residuals = np.asarray(residuals, dtype=float)
     residuals = residuals[np.isfinite(residuals)]
     if residuals.size < 2:
-        print(f"[plot_momentum_resolution] Too few entries for {fname}. Skipping.")
+        print(f"[{ctx}] Too few entries for {fname}. Skipping.")
         return
 
     if r_range is None:
-        lo, hi = _auto_residual_range(residuals)
+        lo, hi = _auto_residual_range(residuals, **spec["range_kwargs"])
     else:
         lo, hi = r_range
 
     inside = residuals[(residuals >= lo) & (residuals <= hi)]
     if inside.size < 2:
-        print(f"[plot_momentum_resolution] No entries inside ({lo}, {hi}) for {fname}. Skipping.")
+        print(f"[{ctx}] No entries inside ({lo}, {hi}) for {fname}. Skipping.")
         return
 
     counts, edges = np.histogram(inside, bins=n_bins, range=(lo, hi))
@@ -1312,19 +1406,19 @@ def _plot_residual_hist(residuals, title, fname, dpi, n_bins, r_range=None):
     n_out = residuals.size - inside.size
     stats = [
         f"entries = {residuals.size}",
-        f"mean = {np.mean(residuals):+.4f}",
-        f"std = {np.std(residuals):.4f}",
+        f"mean = {np.mean(residuals):+{fmt}}",
+        f"std = {np.std(residuals):{fmt}}",
     ]
     std90 = _std90(residuals)
     if std90 is not None:
-        stats.append(f"std90 = {std90:.4f}")
-    stats.append(f"median = {np.median(residuals):+.4f}")
+        stats.append(f"std90 = {std90:{fmt}}")
+    stats.append(f"median = {np.median(residuals):+{fmt}}")
     if n_out:
         stats.append(f"out of range = {n_out}")
 
     ax.axvline(0.0, color="black", linestyle=":", linewidth=1.2)
     ax.set_xlim(lo, hi)
-    ax.set_xlabel("(|p$_{reco}$| − |p$_{gen}$|) / |p$_{gen}$|")
+    ax.set_xlabel(spec["xlabel"])
     ax.set_ylabel("Entries")
     ax.set_title(title)
     ax.text(0.02, 0.98, "\n".join(stats), transform=ax.transAxes,
@@ -1339,18 +1433,19 @@ def _plot_residual_hist(residuals, title, fname, dpi, n_bins, r_range=None):
     ax.grid(True, alpha=0.3)
 
     plt.savefig(fname, dpi=dpi, bbox_inches="tight")
-    print(f"Saved momentum resolution plot → {fname}")
+    print(f"Saved {spec['title_kind'].lower()} plot → {fname}")
     plt.close()
 
 
 def _residual_frame(full_df, ctx="plot_momentum_resolution"):
     """
     Common preprocessing of the resolution plots: returns (df, df_res) with the
-    absolute PDGs, |p| of both partners and the relative residual p_res, or
-    (None, None) if full_df cannot provide it.
+    absolute PDGs, |p| and theta of both partners and the residuals p_res and
+    theta_res, or (None, None) if full_df cannot provide it.
 
     df      : every row, with Gen_pid/Reco_pid in absolute value and Gen_P/Reco_P
-    df_res  : only the gen-reco matched rows, with the extra column p_res
+    df_res  : only the gen-reco matched rows, with the extra columns
+              Gen_theta/Reco_theta (rad), p_res (relative) and theta_res (mrad)
     """
     required_cols = {"Gen_pid", "Reco_pid",
                      "Gen_Px", "Gen_Py", "Gen_Pz",
@@ -1388,7 +1483,89 @@ def _residual_frame(full_df, ctx="plot_momentum_resolution"):
         return df, None
 
     df_res["p_res"] = (df_res["Reco_P"] - df_res["Gen_P"]) / df_res["Gen_P"]
+
+    # θ = arccos(pz/|p|).  El residuo va en absoluto (mrad) y no en relativo:
+    # θ pasa por cero y no tiene una escala propia como |p|, así que (θ_reco −
+    # θ_gen)/θ_gen explotaría en el forward.  Gen_P > 0 lo garantiza la máscara
+    # de arriba; Reco_P == 0 dejaría θ_reco indefinido, y esas filas salen NaN
+    # y las descartan los propios plots.
+    gen_cos = np.clip(df_res["Gen_Pz"].to_numpy() / df_res["Gen_P"].to_numpy(), -1.0, 1.0)
+    reco_p = df_res["Reco_P"].to_numpy()
+    reco_cos = np.full(reco_p.shape, np.nan)
+    ok = np.isfinite(reco_p) & (reco_p > 0)
+    reco_cos[ok] = np.clip(df_res["Reco_Pz"].to_numpy()[ok] / reco_p[ok], -1.0, 1.0)
+
+    df_res["Gen_theta"] = np.arccos(gen_cos)
+    df_res["Reco_theta"] = np.arccos(reco_cos)
+    df_res["theta_res"] = (df_res["Reco_theta"] - df_res["Gen_theta"]) * 1e3
     return df, df_res
+
+
+def _plot_resolution_by_species(
+    full_df,
+    observable,
+    output_dir=".",
+    dpi=150,
+    n_bins=100,
+    r_min=None,
+    r_max=None,
+    min_entries=20,
+    title_suffix="",
+    ctx="plot_momentum_resolution",
+):
+    """Shared body of plot_momentum_resolution / plot_theta_resolution.
+
+    observable picks the residual (see RESOLUTION_SPECS); everything else --
+    the species loop, the file names and the "matched"/"pred" split -- is the
+    same for both.
+    """
+    spec = _resolution_spec(observable)
+    col = spec["column"]
+    kind = spec["title_kind"]
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # r_min/r_max fijan el rango a mano; si no se dan, cada especie escoge el
+    # suyo a partir de sus percentiles (ver _auto_residual_range).
+    r_range = None if (r_min is None or r_max is None) else (r_min, r_max)
+
+    df, df_res = _residual_frame(full_df, ctx=ctx)
+    if df_res is None:
+        return
+
+    # ── a) Partículas correctamente identificadas ────────────────────────────
+    correct = df_res.loc[df_res["Gen_pid"] == df_res["Reco_pid"]]
+    for pid, sub in correct.groupby("Gen_pid"):
+        if len(sub) < min_entries:
+            continue
+        lbl = pid_label(int(pid))
+        _plot_residual_hist(
+            sub[col].to_numpy(),
+            title=f"{kind}, correctly identified: {lbl} → {lbl}{title_suffix}",
+            fname=os.path.join(output_dir, f"resolution_matched_{int(pid)}.png"),
+            dpi=dpi, n_bins=n_bins, r_range=r_range, spec=spec, ctx=ctx,
+        )
+
+    # ── b) Todo lo reconstruido como esa especie (acierte o no) ──────────────
+    # Denominador informativo: PFOs de esa especie sin gen asociado (fakes), que
+    # no pueden entrar en el histograma por no tener |p_gen| de referencia.
+    n_no_gen = (
+        df.loc[(df["Gen_pid"] == 999) | ~np.isfinite(df["Gen_P"]) | (df["Gen_P"] <= 0)]
+        .groupby("Reco_pid").size()
+    )
+    for pid, sub in df_res.groupby("Reco_pid"):
+        if len(sub) < min_entries:
+            continue
+        lbl = pid_label(int(pid))
+        n_fake = int(n_no_gen.get(pid, 0))
+        purity = (sub["Gen_pid"] == pid).mean()
+        _plot_residual_hist(
+            sub[col].to_numpy(),
+            title=(f"{kind}, reconstructed as {lbl} "
+                   f"(purity {purity:.1%}, {n_fake} without gen match){title_suffix}"),
+            fname=os.path.join(output_dir, f"resolution_pred_{int(pid)}.png"),
+            dpi=dpi, n_bins=n_bins, r_range=r_range, spec=spec, ctx=ctx,
+        )
 
 
 def plot_momentum_resolution(
@@ -1418,61 +1595,51 @@ def plot_momentum_resolution(
     title_suffix is appended to every plot title, e.g. to state an extra
     selection applied upstream (" | E > 10 GeV").
     """
-    os.makedirs(output_dir, exist_ok=True)
-
-    # r_min/r_max fijan el rango a mano; si no se dan, cada especie escoge el
-    # suyo a partir de sus percentiles (ver _auto_residual_range).
-    r_range = None if (r_min is None or r_max is None) else (r_min, r_max)
-
-    df, df_res = _residual_frame(full_df)
-    if df_res is None:
-        return
-
-    # ── a) Partículas correctamente identificadas ────────────────────────────
-    correct = df_res.loc[df_res["Gen_pid"] == df_res["Reco_pid"]]
-    for pid, sub in correct.groupby("Gen_pid"):
-        if len(sub) < min_entries:
-            continue
-        lbl = pid_label(int(pid))
-        _plot_residual_hist(
-            sub["p_res"].to_numpy(),
-            title=f"Momentum resolution, correctly identified: {lbl} → {lbl}{title_suffix}",
-            fname=os.path.join(output_dir, f"resolution_matched_{int(pid)}.png"),
-            dpi=dpi, n_bins=n_bins, r_range=r_range,
-        )
-
-    # ── b) Todo lo reconstruido como esa especie (acierte o no) ──────────────
-    # Denominador informativo: PFOs de esa especie sin gen asociado (fakes), que
-    # no pueden entrar en el histograma por no tener |p_gen| de referencia.
-    n_no_gen = (
-        df.loc[(df["Gen_pid"] == 999) | ~np.isfinite(df["Gen_P"]) | (df["Gen_P"] <= 0)]
-        .groupby("Reco_pid").size()
+    _plot_resolution_by_species(
+        full_df, "p", output_dir=output_dir, dpi=dpi, n_bins=n_bins,
+        r_min=r_min, r_max=r_max, min_entries=min_entries,
+        title_suffix=title_suffix, ctx="plot_momentum_resolution",
     )
-    for pid, sub in df_res.groupby("Reco_pid"):
-        if len(sub) < min_entries:
-            continue
-        lbl = pid_label(int(pid))
-        n_fake = int(n_no_gen.get(pid, 0))
-        purity = (sub["Gen_pid"] == pid).mean()
-        _plot_residual_hist(
-            sub["p_res"].to_numpy(),
-            title=(f"Momentum resolution, reconstructed as {lbl} "
-                   f"(purity {purity:.1%}, {n_fake} without gen match){title_suffix}"),
-            fname=os.path.join(output_dir, f"resolution_pred_{int(pid)}.png"),
-            dpi=dpi, n_bins=n_bins, r_range=r_range,
-        )
+
+
+def plot_theta_resolution(
+    full_df,
+    output_dir=".",
+    dpi=150,
+    n_bins=100,
+    r_min=None,
+    r_max=None,
+    min_entries=20,
+    title_suffix="",
+):
+    """
+    Same as plot_momentum_resolution, but for the polar angle: the absolute
+    residual θ_reco − θ_gen in mrad, with θ = arccos(p_z / |p|).  The residual
+    is absolute rather than relative because θ crosses zero and has no scale of
+    its own, so a relative one would diverge in the forward region.
+
+    Written to its own directory (one PNG per species, same file names), so it
+    sits next to the momentum plots instead of overwriting them.
+    """
+    _plot_resolution_by_species(
+        full_df, "theta", output_dir=output_dir, dpi=dpi, n_bins=n_bins,
+        r_min=r_min, r_max=r_max, min_entries=min_entries,
+        title_suffix=title_suffix, ctx="plot_theta_resolution",
+    )
 
 COMPARISON_COLORS = ["#4363d8", "#e6194b", "#3cb44b", "#f58231",
-                     "#911eb4", "#46f0f0", "#bcf60c", "#808000"]
+                     "#911eb4", "#8c564b", "#0f766e", "#808000"]
 
 
-def _comparison_residual_range(residual_sets, r_min=None, r_max=None):
+def _comparison_residual_range(residual_sets, r_min=None, r_max=None,
+                               range_kwargs=None):
     """Common x-range for an overlay: the union of the per-dataset auto ranges."""
     if r_min is not None and r_max is not None:
         return r_min, r_max
+    range_kwargs = range_kwargs or {}
     los, his = [], []
     for res in residual_sets:
-        lo, hi = _auto_residual_range(res)
+        lo, hi = _auto_residual_range(res, **range_kwargs)
         los.append(lo)
         his.append(hi)
     return min(los), max(his)
@@ -1480,8 +1647,15 @@ def _comparison_residual_range(residual_sets, r_min=None, r_max=None):
 
 def _plot_residual_comparison(residuals_by_label, title, fname, dpi, n_bins,
                               r_range=None, normalize=True, extra_by_label=None,
-                              legend_fontsize=11):
-    """Overlay several (P_reco - P_gen)/P_gen distributions in a single plot."""
+                              legend_fontsize=11, spec=None,
+                              ctx="compare_momentum_resolution"):
+    """Overlay several residual distributions of the same observable.
+
+    spec selects the observable (see RESOLUTION_SPECS): x-label, statistics
+    format and automatic range.
+    """
+    spec = spec or RESOLUTION_SPECS["p"]
+    fmt = spec["stat_fmt"]
     clean = {}
     for label, res in residuals_by_label.items():
         res = np.asarray(res, dtype=float)
@@ -1489,10 +1663,11 @@ def _plot_residual_comparison(residuals_by_label, title, fname, dpi, n_bins,
         if res.size >= 2:
             clean[label] = res
     if not clean:
-        print(f"[compare_momentum_resolution] Too few entries for {fname}. Skipping.")
+        print(f"[{ctx}] Too few entries for {fname}. Skipping.")
         return
 
-    lo, hi = _comparison_residual_range(clean.values(), *(r_range or (None, None)))
+    lo, hi = _comparison_residual_range(clean.values(), *(r_range or (None, None)),
+                                        range_kwargs=spec["range_kwargs"])
     edges = np.linspace(lo, hi, n_bins + 1)
 
     fig, ax = plt.subplots(figsize=(8, 6), constrained_layout=True)
@@ -1501,7 +1676,7 @@ def _plot_residual_comparison(residuals_by_label, title, fname, dpi, n_bins,
         color = COMPARISON_COLORS[i % len(COMPARISON_COLORS)]
         inside = res[(res >= lo) & (res <= hi)]
         if inside.size < 2:
-            print(f"[compare_momentum_resolution] {label}: no entries inside "
+            print(f"[{ctx}] {label}: no entries inside "
                   f"({lo:.3f}, {hi:.3f}). Skipping this dataset.")
             continue
         # density=True para que dos muestras con estadística muy distinta sigan
@@ -1515,10 +1690,10 @@ def _plot_residual_comparison(residuals_by_label, title, fname, dpi, n_bins,
         lines = [str(label)]
         if extra_by_label and label in extra_by_label:
             lines.append(extra_by_label[label])
-        lines.append(f"N = {res.size}, mean = {np.mean(res):+.4f}")
-        stat_line = f"std = {np.std(res):.4f}"
+        lines.append(f"N = {res.size}, mean = {np.mean(res):+{fmt}}")
+        stat_line = f"std = {np.std(res):{fmt}}"
         if std90 is not None:
-            stat_line += f", std90 = {std90:.4f}"
+            stat_line += f", std90 = {std90:{fmt}}"
         lines.append(stat_line)
         legend_entries.append((color, "\n".join(lines)))
 
@@ -1536,7 +1711,7 @@ def _plot_residual_comparison(residuals_by_label, title, fname, dpi, n_bins,
 
     ax.axvline(0.0, color="black", linestyle=":", linewidth=1.2)
     ax.set_xlim(lo, hi)
-    ax.set_xlabel("(|p$_{reco}$| - |p$_{gen}$|) / |p$_{gen}$|")
+    ax.set_xlabel(spec["xlabel_ascii"])
     ax.set_ylabel("Normalized entries" if normalize else "Entries")
     ax.set_title(title)
 
@@ -1548,8 +1723,92 @@ def _plot_residual_comparison(residuals_by_label, title, fname, dpi, n_bins,
     ax.grid(True, alpha=0.3)
 
     plt.savefig(fname, dpi=dpi, bbox_inches="tight")
-    print(f"Saved momentum resolution comparison -> {fname}")
+    print(f"Saved {spec['title_kind'].lower()} comparison -> {fname}")
     plt.close()
+
+
+def _compare_resolution_by_species(
+    dfs_by_label,
+    observable,
+    output_dir=".",
+    dpi=150,
+    n_bins=100,
+    r_min=None,
+    r_max=None,
+    min_entries=20,
+    title_suffix="",
+    normalize=True,
+    pids=None,
+    legend_fontsize=11,
+    ctx="compare_momentum_resolution",
+):
+    """Shared body of compare_momentum_resolution / compare_theta_resolution."""
+    spec = _resolution_spec(observable)
+    col = spec["column"]
+    kind = spec["title_kind"]
+
+    os.makedirs(output_dir, exist_ok=True)
+    r_range = None if (r_min is None or r_max is None) else (r_min, r_max)
+
+    matched = {}   # {pid: {label: residuals}}
+    pred = {}
+    pred_info = {}  # {pid: {label: (purity, n_fake)}}
+
+    for label, full_df in dfs_by_label.items():
+        df, df_res = _residual_frame(full_df, ctx=f"{ctx}[{label}]")
+        if df_res is None:
+            continue
+
+        correct = df_res.loc[df_res["Gen_pid"] == df_res["Reco_pid"]]
+        for pid, sub in correct.groupby("Gen_pid"):
+            if len(sub) < min_entries:
+                continue
+            matched.setdefault(int(pid), {})[label] = sub[col].to_numpy()
+
+        n_no_gen = (
+            df.loc[(df["Gen_pid"] == 999) | ~np.isfinite(df["Gen_P"]) | (df["Gen_P"] <= 0)]
+            .groupby("Reco_pid").size()
+        )
+        for pid, sub in df_res.groupby("Reco_pid"):
+            if len(sub) < min_entries:
+                continue
+            pid_i = int(pid)
+            pred.setdefault(pid_i, {})[label] = sub[col].to_numpy()
+            pred_info.setdefault(pid_i, {})[label] = (
+                float((sub["Gen_pid"] == pid).mean()), int(n_no_gen.get(pid, 0))
+            )
+
+    if pids is not None:
+        keep = {int(p) for p in pids}
+        matched = {k: v for k, v in matched.items() if k in keep}
+        pred = {k: v for k, v in pred.items() if k in keep}
+
+    for pid, per_label in sorted(matched.items()):
+        lbl = pid_label(pid)
+        _plot_residual_comparison(
+            per_label,
+            title=f"{kind}, correctly identified: {lbl} -> {lbl}{title_suffix}",
+            fname=os.path.join(output_dir, f"resolution_matched_{pid}.png"),
+            dpi=dpi, n_bins=n_bins, r_range=r_range, normalize=normalize,
+            legend_fontsize=legend_fontsize, spec=spec, ctx=ctx,
+        )
+
+    for pid, per_label in sorted(pred.items()):
+        lbl = pid_label(pid)
+        # La pureza y los fakes son por dataset, así que van en la leyenda de
+        # cada curva en lugar del título.
+        extra = {
+            label: (f"purity {pred_info[pid][label][0]:.1%}, "
+                    f"{pred_info[pid][label][1]} without gen match")
+            for label in per_label
+        }
+        _plot_residual_comparison(
+            per_label, extra_by_label=extra,
+            title=f"{kind}, reconstructed as {lbl}{title_suffix}",
+            fname=os.path.join(output_dir, f"resolution_pred_{pid}.png"),
+            dpi=dpi, n_bins=n_bins, r_range=r_range, normalize=normalize,
+            legend_fontsize=legend_fontsize, spec=spec, ctx=ctx,
+        )
 
 
 def compare_momentum_resolution(
@@ -1586,68 +1845,38 @@ def compare_momentum_resolution(
     Species missing from a dataset (or below min_entries there) simply do not
     contribute a curve, so an asymmetric comparison is still drawn.
     """
-    os.makedirs(output_dir, exist_ok=True)
-    r_range = None if (r_min is None or r_max is None) else (r_min, r_max)
+    _compare_resolution_by_species(
+        dfs_by_label, "p", output_dir=output_dir, dpi=dpi, n_bins=n_bins,
+        r_min=r_min, r_max=r_max, min_entries=min_entries,
+        title_suffix=title_suffix, normalize=normalize, pids=pids,
+        legend_fontsize=legend_fontsize, ctx="compare_momentum_resolution",
+    )
 
-    matched = {}   # {pid: {label: residuals}}
-    pred = {}
-    pred_info = {}  # {pid: {label: (purity, n_fake)}}
 
-    for label, full_df in dfs_by_label.items():
-        df, df_res = _residual_frame(full_df, ctx=f"compare_momentum_resolution[{label}]")
-        if df_res is None:
-            continue
-
-        correct = df_res.loc[df_res["Gen_pid"] == df_res["Reco_pid"]]
-        for pid, sub in correct.groupby("Gen_pid"):
-            if len(sub) < min_entries:
-                continue
-            matched.setdefault(int(pid), {})[label] = sub["p_res"].to_numpy()
-
-        n_no_gen = (
-            df.loc[(df["Gen_pid"] == 999) | ~np.isfinite(df["Gen_P"]) | (df["Gen_P"] <= 0)]
-            .groupby("Reco_pid").size()
-        )
-        for pid, sub in df_res.groupby("Reco_pid"):
-            if len(sub) < min_entries:
-                continue
-            pid_i = int(pid)
-            pred.setdefault(pid_i, {})[label] = sub["p_res"].to_numpy()
-            pred_info.setdefault(pid_i, {})[label] = (
-                float((sub["Gen_pid"] == pid).mean()), int(n_no_gen.get(pid, 0))
-            )
-
-    if pids is not None:
-        keep = {int(p) for p in pids}
-        matched = {k: v for k, v in matched.items() if k in keep}
-        pred = {k: v for k, v in pred.items() if k in keep}
-
-    for pid, per_label in sorted(matched.items()):
-        lbl = pid_label(pid)
-        _plot_residual_comparison(
-            per_label,
-            title=f"Momentum resolution, correctly identified: {lbl} -> {lbl}{title_suffix}",
-            fname=os.path.join(output_dir, f"resolution_matched_{pid}.png"),
-            dpi=dpi, n_bins=n_bins, r_range=r_range, normalize=normalize,
-            legend_fontsize=legend_fontsize,
-        )
-
-    for pid, per_label in sorted(pred.items()):
-        lbl = pid_label(pid)
-        # La pureza y los fakes son por dataset, así que van en la leyenda de
-        # cada curva en lugar del título.
-        extra = {
-            label: (f"purity {pred_info[pid][label][0]:.1%}, "
-                    f"{pred_info[pid][label][1]} without gen match")
-            for label in per_label
-        }
-        _plot_residual_comparison(
-            per_label, extra_by_label=extra,
-            title=f"Momentum resolution, reconstructed as {lbl}{title_suffix}",
-            fname=os.path.join(output_dir, f"resolution_pred_{pid}.png"),
-            dpi=dpi, n_bins=n_bins, r_range=r_range, normalize=normalize,
-            legend_fontsize=legend_fontsize,
-        )
+def compare_theta_resolution(
+    dfs_by_label,
+    output_dir=".",
+    dpi=150,
+    n_bins=100,
+    r_min=None,
+    r_max=None,
+    min_entries=20,
+    title_suffix="",
+    normalize=True,
+    pids=None,
+    legend_fontsize=11,
+):
+    """
+    Same as compare_momentum_resolution, but overlaying the absolute polar-angle
+    residual θ_reco − θ_gen (mrad) of several datasets.  Same file names, in a
+    directory of its own.
+    """
+    _compare_resolution_by_species(
+        dfs_by_label, "theta", output_dir=output_dir, dpi=dpi, n_bins=n_bins,
+        r_min=r_min, r_max=r_max, min_entries=min_entries,
+        title_suffix=title_suffix, normalize=normalize, pids=pids,
+        legend_fontsize=legend_fontsize, ctx="compare_theta_resolution",
+    )
 
 
 def _plot_resolution_curve_comparison(series_by_label, energy_bins, output_dir,

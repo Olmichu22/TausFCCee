@@ -2,15 +2,15 @@
 # una entrada por "rol" (categoria reco, resonancia, ...) para poder
 # darle color/estilo propio a cada curva via per_dataset.
 # CLD: &cldpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_PionPhotonFSR_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
-CLD: &cldpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
-ILD: &ildpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+CLD: &cldpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_smearingChanged_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+ILD: &ildpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_smearingChanged_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
 
 # Graficos ToLost: los produce TauAnalysis/mergeMigrationCategories.py a partir
 # del fichero principal (hay que regenerarlos cada vez que se rehace la reco).
 # CLDmerged: &cldmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_PionPhotonFSR_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
 
-CLDmerged: &cldmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
-ILDmerged: &ildmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
+CLDmerged: &cldmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_smearingChanged_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
+ILDmerged: &ildmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_smearingChanged_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
 
 # Previous CLD /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
 # Previous ILD   - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
@@ -18,7 +18,7 @@ datasets:
   # --- comparacion directa CLD vs ILD (una curva por detector) ---
   - path: *cldpath
     label: "CLD"
-    color: ROOT.kAzure+2
+    color: ROOT.kRed
     linestyle: 1
     markerstyle: 20
     markersize: 1.
@@ -26,7 +26,7 @@ datasets:
 
   - path: *ildpath
     label: "ILD"
-    color: ROOT.kRed
+    color: ROOT.kAzure+2
     linestyle: 1
     markerstyle: 21
     markersize: 1.

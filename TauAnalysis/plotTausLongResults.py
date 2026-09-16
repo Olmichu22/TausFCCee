@@ -160,6 +160,20 @@ PNeutron = run_config["cuts"]["NeutronCut"]
 dRMatch = run_config["cuts"]["MatchedGenMaxDR"]
 generalPCut = run_config["cuts"]["generalPCut"]
 
+# Correcciones extra sobre el tau reconstruido (tauReco.extraTauRecoCorrection).
+extra_correction = run_config.get("extra_reco_correction") or {}
+if extra_correction.get("enable") and extra_correction.get("modes"):
+    unknown = [m for m in extra_correction["modes"]
+               if m not in tauReco.availableExtraCorrections()]
+    if unknown:
+        logger_config.error("Modo(s) de correccion desconocido(s): %s. Disponibles: %s",
+                            unknown, tauReco.availableExtraCorrections())
+        sys.exit(1)
+    logger_config.info("Correcciones extra activas: %s (params: %s)",
+                       extra_correction["modes"], extra_correction.get("params", {}))
+else:
+    extra_correction = None
+
 selectDecay=general_configs["decay"]
 
 outputpath = general_configs["outputpath"]
@@ -303,7 +317,8 @@ for eventid, event in enumerate(reader.get("events")):
                                                                                    test_pfo,
                                                                                    logger_process,
                                                                                    neutral_recover_cfg=neutral_recover_cfg,
-                                                                                   event=event)
+                                                                                   event=event,
+                                                                                   extra_correction=extra_correction)
 
     recoTaus_extremes = {
         "original": recoTau,

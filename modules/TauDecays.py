@@ -18,7 +18,8 @@ def extractTauDecays(gatr_results_path,
                      logger_process,
                      neutral_recover_cfg: dict=dict(),
                      event=None,
-                     only_association=False):
+                     only_association=False,
+                     extra_correction: Optional[dict]=None):
   if gatr_results_path is not None and not test_pfo:
     logger_process.debug("Using GATr results for event %d", eventid)
     particles = mlpf_results.get(eventid, {})
@@ -44,7 +45,8 @@ def extractTauDecays(gatr_results_path,
                                 minPTauPion,
                                 PNeutron,
                                 generalPCut,
-                                charge_condition=charge_condition)
+                                charge_condition=charge_condition,
+                                extra_correction=extra_correction)
   recoElectrons = electronReco.findAllElectrons(particles, generalPCut)
   recoMuons = muonReco.findAllMuons(particles, generalPCut)
   

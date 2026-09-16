@@ -20,3 +20,11 @@ Cases_more_mesons.csv
 # Salidas del pipeline CLD/ILD (histogramas binned y plots)
 Binned_histograms_MDecs/
 TauPolOutputs/
+
+# Plots de comparación CLD/ILD y logs de ejecución
+CompareCLDILD_*/
+logs/
+
+# Tablas intermedias pesadas de los estudios en docs/ (se regeneran con sus scripts)
+docs/**/*.npz
+docs/**/records.json
