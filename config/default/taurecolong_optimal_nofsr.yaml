@@ -1,0 +1,32 @@
+cuts:
+  NeutronCut: 3
+  TauPhotonPCut: 0.35
+  TauPionPCut: 0
+  dRMax: 0.4
+  MatchedGenMaxDR: 1
+  generalPCut: 0.
+general:
+  decay:
+  - -777
+  outfile: tau_trained
+  sample: ZTauTau_SMPol_25Sept_MuonFix
+  matchedCM: "True"
+  test: 'False'
+output:
+  outputfile:
+  outputpath:
+  outputlabels:
+
+extra_reco_correction:
+  # Quita del cono el foton que convierte tau->pi nu (DM 0) en pi+gamma (DM 1).
+  # Origen del foton y calibracion de los cortes: docs/pi_extra_photon/REPORT.md
+  enable: false
+  modes:
+    - pion_photon_fsr
+  params:
+    pion_photon_fsr:
+      pi0_mass_window: 0.05   # |m_gg - 0.135| < esto -> pi0 real, el foton se protege
+      soft_frac: 0.05         # P_gamma/P_pion por debajo -> fragmento del shower del pion
+      hard_p_min: 2.0         # a partir de aqui el foton es candidato a FSR duro
+      mass_min: 1.2           # m(pi+gamma) > m_rho -> no puede venir de un pi0 perdido
+      max_photons: 0          # 0 = sin limite de fotones en el cono

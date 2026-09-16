@@ -487,3 +487,4 @@ cm_config:
   # decays: [-20, -2, -1, 1, 2, 3, 4, 10, 11, 12]
   # photonDecays : [0, 1, 2, 3, 4, 10, 11]
   # colorbar: false
+  # normalize: row  # "row" (eficiencia, por defecto), "column" (pureza) o "both"

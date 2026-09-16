@@ -1324,16 +1324,60 @@ def plot_2D_hist(file, variabs, labels, outputpath):
         print(f"Saved 2D histogram '{var}' as '{out_file}'")
     c.Close()
 
+_CM_NORMALIZATION_ALIASES = {
+    "row": "row", "rows": "row", "true": "row", "gen": "row",
+    "efficiency": "row", "eff": "row", "0": "row",
+    "column": "column", "columns": "column", "col": "column",
+    "cols": "column", "pred": "column", "predicted": "column",
+    "reco": "column", "purity": "column", "1": "column",
+}
+
+
+def _cm_normalization_modes(normalize):
+    """Resolve the ``normalize`` option of ``cm_config`` into a list of modes.
+
+    Accepts a single value or a list. ``"row"`` (the default) normalizes by
+    actual class -> efficiency; ``"column"`` normalizes by predicted class ->
+    purity; ``"both"`` produces one plot per mode. Common aliases such as
+    ``"true"``, ``"purity"`` or ``"pred"`` are also understood.
+    """
+    if normalize is None:
+        return ["row"]
+    if isinstance(normalize, (list, tuple)):
+        requested = list(normalize)
+    elif str(normalize).strip().lower() in ("both", "all", "row+column"):
+        requested = ["row", "column"]
+    else:
+        requested = [normalize]
+
+    modes = []
+    for item in requested:
+        key = str(item).strip().lower()
+        mode = _CM_NORMALIZATION_ALIASES.get(key)
+        if mode is None:
+            raise ValueError(
+                f"cm_config: unknown normalize value {item!r}; "
+                "use 'row', 'column' or 'both'.")
+        if mode not in modes:
+            modes.append(mode)
+    return modes or ["row"]
+
+
 def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
     """
-    Generates and saves two confusion matrix plots:
+    Generates and saves the confusion matrix plots:
       1. With absolute values.
-      2. With normalized values (per actual class) expressed as percentages.
-    
+      2. With normalized values expressed as percentages, one plot per
+         normalization mode requested through ``plot_config['normalize']``:
+         ``"row"`` (default, per actual class -> efficiency), ``"column"``
+         (per predicted class -> purity) or ``"both"``.
+
     If plotphotons is True, uses the 'PhotonPredicted' column instead of 'Predicted'.
     The resulting confusion matrix may be rectangular if the true and predicted classes differ.
-    
-    Matrices are saved in the same folder as before, with an added suffix.
+
+    Matrices are saved in the same folder as before, with an added suffix. The
+    column-normalized file carries an extra ``_columns`` tag, so the row-normalized
+    output keeps its historical name.
     """
     # Extract true labels and predicted labels based on the flag
     y_true = results_df['True']
@@ -1393,6 +1437,12 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
     if not os.path.exists(cm_dir):
         os.makedirs(cm_dir)
 
+    # Texto de las celdas, configurable desde cm_config:
+    #   annot_fontsize: tamaño de fuente (por defecto el mismo que la base, 12 o 10)
+    #   annot_decimals: decimales de los porcentajes >= 10 %; los < 10 % llevan
+    #                   uno más para no borrar las migraciones pequeñas
+    annot_decimals = int(plot_config.get("annot_decimals", 0))
+
     # --- Absolute values plot ---
     if "decays" in plot_config:
       plt.figure(figsize=(10, 7.5))
@@ -1401,8 +1451,11 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
       plt.figure(figsize=(15, 10))
       fontsize = 10
     tick_fontsize = fontsize + 1
+    annot_fontsize = plot_config.get("annot_fontsize", fontsize)
     plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title("Confusion Matrix (Absolute Values)")
+    plt.title("Confusion Matrix (Absolute Values)", fontdict={
+        "size":16
+    })
     if plot_config.get("colorbar", True):
       plt.colorbar()
     if plotphotons:
@@ -1420,71 +1473,96 @@ def plot_cm(results_df, outputpath, plotphotons=False, plot_config={}):
         for j in range(cm.shape[1]):
             plt.text(j, i, format(cm[i, j], 'd'),
                      horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black", fontsize=fontsize)
+                     color="white" if cm[i, j] > thresh else "black", fontsize=annot_fontsize)
     
-    plt.ylabel('Actual Label')
-    plt.xlabel('Predicted Label')
+    plt.ylabel('Actual Label', fontdict={"size":16})
+    plt.xlabel('Predicted Label', fontdict={"size":16})
     plt.tight_layout()
     plt.savefig(os.path.join(cm_dir, "confusion_matrix_absolute" + suffix + ".png"))
     plt.close()
     
-    # --- Normalized values plot (per actual label) ---    
-    with np.errstate(invalid='ignore', divide='ignore'):
-        cm_normalized = cm_df.to_numpy().astype('float') / cm_df.to_numpy().sum(axis=1)[:, np.newaxis]
-    cm_normalized = np.nan_to_num(cm_normalized)  # Replace NaN with 0 for rows with zero sum
-    cm_normalized = pd.DataFrame(cm_normalized, index=cm_df.index, columns=cm_df.columns)
-    if "decays" in plot_config:
-      # Select only the decays in the config file
-      if plotphotons:
-        cm_normalized = cm_normalized.reindex(
-            index=row_decays, columns=photondecays, fill_value=0.0).copy()
-        classes_true = cm_normalized.index.values
-        classes_pred = cm_normalized.columns.values
-        cm_normalized = cm_normalized.values
+    # --- Normalized values plots ---
+    # `normalize` en cm_config: "row" (eficiencia, por clase gen), "column"
+    # (pureza, por clase reco) o "both". Por defecto "row", como antes.
+    norm_modes = _cm_normalization_modes(plot_config.get("normalize", "row"))
 
-        mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes_true]
-        mapped_classes_pred = [id_to_key(cls, photons=True) for cls in classes_pred]
+    for norm_mode in norm_modes:
+      # El denominador se calcula sobre la matriz completa (antes de recortar con
+      # `decays`/`genDecays`), asi la eficiencia/pureza cuenta tambien las clases
+      # que no se dibujan.
+      counts = cm_df.to_numpy().astype('float')
+      with np.errstate(invalid='ignore', divide='ignore'):
+        if norm_mode == "column":
+          cm_normalized = counts / counts.sum(axis=0)[np.newaxis, :]
+        else:
+          cm_normalized = counts / counts.sum(axis=1)[:, np.newaxis]
+      cm_normalized = np.nan_to_num(cm_normalized)  # Replace NaN with 0 for rows/columns with zero sum
+      cm_normalized = pd.DataFrame(cm_normalized, index=cm_df.index, columns=cm_df.columns)
+      if "decays" in plot_config:
+        # Select only the decays in the config file
+        if plotphotons:
+          cm_normalized = cm_normalized.reindex(
+              index=row_decays, columns=photondecays, fill_value=0.0).copy()
+          classes_true = cm_normalized.index.values
+          classes_pred = cm_normalized.columns.values
+          cm_normalized = cm_normalized.values
+
+          mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes_true]
+          mapped_classes_pred = [id_to_key(cls, photons=True) for cls in classes_pred]
+        else:
+          cm_normalized = cm_normalized.reindex(
+              index=row_decays, columns=decays, fill_value=0.0).copy()
+          classes_true = cm_normalized.index.values
+          classes_pred = cm_normalized.columns.values
+          cm_normalized = cm_normalized.values
+
+          mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes_true]
+          mapped_classes_pred = [id_to_key(cls, photons=False) for cls in classes_pred]
+        plt.figure(figsize=(10, 7.5))
+        fontsize = 12
       else:
-        cm_normalized = cm_normalized.reindex(
-            index=row_decays, columns=decays, fill_value=0.0).copy()
-        classes_true = cm_normalized.index.values
-        classes_pred = cm_normalized.columns.values
-        cm_normalized = cm_normalized.values
+        plt.figure(figsize=(15, 10))
+        fontsize = 10
+      tick_fontsize = fontsize + 1
+      annot_fontsize = plot_config.get("annot_fontsize", fontsize)
+      plt.imshow(cm_normalized, interpolation='nearest', cmap=plt.cm.Blues)
+      if norm_mode == "column":
+        plt.title("Confusion Matrix (Normalized by column, purity) [%]", fontdict={"size":16})
+      else:
+        plt.title("Confusion Matrix (Normalized) [%]", fontdict={"size":16})
+      if plot_config.get("colorbar", True):
+        plt.colorbar()
+      if plotphotons:
+          plt.xticks(np.arange(len(mapped_classes_pred)), mapped_classes_pred, rotation=45, fontsize=tick_fontsize)
+          plt.yticks(np.arange(len(mapped_classes_true)), mapped_classes_true, fontsize=tick_fontsize)
+      else:
+          plt.xticks(np.arange(len(mapped_classes_pred)), mapped_classes_pred, rotation=45, fontsize=tick_fontsize)
+          plt.yticks(np.arange(len(mapped_classes_true)), mapped_classes_true, fontsize=tick_fontsize)
+      # Sin "decays" en el config cm_normalized sigue siendo un DataFrame y la
+      # anotacion de abajo lo indexa como matriz (cm_normalized[i, j]), que pandas
+      # lee como nombre de columna -> KeyError. Se normaliza a numpy en los dos casos.
+      cm_normalized = np.asarray(cm_normalized)
+      thresh_norm = cm_normalized.max() / 2.
+      # Annotate each cell with the percentage (sin "%": va en el título). Los
+      # valores que redondean por debajo de 10 llevan un decimal más, así "87" y
+      # "9.5" ocupan lo mismo y las migraciones pequeñas no se quedan en "0".
+      for i in range(cm_normalized.shape[0]):
+          for j in range(cm_normalized.shape[1]):
+              percentage = cm_normalized[i, j] * 100
+              ndec = annot_decimals if round(percentage, annot_decimals + 1) >= 10 else annot_decimals + 1
+              plt.text(j, i, f"{percentage:.{ndec}f}",
+                       horizontalalignment="center",
+                       color="white" if cm_normalized[i, j] > thresh_norm else "black", fontsize=annot_fontsize)
 
-        mapped_classes_true = [id_to_key(cls, photons=False) for cls in classes_true]
-        mapped_classes_pred = [id_to_key(cls, photons=False) for cls in classes_pred]
-      plt.figure(figsize=(10, 7.5))
-      fontsize = 12
-    else:
-      plt.figure(figsize=(15, 10))
-      fontsize = 10
-    tick_fontsize = fontsize + 1
-    plt.imshow(cm_normalized, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title("Confusion Matrix (Normalized)")
-    if plot_config.get("colorbar", True):
-      plt.colorbar()
-    if plotphotons:
-        plt.xticks(np.arange(len(mapped_classes_pred)), mapped_classes_pred, rotation=45, fontsize=tick_fontsize)
-        plt.yticks(np.arange(len(mapped_classes_true)), mapped_classes_true, fontsize=tick_fontsize)
-    else:
-        plt.xticks(np.arange(len(mapped_classes_pred)), mapped_classes_pred, rotation=45, fontsize=tick_fontsize)
-        plt.yticks(np.arange(len(mapped_classes_true)), mapped_classes_true, fontsize=tick_fontsize)
-    # cm_normalized = cm_normalized.to_numpy()
-    thresh_norm = cm_normalized.max() / 2.
-    # Annotate each cell with the percentage
-    for i in range(cm_normalized.shape[0]):
-        for j in range(cm_normalized.shape[1]):
-            percentage = cm_normalized[i, j] * 100
-            plt.text(j, i, f"{percentage:.1f}%",
-                     horizontalalignment="center",
-                     color="white" if cm_normalized[i, j] > thresh_norm else "black", fontsize=fontsize)
-    
-    plt.ylabel('Actual Label')
-    plt.xlabel('Predicted Label')
-    plt.tight_layout()
-    plt.savefig(os.path.join(cm_dir, "confusion_matrix_normalized" + suffix + ".png"))
-    plt.close()
-    
+      plt.ylabel('Actual Label', fontdict={"size":16})
+      plt.xlabel('Predicted Label', fontdict={"size":16})
+      plt.tight_layout()
+      # La normalizacion por filas conserva el nombre historico del fichero.
+      norm_tag = "_columns" if norm_mode == "column" else ""
+      plt.savefig(os.path.join(
+          cm_dir, "confusion_matrix_normalized" + norm_tag + suffix + ".png"))
+      plt.close()
+
     print(f"Saved confusion matrices to '{cm_dir}'")
 
 

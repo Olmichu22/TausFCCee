@@ -1,26 +1,39 @@
 # Datasets: mismo par de ficheros (CLD / ILD) declarado varias veces,
 # una entrada por "rol" (categoria reco, resonancia, ...) para poder
 # darle color/estilo propio a cada curva via per_dataset.
+# CLD: &cldpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_PionPhotonFSR_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+CLD: &cldpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+ILD: &ildpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+
+# Graficos ToLost: los produce TauAnalysis/mergeMigrationCategories.py a partir
+# del fichero principal (hay que regenerarlos cada vez que se rehace la reco).
+# CLDmerged: &cldmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_PionPhotonFSR_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
+
+CLDmerged: &cldmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
+ILDmerged: &ildmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
+
+# Previous CLD /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+# Previous ILD   - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
 datasets:
   # --- comparacion directa CLD vs ILD (una curva por detector) ---
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD"
-    color: ROOT.kRed
+    color: ROOT.kAzure+2
     linestyle: 1
     markerstyle: 20
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD"
-    color: ROOT.kAzure+2
+    color: ROOT.kRed
     linestyle: 1
     markerstyle: 21
     markersize: 1.
     linewidth: 3
 
   # --- CLD: desglose por categoria reconstruida ---
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD Correct"
     color: ROOT.kRed
     linestyle: 1
@@ -28,7 +41,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow h"
     color: ROOT.kAzure+2
     linestyle: 1
@@ -36,7 +49,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow h #gamma"
     color: ROOT.kGreen+2
     linestyle: 1
@@ -44,7 +57,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow h 2#gamma"
     color: ROOT.kOrange+7
     linestyle: 1
@@ -52,7 +65,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow h 3#gamma"
     color: ROOT.kMagenta+1
     linestyle: 1
@@ -60,7 +73,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow h 4#gamma"
     color: ROOT.kCyan+2
     linestyle: 1
@@ -68,7 +81,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow h #geq5#gamma"
     color: ROOT.kYellow+2
     linestyle: 1
@@ -76,7 +89,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow 3h"
     color: ROOT.kViolet+1
     linestyle: 1
@@ -84,7 +97,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow 3h #gamma"
     color: ROOT.kSpring+4
     linestyle: 1
@@ -92,7 +105,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow 3h 2#gamma"
     color: ROOT.kPink+7
     linestyle: 1
@@ -100,7 +113,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow e"
     color: ROOT.kGray+2
     linestyle: 1
@@ -108,7 +121,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow #mu"
     color: ROOT.kBlue+2
     linestyle: 1
@@ -116,7 +129,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rightarrow 3h + n"
     color: ROOT.kOrange-3
     linestyle: 1
@@ -124,7 +137,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
+  - path: *cldmerged
     label: "CLD Not reconstructed"
     color: ROOT.kTeal+3
     linestyle: 1
@@ -133,7 +146,7 @@ datasets:
     linewidth: 3
 
   # --- ILD: desglose por categoria reconstruida ---
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD Correct"
     color: ROOT.kRed
     linestyle: 1
@@ -141,7 +154,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow h"
     color: ROOT.kAzure+2
     linestyle: 1
@@ -149,7 +162,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow h #gamma"
     color: ROOT.kGreen+2
     linestyle: 1
@@ -157,7 +170,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow h 2#gamma"
     color: ROOT.kOrange+7
     linestyle: 1
@@ -165,7 +178,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow h 3#gamma"
     color: ROOT.kMagenta+1
     linestyle: 1
@@ -173,7 +186,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow h 4#gamma"
     color: ROOT.kCyan+2
     linestyle: 1
@@ -181,7 +194,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow h #geq5#gamma"
     color: ROOT.kYellow+2
     linestyle: 1
@@ -189,7 +202,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow 3h"
     color: ROOT.kViolet+1
     linestyle: 1
@@ -197,7 +210,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow 3h #gamma"
     color: ROOT.kSpring+4
     linestyle: 1
@@ -205,7 +218,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow 3h 2#gamma"
     color: ROOT.kPink+7
     linestyle: 1
@@ -213,7 +226,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow e"
     color: ROOT.kGray+2
     linestyle: 1
@@ -221,7 +234,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow #mu"
     color: ROOT.kBlue+2
     linestyle: 1
@@ -229,7 +242,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rightarrow 3h + n"
     color: ROOT.kOrange-3
     linestyle: 1
@@ -237,7 +250,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
+  - path: *ildmerged
     label: "ILD Not reconstructed"
     color: ROOT.kTeal+3
     linestyle: 1
@@ -246,7 +259,7 @@ datasets:
     linewidth: 3
 
   # --- masas: ILD con relleno, CLD solo linea ---
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD m_{Z}"
     color: ROOT.kRed
     linestyle: 2
@@ -257,7 +270,7 @@ datasets:
     fillstyle: 3006
     fillalpha: 1.0
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #rho #rightarrow #pi#pi^{0}"
     color: ROOT.kRed
     linestyle: 2
@@ -268,7 +281,7 @@ datasets:
     fillstyle: 3006
     fillalpha: 1.0
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD a_{1} #rightarrow #pi#pi^{0}#pi^{0}"
     color: ROOT.kAzure+2
     linestyle: 2
@@ -279,7 +292,7 @@ datasets:
     fillstyle: 3006
     fillalpha: 1.0
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD a_{1} #rightarrow #pi#pi#pi"
     color: ROOT.kGreen+2
     linestyle: 2
@@ -290,7 +303,7 @@ datasets:
     fillstyle: 3006
     fillalpha: 1.0
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_ILD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *ildpath
     label: "ILD #pi^{0}"
     color: ROOT.kViolet+1
     linestyle: 2
@@ -301,7 +314,7 @@ datasets:
     fillstyle: 3006
     fillalpha: 1.0
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD m_{Z}"
     color: ROOT.kRed
     linestyle: 1
@@ -309,7 +322,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #rho #rightarrow #pi#pi^{0}"
     color: ROOT.kRed
     linestyle: 1
@@ -317,7 +330,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD a_{1} #rightarrow #pi#pi^{0}#pi^{0}"
     color: ROOT.kAzure+2
     linestyle: 1
@@ -325,7 +338,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD a_{1} #rightarrow #pi#pi#pi"
     color: ROOT.kGreen+2
     linestyle: 1
@@ -333,7 +346,7 @@ datasets:
     markersize: 1.
     linewidth: 3
 
-  - path: /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_cosaccept_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+  - path: *cldpath
     label: "CLD #pi^{0}"
     color: ROOT.kViolet+1
     linestyle: 1

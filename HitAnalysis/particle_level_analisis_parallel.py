@@ -24,7 +24,7 @@ from modules.NeutralRecover import (debug_reco_tau, plot_debug_reco_tau, get_rec
                                     DEFAULT_ASSOC_MAX_DR)
 from modules.ConfusionMatrixParticleLevel import (plot_confusion_matrices, plot_energy_distributions,
                                                   plot_efficiency_vs_momentum, plot_fake_rate_vs_momentum,
-                                                  plot_momentum_resolution)
+                                                  plot_momentum_resolution, plot_theta_resolution)
 from modules import (ParticleObjects, electronReco, muonReco, myutils, pi0Reco,
                      tauReco, particleMatch)
 from modules.ParticleObjects import RecoParticle
@@ -1114,6 +1114,14 @@ def main():
         res_dir_truth = os.path.join(outputpath, "momentum_resolution", "truthlink")
         plot_momentum_resolution(full_df_truth, output_dir=res_dir_truth)
 
+    # ── Resolución absoluta en theta (θ_reco − θ_gen, mrad) ──────────────────
+    with stage(logger_io, "Resolución de theta (dR)"):
+        theta_res_dir_dr = os.path.join(outputpath, "theta_resolution", "dR")
+        plot_theta_resolution(full_df_dr, output_dir=theta_res_dir_dr)
+    with stage(logger_io, "Resolución de theta (truthlink)"):
+        theta_res_dir_truth = os.path.join(outputpath, "theta_resolution", "truthlink")
+        plot_theta_resolution(full_df_truth, output_dir=theta_res_dir_truth)
+
     # ── Variantes con corte mínimo en energía (--min-energy-cuts) ────────────
     # Matrices integradas (un único bin E > umbral) y distribuciones de
     # resolución sobre el mismo subconjunto, en Emin_<valor>GeV.
@@ -1153,6 +1161,13 @@ def main():
                 plot_momentum_resolution(
                     df_cut,
                     output_dir=os.path.join(outputpath, "momentum_resolution", tag, cut_label),
+                    title_suffix=cut_note,
+                )
+
+            with stage(logger_io, f"Resolución de theta E>{threshold:g} GeV ({tag})"):
+                plot_theta_resolution(
+                    df_cut,
+                    output_dir=os.path.join(outputpath, "theta_resolution", tag, cut_label),
                     title_suffix=cut_note,
                 )
 

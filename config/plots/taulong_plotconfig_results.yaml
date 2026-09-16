@@ -1552,6 +1552,16 @@ cm_config:
   # -21 = 3 prongs + hadron neutro absorbido (antes se colaba como id 10)
   decays: [-21, -20, -2, -1, -13, -11, 0, 1, 2, 10, 11, 12]
   # filas (eje gen): sin Unmatched (-2) ni pi n (-20/-21)
-  genDecays: [-1, -13, -11, 0, 1, 2, 10, 11, 12]
+  # genDecays: [-1, -13, -11, 0, 1, 2, 10, 11, 12]
+  genDecays: [-13, -11, 0, 1, 2, 10, 11, 12]
+  
   photonDecays : [-21, 0, 1, 2, 3, 4, 10, 11, 12, 13]
   colorbar: false
+  # Normalizacion de la matriz: "row" (por clase gen -> eficiencia, por defecto),
+  # "column" (por clase reco -> pureza) o "both" para sacar las dos.
+  # La version por columnas se guarda como confusion_matrix_normalized_columns*.png
+  normalize: both
+  # Texto de las celdas: tamaño de fuente y decimales de los porcentajes >= 10 %
+  # (los < 10 % llevan uno más para no perder las migraciones pequeñas)
+  annot_fontsize: 16
+  annot_decimals: 0

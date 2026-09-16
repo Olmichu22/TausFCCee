@@ -12,8 +12,9 @@ Comparación de dos (o más) directorios, p.ej. dos detectores:
         --min-energy-cuts 10
 
 Con más de un <outputpath> el script pasa a modo comparación: en vez de rehacer
-todos los plots, superpone las distribuciones de resolución de momento de cada directorio en un
-mismo PNG (momentum_resolution/, resolution_matched_<pid>.png y
+todos los plots, superpone las distribuciones de resolución de momento y de
+theta de cada directorio en un mismo PNG (momentum_resolution/ y
+theta_resolution/, resolution_matched_<pid>.png y
 resolution_pred_<pid>.png) junto con los perfiles de resolución vs energía
 (energy_distributions/, residual_resolution_<metrica>_<serie>.png) y el fake
 rate y el fake yield (fake_rate_plots/ y fake_rate_plots_theta/,
@@ -39,7 +40,9 @@ from modules.ConfusionMatrixParticleLevel import (plot_confusion_matrices,
                                                   plot_efficiency_vs_momentum,
                                                   plot_fake_rate_vs_momentum,
                                                   plot_momentum_resolution,
+                                                  plot_theta_resolution,
                                                   compare_momentum_resolution,
+                                                  compare_theta_resolution,
                                                   compare_energy_resolution,
                                                   compare_fake_rate_vs_momentum)
 
@@ -93,10 +96,11 @@ def replot(full_df, tag, outdir, args, selection_note):
                                selection_note=selection_note, n_events=n_events)
 
     plot_momentum_resolution(full_df, output_dir=d("momentum_resolution", tag))
+    plot_theta_resolution(full_df, output_dir=d("theta_resolution", tag))
 
     # ── Variantes con corte mínimo en energía (--min-energy-cuts) ────────────
     # Mismo tratamiento que el análisis: matriz integrada (un único bin
-    # E > umbral) y resolución de momento sobre el mismo subconjunto.
+    # E > umbral) y resoluciones de momento y theta sobre el mismo subconjunto.
     for threshold in (args.min_energy_cuts or []):
         cut_label = energy_cut_label(threshold)
         df_cut = apply_min_energy_cut(full_df, threshold, mode=args.min_energy_var)
@@ -120,10 +124,15 @@ def replot(full_df, tag, outdir, args, selection_note):
             output_dir=d("momentum_resolution", tag, cut_label),
             title_suffix=f" | E > {threshold:g} GeV",
         )
+        plot_theta_resolution(
+            df_cut,
+            output_dir=d("theta_resolution", tag, cut_label),
+            title_suffix=f" | E > {threshold:g} GeV",
+        )
 
 
 def compare(dfs_by_label, tag, outdir, args):
-    """Superpone la resolución de momento de varios directorios para una rama."""
+    """Superpone la resolución de momento y theta de varios directorios para una rama."""
     for label, df in dfs_by_label.items():
         print(f"[{tag}] {label}: {len(df):,} filas, "
               f"{int(df['event_id'].nunique()):,} eventos")
@@ -134,6 +143,11 @@ def compare(dfs_by_label, tag, outdir, args):
     def compare_all(dfs, subdir_parts, title_suffix=""):
         compare_momentum_resolution(
             dfs, output_dir=d("momentum_resolution", *subdir_parts),
+            normalize=not args.no_normalize, pids=args.compare_pids,
+            legend_fontsize=args.legend_fontsize, title_suffix=title_suffix,
+        )
+        compare_theta_resolution(
+            dfs, output_dir=d("theta_resolution", *subdir_parts),
             normalize=not args.no_normalize, pids=args.compare_pids,
             legend_fontsize=args.legend_fontsize, title_suffix=title_suffix,
         )
@@ -197,7 +211,8 @@ def main():
     p.add_argument("--min-energy-cuts", type=float, nargs="*", default=[], metavar="GEV",
                    help="Umbrales de energía (GeV). Para cada valor se rehacen la "
                         "matriz de confusión integrada (un único bin E > umbral) y "
-                        "la resolución de momento en un subdirectorio Emin_<valor>GeV")
+                        "las resoluciones de momento y theta en un subdirectorio "
+                        "Emin_<valor>GeV")
     p.add_argument("--min-energy-var", choices=["auto", "gen", "reco"], default="auto",
                    help="Energía usada por --min-energy-cuts: 'auto' (Gen_energy, o "
                         "Reco_energy para los fakes), 'gen' o 'reco'")

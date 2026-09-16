@@ -26,6 +26,9 @@ def main(
     extra_legend=None,  # Lista de textos extra para la leyenda
     lumi_base=None,     # Luminosidad base de los datos (fb^-1)
     lumi_target=None,   # Luminosidad objetivo para reescalar (fb^-1)
+    legend_fit=(0.60, 0.56, 0.95, 0.88),   # Leyenda de los plots de w_rho (NDC)
+    legend_pol=(0.58, 0.63, 0.96, 0.87),   # Leyenda de P_tau vs cos(theta) (NDC)
+    legend_size=0.038,  # Tamano de letra de ambas leyendas
 ):
     fitTable = {
     "bin": [],
@@ -430,9 +433,9 @@ def main(
         hist_m1_scaled.Draw("HIST SAME")
         hist_p1_scaled.Draw("HIST SAME")
 
-        leg = TLegend(0.38,0.6,0.88,0.88)
+        leg = TLegend(*legend_fit)
         #Ajustamos tamaño de letra
-        leg.SetTextSize(0.045)
+        leg.SetTextSize(legend_size)
         leg.SetFillStyle(0)
         leg.SetBorderSize(0)
         leg.AddEntry(hist_data,"Pseudo-data","lep")
@@ -605,7 +608,8 @@ def main(
     fit_func.SetLineWidth(2)
     fit_func.Draw("SAME")
     
-    leg = ROOT.TLegend(0.5,0.89,0.85,0.65)
+    leg = ROOT.TLegend(*legend_pol)
+    leg.SetTextSize(legend_size)
     leg.SetFillStyle(0)
     leg.SetLineColor(0)
     leg.SetLineWidth(0)
@@ -678,6 +682,16 @@ if __name__ == "__main__":
                         help="Luminosidad base a la que están escalados los datos (fb^-1)")
     parser.add_argument("--lumi-target", type=float, default=None,
                         help="Luminosidad objetivo para reescalar señal y fondos (fb^-1)")
+    parser.add_argument("--legend-fit", type=float, nargs=4,
+                        default=[0.60, 0.56, 0.95, 0.88],
+                        metavar=("X1", "Y1", "X2", "Y2"),
+                        help="Coordenadas NDC de la leyenda en los plots de w_rho")
+    parser.add_argument("--legend-pol", type=float, nargs=4,
+                        default=[0.58, 0.63, 0.96, 0.87],
+                        metavar=("X1", "Y1", "X2", "Y2"),
+                        help="Coordenadas NDC de la leyenda en P_tau vs cos(theta)")
+    parser.add_argument("--legend-size", type=float, default=0.038,
+                        help="Tamano de letra de las leyendas (NDC)")
 
     args = parser.parse_args()
 
@@ -694,4 +708,7 @@ if __name__ == "__main__":
         extra_legend=args.extra_legend,
         lumi_base=args.lumi_base,
         lumi_target=args.lumi_target,
+        legend_fit=tuple(args.legend_fit),
+        legend_pol=tuple(args.legend_pol),
+        legend_size=args.legend_size,
     )

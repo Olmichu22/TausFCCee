@@ -233,6 +233,7 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
     dedup_mode        = config_bundle.get("dedup_mode", "reco")
     filter_gen_status = config_bundle.get("filter_gen_status", True)
     max_gen_pdg       = config_bundle.get("max_gen_pdg", 10000)
+    extra_correction  = config_bundle.get("extra_correction") or None
 
     # Temporary output file — created inside the worker after fork
     tmp_path = os.path.join(outputpath, f"tmp_chunk_{worker_id}.root")
@@ -536,13 +537,15 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
                     particles = {}
                 recoTau_raw = tauReco.findAllTaus(
                     particles, dRMax, minPTauPhoton, minPTauPion,
-                    PNeutron, generalPCut, charge_condition=False
+                    PNeutron, generalPCut, charge_condition=False,
+                    extra_correction=extra_correction,
                 )
                 recoElectrons = electronReco.findAllElectrons(particles, generalPCut)
                 recoMuons = muonReco.findAllMuons(particles, generalPCut)
             else:
                 recoTau_raw = tauReco.findAllTaus(
-                    pfos, dRMax, minPTauPhoton, minPTauPion, PNeutron, generalPCut
+                    pfos, dRMax, minPTauPhoton, minPTauPion, PNeutron, generalPCut,
+                    extra_correction=extra_correction,
                 )
                 recoElectrons = electronReco.findAllElectrons(pfos, generalPCut)
                 recoMuons = muonReco.findAllMuons(pfos, generalPCut)
@@ -926,6 +929,23 @@ def main():
     test_arg      = general_configs["flags"]["test"]
     gatr_path     = general_configs["args"].gatr_result
 
+    extra_correction = run_config.get("extra_reco_correction") or {}
+    if extra_correction.get("enable") and extra_correction.get("modes"):
+        logger_config.info(
+            "Correcciones extra activas: %s (params: %s)",
+            extra_correction["modes"], extra_correction.get("params", {}),
+        )
+        unknown = [m for m in extra_correction["modes"]
+                   if m not in tauReco.availableExtraCorrections()]
+        if unknown:
+            logger_config.error(
+                "Modo(s) de correccion desconocido(s): %s. Disponibles: %s",
+                unknown, tauReco.availableExtraCorrections(),
+            )
+            sys.exit(1)
+    else:
+        extra_correction = None
+
     logger_config.info("Configuration loaded!")
     logger_config.info("Configuration:\n%s", pprint.pformat(general_configs, indent=4))
 
@@ -961,6 +981,7 @@ def main():
         "filter_gen_status": not args.skip_gen_status_filter,
         "max_gen_pdg":       args.max_gen_pdg,
         "weight_mode":       args.weight_mode,
+        "extra_correction":  extra_correction,
     }
 
     n_workers   = args.n_workers or min(len(filenames), os.cpu_count() or 1)

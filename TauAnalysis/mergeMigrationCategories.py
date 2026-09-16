@@ -82,7 +82,7 @@ def main():
 
     output = args.output or os.path.join(os.path.dirname(args.input),
                                          "migration_merged.root")
-
+    
     fin = ROOT.TFile(args.input)
     if not fin or fin.IsZombie():
         raise RuntimeError(f"Could not open {args.input}")

@@ -1,0 +1,111 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Estudio CLD vs ILD con las muestras de vertex smearing corregido
+# (ztt_2M_smearing). Replica, para los modos
+#   rho_lep_legacycuts, ele_lep10, ele_nocuts, muon_nocuts, muon_lep10, pion_optcuts
+# la producción de Binned_histograms_MDecs/CLD_ILD, con sin²θ_eff = 0.2312 y 0.2315.
+#   python RhoAnalysis/runTreeHistPipeline_MDecs.py --pipeline-config <este fichero>
+# Cortes del pión: los de la PSO original de CLD (config/pipeline/CLD_ILD/CLD_reco_optcuts.yaml).
+# Cortes legacy del rho_lep: los de docs/usefull_commands.md (cosAcc 0.95).
+# ═══════════════════════════════════════════════════════════════════════════
+
+pipeline:
+
+  tree:
+    enabled: true
+    mode: reco
+    sample: ztt_2M_smearing
+    prefix: PolAnalysis_RECO_CLD_ztt2M_smearingChanged_
+    config: config/default/taurecolong_optimal.yaml
+    n_workers: 20
+    decay_modes: [0, 1, 2, 10, -11, -13]
+    verbose: 1
+
+  hist_common:
+    hist_config_mdecs: config/histograms/rho_analysis_config_mdecs.yml
+    config: config/default/taurecolong_optimal.yaml
+    n_workers: 20
+    only_gen: false
+    compute_weights: false
+    no_omega_weights: false
+    cos_acceptance: null
+    omega_border_cut: false
+    ang: null
+    meson_cut: null
+    lepton_cut: null
+    zmass_cut: null
+    cut: []
+    vism_cut: 0.
+    verbose: 1
+
+  hist_runs:
+    # ───────────── sin²θ_eff = 0.2312 ─────────────
+    - name: ele_nocuts_s0.2312
+      single_decay: -11
+      sin_eff: 0.2312
+    - name: muon_nocuts_s0.2312
+      single_decay: -13
+      sin_eff: 0.2312
+    - name: ele_lep10_s0.2312
+      single_decay: -11
+      sin_eff: 0.2312
+      meson_cut: [10, 100]
+    - name: muon_lep10_s0.2312
+      single_decay: -13
+      sin_eff: 0.2312
+      meson_cut: [10, 100]
+    - name: pion_optcuts_s0.2312
+      single_decay: 0
+      sin_eff: 0.2312
+      ang: [0.0135, 5.9882]
+      meson_cut: [2.4960, 50.0000]
+      zmass_cut: [1.9033, 100.0000]
+    - name: rho_el_legacycuts_s0.2312
+      decay_pair: [2, -11]
+      sin_eff: 0.2312
+      cos_acceptance: 0.95
+      ang: [3.06, 5.0]
+      meson_cut: [2, 45.57]
+      lepton_cut: [10, 41.16]
+    - name: rho_mu_legacycuts_s0.2312
+      decay_pair: [2, -13]
+      sin_eff: 0.2312
+      cos_acceptance: 0.95
+      ang: [3.06, 5.0]
+      meson_cut: [2, 45.57]
+      lepton_cut: [10, 41.16]
+
+    # ───────────── sin²θ_eff = 0.2315 ─────────────
+    - name: ele_nocuts_s0.2315
+      single_decay: -11
+      sin_eff: 0.2315
+    - name: muon_nocuts_s0.2315
+      single_decay: -13
+      sin_eff: 0.2315
+    - name: ele_lep10_s0.2315
+      single_decay: -11
+      sin_eff: 0.2315
+      meson_cut: [10, 100]
+    - name: muon_lep10_s0.2315
+      single_decay: -13
+      sin_eff: 0.2315
+      meson_cut: [10, 100]
+    - name: pion_optcuts_s0.2315
+      single_decay: 0
+      sin_eff: 0.2315
+      ang: [0.0135, 5.9882]
+      meson_cut: [2.4960, 50.0000]
+      zmass_cut: [1.9033, 100.0000]
+    - name: rho_el_legacycuts_s0.2315
+      decay_pair: [2, -11]
+      sin_eff: 0.2315
+      cos_acceptance: 0.95
+      ang: [3.06, 5.0]
+      meson_cut: [2, 45.57]
+      lepton_cut: [10, 41.16]
+    - name: rho_mu_legacycuts_s0.2315
+      decay_pair: [2, -13]
+      sin_eff: 0.2315
+      cos_acceptance: 0.95
+      ang: [3.06, 5.0]
+      meson_cut: [2, 45.57]
+      lepton_cut: [10, 41.16]
