@@ -1,9 +1,30 @@
+# Cada sección admite un único punto (un dict; sufijos PhEnUp, PhEnDown, PhDir)
+# o una lista de puntos para evaluar varios valores en una sola pasada. En una
+# lista el sufijo lleva un tag: el "name" opcional del punto o, si falta, uno
+# derivado de sus valores (c0p01, f0p1_c0p01, s0p001).
+#
+# Todos los sigma_theta comparten los números aleatorios (mismo eje y gaussiana
+# por fotón; solo cambia la escala del ángulo). Con varias semillas
+# (--sys-seed 1 2 3) cada punto de dirección se repite por semilla, como
+# PhDir_<tag>_seed<semilla>; la energía es determinista y no se repite.
+#
+# --test-extremes (particle_level_analisis*, vía modules/TauDecays.py) solo
+# guarda una variación por sección: de una lista usa el primer punto.
 photon_config:
+  # Escala de energía: sigma_E/E = factor/sqrt(E) (+) const. Cada fotón reco se
+  # mueve coherentemente a E+sigma_E (PhEnUp_<tag>) y a E-sigma_E (PhEnDown_<tag>).
   energy:
-    factor: 0.
-    const: 0.01
-  # direction:
-  #   factor_theta: 0.
-  #   const_theta: 0.01 # in radians
-  #   factor_phi: 0.
-  #   const_phi: 0.01 # in radians
+    - {factor: 0., const: 0.001}
+    - {factor: 0., const: 0.003}
+    - {factor: 0., const: 0.01}
+    - {factor: 0., const: 0.03}
+  # Smearing de dirección: cada fotón reco se rota un ángulo ~ N(0, sigma_theta)
+  # alrededor de un eje perpendicular aleatorio (PhDir_<tag>). sigma_theta en
+  # radianes; es la única clave que lee
+  # tauReco.electromagnetic_direction_error_p4_extremes.
+  direction:
+    - {sigma_theta: 0.0005}
+    - {sigma_theta: 0.001}
+    - {sigma_theta: 0.002}
+    - {sigma_theta: 0.005}
+    - {sigma_theta: 0.01}
