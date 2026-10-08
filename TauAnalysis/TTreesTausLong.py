@@ -1,6 +1,7 @@
 import sys
 import os
 import math
+import re
 import time
 import subprocess
 import multiprocessing
@@ -192,6 +193,310 @@ def build_truth_links(event, filter_gen_status=True, max_gen_pdg=10000,
     }
 
 
+# ── Reco-tau block (nominal and photon-systematic copies) ─────────────────────
+
+# (branch name, vector type) in the order the nominal branches have always been
+# booked. Each photon variation books the same block with a "_<suffix>" appended.
+_RECO_TAU_FIELDS = (
+    ("RecoTauPt",        "float"),
+    ("RecoTauP",         "float"),
+    ("RecoTauMass",      "float"),
+    ("RecoTauType",      "int"),
+    ("RecoTauDM",        "int"),
+    ("RecoTauQ",         "float"),
+    ("RecoTauEta",       "float"),
+    ("RecoTauTheta",     "float"),
+    ("RecoTauPhi",       "float"),
+    ("RecoTauDR",        "float"),
+    ("RecoTauNConsts",   "int"),
+    ("RecoTauNConstKey", "int"),
+    ("RecoTauConstKey",  "int"),
+    ("RecoMatchedKey",   "int"),
+    ("RecoConstP",       "float"),
+    ("RecoConstTheta",   "float"),
+    ("RecoConstEta",     "float"),
+    ("RecoConstPDG",     "int"),
+    ("RecoConstPhi",     "float"),
+)
+
+
+def make_reco_block(suffix=""):
+    """Return {branch name: std::vector} for one reco-tau block."""
+    return {name + suffix: ROOT.std.vector(vtype)() for name, vtype in _RECO_TAU_FIELDS}
+
+
+def merge_reco_candidates(taus, electrons, muons):
+    """Concatenate taus, electrons and muons into one index-keyed dict (in that order)."""
+    merged = {}
+    for coll in (taus, electrons, muons):
+        for k in range(len(coll)):
+            merged[len(merged)] = coll[k]
+    return merged
+
+
+def fill_reco_block(block, suffix, recoTaus, genTaus, dRMatch, selectDecay):
+    """Fill one reco-tau block from *recoTaus* and gen-match it against *genTaus*.
+
+    ``RecoMatchedKey<suffix>`` is aligned with ``GenMatchedKey``: entry i is the
+    index (within this block) of the reco tau matched to gen tau i, or -1.
+    """
+    def vec(name):
+        return block[name + suffix]
+
+    for i in range(len(recoTaus)):
+        recoTauP4      = recoTaus[i].getMomentum()
+        recoTauId      = recoTaus[i].getID()
+        recoTauNConsts = recoTaus[i].getnConst()
+        recoTauConsts  = recoTaus[i].getDaughters()
+
+        recoDM = recoTauId
+        if 0 <= recoTauId < 10:
+            recoDM = math.ceil(recoTauId / 2)
+        elif recoTauId >= 10:
+            recoDM = 10 + math.ceil((recoTauId - 10) / 2)
+
+        vec("RecoTauPt").push_back(recoTauP4.Pt())
+        vec("RecoTauP").push_back(recoTauP4.P())
+        vec("RecoTauMass").push_back(recoTauP4.M())
+        vec("RecoTauType").push_back(recoTauId)
+        vec("RecoTauDM").push_back(recoDM)
+        vec("RecoTauQ").push_back(recoTaus[i].getCharge())
+        vec("RecoTauEta").push_back(recoTauP4.Eta())
+        vec("RecoTauTheta").push_back(recoTauP4.Theta())
+        vec("RecoTauPhi").push_back(recoTauP4.Phi())
+        vec("RecoTauDR").push_back(recoTaus[i].getMaxCone())
+        vec("RecoTauNConstKey").push_back(i)
+        vec("RecoTauNConsts").push_back(recoTauNConsts)
+
+        for c in range(recoTauNConsts):
+            const_c = recoTauConsts[c]
+            constP4 = ROOT.TLorentzVector()
+            try:
+                constP4.SetXYZM(
+                    const_c.getMomentum().x, const_c.getMomentum().y,
+                    const_c.getMomentum().z, const_c.getMass(),
+                )
+            except AttributeError:
+                constP4.SetXYZM(
+                    const_c.getMomentum().X(), const_c.getMomentum().Y(),
+                    const_c.getMomentum().Z(), const_c.getMass(),
+                )
+            vec("RecoTauConstKey").push_back(i)
+            vec("RecoConstPDG").push_back(const_c.getPDG())
+            vec("RecoConstP").push_back(constP4.P())
+            vec("RecoConstTheta").push_back(constP4.Theta())
+            vec("RecoConstEta").push_back(constP4.Eta())
+            vec("RecoConstPhi").push_back(constP4.Phi())
+
+    # ── Gen–reco tau matching ──────────────────────────────────────────────
+    nTausType = 0
+    for i in range(len(genTaus)):
+        findMatch, nTausType = tauReco.MatchRecoGenTau(
+            genTaus[i], recoTaus, nTausType,
+            maxDRMatch=dRMatch, selectDecay=selectDecay,
+        )
+        vec("RecoMatchedKey").push_back(findMatch)
+
+
+# ── Photon systematic variations ───────────────────────────────────────────────
+
+# Sección del YAML de sistemáticos → claves obligatorias (todas en [GeV] o [rad]).
+# Se exigen explícitamente: las funciones de tauReco tienen defaults (const=0.01,
+# sigma_theta=0.01) que, si falta una clave, se aplicarían sin avisar.
+_PHOTON_SYST_KEYS = {
+    "energy":    ("factor", "const"),
+    "direction": ("sigma_theta",),
+}
+# ``name`` de un punto del barrido: acaba dentro del nombre de las ramas.
+_SYST_NAME_RE = re.compile(r"^[A-Za-z0-9_]+$")
+
+
+def _syst_value_tag(value):
+    """Branch-name-safe rendering of a number: 0.01 -> '0p01', 1e-05 -> '1em05'."""
+    return f"{value:g}".replace(".", "p").replace("-", "m").replace("+", "")
+
+
+def _photon_syst_tag(section, clean):
+    """Default tag of one scan point when the YAML gives no ``name``."""
+    if section == "energy":
+        const_tag = "c" + _syst_value_tag(clean["const"])
+        if clean["factor"] == 0:
+            return const_tag
+        return "f" + _syst_value_tag(clean["factor"]) + "_" + const_tag
+    return "s" + _syst_value_tag(clean["sigma_theta"])
+
+
+def photon_variations(photon_config, seeds=(12345,)):
+    """Validate ``photon_config`` from the systematics YAML and list the variations.
+
+    ``energy`` ({factor, const}): sigma_E/E = factor/sqrt(E) (+) const. Every reco
+    photon is moved coherently to E + sigma_E (``PhEnUp``) and to E - sigma_E
+    (``PhEnDown``), keeping its direction.
+
+    ``direction`` ({sigma_theta} [rad]): every reco photon is rotated by an angle
+    drawn from N(0, sigma_theta) around a random axis perpendicular to it,
+    keeping |p| and E (``PhDir``). This is a smearing, not a coherent shift.
+
+    Each section is either a single mapping (suffixes ``PhEnUp``, ``PhEnDown``,
+    ``PhDir``) or a list of mappings, to evaluate several values in one run. In
+    a list every point gets a tagged suffix ``PhEnUp_<tag>``, ``PhEnDown_<tag>``,
+    ``PhDir_<tag>``; the tag is the optional ``name`` key of the point or, by
+    default, built from its values (``c0p01``, ``f0p1_c0p01``, ``s0p001``).
+
+    ``seeds`` only affects ``direction``, the one random variation. With several
+    seeds every direction point is repeated once per seed, with ``_seed<seed>``
+    appended to its suffix (``PhDir_s0p001_seed1``), so the spread between seeds
+    measures the noise of the smearing. With a single seed the suffix is left
+    untouched. The energy variations are deterministic and booked only once.
+
+    An empty or missing section is skipped. Unknown sections/keys, missing keys,
+    negative values, invalid names or seeds, or repeated suffixes raise
+    ValueError so a typo cannot silently fall back to the defaults of the
+    tauReco functions.
+
+    Returns:
+        list of (suffix, kind, cfg, seed) with kind in {"energy_up",
+        "energy_down", "direction"}; seed is None for the energy variations.
+    """
+    seeds = list(seeds)
+    if (not seeds or len(set(seeds)) != len(seeds)
+            or any(isinstance(sd, bool) or not isinstance(sd, int) or sd < 0 for sd in seeds)):
+        raise ValueError(f"seeds must be distinct non-negative integers, got {seeds}")
+    if not photon_config:
+        return []
+    if not isinstance(photon_config, dict):
+        raise ValueError(f"photon_config must be a mapping, got {type(photon_config).__name__}")
+    unknown = set(photon_config) - set(_PHOTON_SYST_KEYS)
+    if unknown:
+        raise ValueError(
+            f"Unknown photon_config section(s) {sorted(unknown)}; "
+            f"allowed: {sorted(_PHOTON_SYST_KEYS)}"
+        )
+
+    variations = []
+    for section in ("energy", "direction"):
+        section_cfg = photon_config.get(section)
+        if not section_cfg:
+            continue
+        # Un dict suelto conserva los sufijos históricos (sin tag); una lista
+        # etiqueta cada punto del barrido.
+        tagged = isinstance(section_cfg, list)
+        points = section_cfg if tagged else [section_cfg]
+        required = _PHOTON_SYST_KEYS[section]
+        for n, cfg in enumerate(points):
+            where = f"photon_config.{section}[{n}]" if tagged else f"photon_config.{section}"
+            if not isinstance(cfg, dict):
+                raise ValueError(f"{where} must be a mapping")
+            allowed = set(required) | ({"name"} if tagged else set())
+            bad = set(cfg) - allowed
+            missing = [k for k in required if k not in cfg]
+            if bad or missing:
+                raise ValueError(
+                    f"{where}: unknown keys {sorted(bad)}, missing keys "
+                    f"{missing}; expected exactly {list(required)}"
+                    + (" (plus optional 'name')" if tagged else "")
+                )
+            clean = {}
+            for k in required:
+                try:
+                    clean[k] = float(cfg[k])
+                except (TypeError, ValueError):
+                    raise ValueError(f"{where}.{k} must be a number, got {cfg[k]!r}")
+                if not math.isfinite(clean[k]) or clean[k] < 0:
+                    raise ValueError(f"{where}.{k} must be finite and >= 0, got {clean[k]}")
+            tag = ""
+            if tagged:
+                name = cfg.get("name")
+                if name is None:
+                    name = _photon_syst_tag(section, clean)
+                elif not isinstance(name, str) or not _SYST_NAME_RE.match(name):
+                    raise ValueError(
+                        f"{where}.name must be a string of letters, digits and '_', got {name!r}"
+                    )
+                tag = "_" + name
+            if section == "energy":
+                variations.append(("PhEnUp" + tag,   "energy_up",   clean, None))
+                variations.append(("PhEnDown" + tag, "energy_down", clean, None))
+            else:
+                for seed in seeds:
+                    seed_tag = f"_seed{seed}" if len(seeds) > 1 else ""
+                    variations.append(("PhDir" + tag + seed_tag, "direction", clean, seed))
+
+    suffixes = [v[0] for v in variations]
+    repeated = sorted({s for s in suffixes if suffixes.count(s) > 1})
+    if repeated:
+        raise ValueError(
+            f"photon_config: repeated variation suffix(es) {repeated}; "
+            f"give each point a different 'name'"
+        )
+    return variations
+
+
+class VariedParticle:
+    """Reco particle whose four-momentum has been replaced by a varied one.
+
+    ``getMomentum`` returns the varied TLorentzVector; ``getMass`` keeps the
+    original mass (buildTauFromPion rebuilds E from |p| and the mass, so a
+    massless photon keeps E = |p|). Everything else is forwarded to the
+    wrapped PFO / RecoParticle. Equality is identity, so the ``cand == lead``
+    check in buildTauFromPion never confuses it with another particle.
+    """
+
+    __slots__ = ("_orig", "_p4")
+
+    def __init__(self, orig, p4):
+        self._orig = orig
+        self._p4 = p4
+
+    def getMomentum(self):
+        return self._p4
+
+    def getMass(self):
+        return self._orig.getMass()
+
+    def getEnergy(self):
+        return self._p4.E()
+
+    def __getattr__(self, name):
+        return getattr(self._orig, name)
+
+    def __eq__(self, other):
+        return self is other
+
+    def __ne__(self, other):
+        return self is not other
+
+    __hash__ = object.__hash__
+
+
+def vary_photons(particles, kind, cfg, rng):
+    """Return a list with every photon (|PDG| == 22) of *particles* varied.
+
+    Non-photons are passed through untouched and the input order is kept, so
+    the tau reconstruction sees exactly the nominal event except for the photons.
+    """
+    varied = []
+    for part in particles:
+        if abs(part.getPDG()) != 22:
+            varied.append(part)
+            continue
+        p4 = tauReco.particleP4(part)
+        if p4.P() <= 0.0:
+            # Sin dirección definida: la rotación daría NaN y no hay energía que variar.
+            varied.append(part)
+            continue
+        if kind == "energy_up":
+            new_p4 = tauReco.electromagnetic_energy_error_p4_extremes(p4, cfg)[0]
+        elif kind == "energy_down":
+            new_p4 = tauReco.electromagnetic_energy_error_p4_extremes(p4, cfg)[1]
+        elif kind == "direction":
+            new_p4 = tauReco.electromagnetic_direction_error_p4_extremes(p4, cfg, rng=rng)
+        else:
+            raise ValueError(f"Unknown photon variation kind {kind!r}")
+        varied.append(VariedParticle(part, new_p4))
+    return varied
+
+
 # ── Worker ─────────────────────────────────────────────────────────────────────
 
 def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
@@ -234,7 +539,9 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
     filter_gen_status = config_bundle.get("filter_gen_status", True)
     max_gen_pdg       = config_bundle.get("max_gen_pdg", 10000)
     extra_correction  = config_bundle.get("extra_correction") or None
-
+    cone_axis         = config_bundle.get("cone_axis", "running")
+    photon_syst       = config_bundle.get("photon_syst") or []
+    clean_reco_taus   = config_bundle.get("clean_reco_taus", False)
     # Temporary output file — created inside the worker after fork
     tmp_path = os.path.join(outputpath, f"tmp_chunk_{worker_id}.root")
     outfile_tmp = TFile(tmp_path, "RECREATE")
@@ -319,26 +626,16 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
     GenNuEta       = ROOT.std.vector("float")()
     GenNuPhi       = ROOT.std.vector("float")()
 
-    # Reco tau
-    RecoTauPt        = ROOT.std.vector("float")()
-    RecoTauP         = ROOT.std.vector("float")()
-    RecoTauMass      = ROOT.std.vector("float")()
-    RecoTauType      = ROOT.std.vector("int")()
-    RecoTauDM        = ROOT.std.vector("int")()
-    RecoTauQ         = ROOT.std.vector("float")()
-    RecoTauEta       = ROOT.std.vector("float")()
-    RecoTauTheta     = ROOT.std.vector("float")()
-    RecoTauPhi       = ROOT.std.vector("float")()
-    RecoTauDR        = ROOT.std.vector("float")()
-    RecoTauNConsts   = ROOT.std.vector("int")()
-    RecoTauNConstKey = ROOT.std.vector("int")()
-    RecoTauConstKey  = ROOT.std.vector("int")()
-    RecoMatchedKey   = ROOT.std.vector("int")()
-    RecoConstP       = ROOT.std.vector("float")()
-    RecoConstTheta   = ROOT.std.vector("float")()
-    RecoConstEta     = ROOT.std.vector("float")()
-    RecoConstPDG     = ROOT.std.vector("int")()
-    RecoConstPhi     = ROOT.std.vector("float")()
+    # Reco tau (RecoTau*, RecoMatchedKey, RecoConst*)
+    reco_block = make_reco_block()
+
+    # Photon systematics: one full reco-tau block per variation, suffixed
+    # "_<suffix>" (e.g. RecoTauP_PhEnUp, RecoTauP_PhDir_s0p001). Same entry as the nominal, so
+    # nominal-vs-varied differences are event-by-event correlated.
+    syst_blocks = [
+        (suffix, kind, cfg, seed, make_reco_block("_" + suffix), np.array([0], dtype=np.int32))
+        for suffix, kind, cfg, seed in photon_syst
+    ]
     # Gen photons (event-level)
     GenPhotonP       = ROOT.std.vector("float")()
     GenPhotonPt      = ROOT.std.vector("float")()
@@ -429,25 +726,8 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
     tree.Branch("GenNuEta",    GenNuEta)
     tree.Branch("GenNuPhi",    GenNuPhi)
     # Reco tau
-    tree.Branch("RecoTauPt",        RecoTauPt)
-    tree.Branch("RecoTauP",         RecoTauP)
-    tree.Branch("RecoTauMass",      RecoTauMass)
-    tree.Branch("RecoTauType",      RecoTauType)
-    tree.Branch("RecoTauDM",        RecoTauDM)
-    tree.Branch("RecoTauQ",         RecoTauQ)
-    tree.Branch("RecoTauEta",       RecoTauEta)
-    tree.Branch("RecoTauTheta",     RecoTauTheta)
-    tree.Branch("RecoTauPhi",       RecoTauPhi)
-    tree.Branch("RecoTauDR",        RecoTauDR)
-    tree.Branch("RecoTauNConsts",   RecoTauNConsts)
-    tree.Branch("RecoTauNConstKey", RecoTauNConstKey)
-    tree.Branch("RecoTauConstKey",  RecoTauConstKey)
-    tree.Branch("RecoMatchedKey",   RecoMatchedKey)
-    tree.Branch("RecoConstP",       RecoConstP)
-    tree.Branch("RecoConstTheta",   RecoConstTheta)
-    tree.Branch("RecoConstEta",     RecoConstEta)
-    tree.Branch("RecoConstPDG",     RecoConstPDG)
-    tree.Branch("RecoConstPhi",     RecoConstPhi)
+    for name, vec in reco_block.items():
+        tree.Branch(name, vec)
     # Gen photons
     tree.Branch("GenPhotonP",      GenPhotonP)
     tree.Branch("GenPhotonPt",     GenPhotonPt)
@@ -468,6 +748,11 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
     tree.Branch("RecoPhotonPFOIdx",      RecoPhotonPFOIdx)
     tree.Branch("RecoPhotonTauKey",      RecoPhotonTauKey)
     tree.Branch("RecoPhotonGenMatchIdx", RecoPhotonGenMatchIdx)
+    # Photon systematics (after all nominal branches)
+    for suffix, _, _, _, block, n_arr in syst_blocks:
+        tree.Branch(f"numRecoTaus_{suffix}", n_arr, f"numRecoTaus_{suffix}/I")
+        for name, vec in block.items():
+            tree.Branch(name, vec)
 
     all_vectors = [
         GenEventId, GenTauPt, GenVisTauPt, GenTauP, GenVisTauP, GenTauType, GenVisTauMass,
@@ -485,18 +770,32 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
         GenExtraNeutralP, GenExtraNeutralTheta, GenExtraNeutralEta, GenExtraNeutralPhi,
         GenTauNNus, GenNuTauKey, GenNuMCIdx, GenNuPDG,
         GenNuP, GenNuTheta, GenNuEta, GenNuPhi,
-        RecoTauPt, RecoTauP, RecoTauMass, RecoTauType, RecoTauDM, RecoTauQ, RecoTauEta,
-        RecoTauTheta, RecoTauPhi, RecoTauDR, RecoTauNConsts, RecoTauNConstKey, RecoTauConstKey,
-        RecoMatchedKey, RecoConstP, RecoConstTheta, RecoConstEta, RecoConstPDG, RecoConstPhi,
+        *reco_block.values(),
         GenPhotonP, GenPhotonPt, GenPhotonEta, GenPhotonTheta, GenPhotonPhi,
         GenPhotonMCIdx, GenPhotonTauKey,
         GenPhotonOrigin, GenPhotonParentPDG, GenPhotonAncestorMCIdx,
         RecoPhotonP, RecoPhotonPt, RecoPhotonEta, RecoPhotonTheta, RecoPhotonPhi,
         RecoPhotonPFOIdx, RecoPhotonTauKey, RecoPhotonGenMatchIdx,
     ]
+    for _, _, _, _, block, _ in syst_blocks:
+        all_vectors.extend(block.values())
 
     # ── Event loop ──────────────────────────────────────────────────────────
     use_mlpf = gatr_results_path is not None and not test_pfo
+
+    def find_taus(reco_inputs):
+        """Tau reconstruction shared by the nominal and the photon variations."""
+        if use_mlpf:
+            return tauReco.findAllTaus(
+                reco_inputs, dRMax, minPTauPhoton, minPTauPion,
+                PNeutron, generalPCut, charge_condition=False,
+                extra_correction=extra_correction, cone_axis=cone_axis,
+            )
+        return tauReco.findAllTaus(
+            reco_inputs, dRMax, minPTauPhoton, minPTauPion, PNeutron, generalPCut,
+            extra_correction=extra_correction, cone_axis=cone_axis,
+        )
+
     n_missing_mlpf = 0
     for file_pos, filename in enumerate(filenames_chunk):
         file_reader = root_io.Reader([filename])
@@ -535,32 +834,20 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
                             local_event, n_missing_mlpf,
                         )
                     particles = {}
-                recoTau_raw = tauReco.findAllTaus(
-                    particles, dRMax, minPTauPhoton, minPTauPion,
-                    PNeutron, generalPCut, charge_condition=False,
-                    extra_correction=extra_correction,
-                )
-                recoElectrons = electronReco.findAllElectrons(particles, generalPCut)
-                recoMuons = muonReco.findAllMuons(particles, generalPCut)
+                reco_inputs = particles
             else:
-                recoTau_raw = tauReco.findAllTaus(
-                    pfos, dRMax, minPTauPhoton, minPTauPion, PNeutron, generalPCut,
-                    extra_correction=extra_correction,
-                )
-                recoElectrons = electronReco.findAllElectrons(pfos, generalPCut)
-                recoMuons = muonReco.findAllMuons(pfos, generalPCut)
+                reco_inputs = pfos
+            recoTau_raw = find_taus(reco_inputs)
+            recoElectrons = electronReco.findAllElectrons(reco_inputs, generalPCut)
+            recoMuons = muonReco.findAllMuons(reco_inputs, generalPCut)
 
             genTaus = tauReco.findAllGenTaus(mc_particles)
             nGenTaus = len(genTaus)
 
-            recoTaus = {}
-            pidx = 0
-            for t in range(len(recoTau_raw)):
-                recoTaus[pidx] = recoTau_raw[t]; pidx += 1
-            for e in range(len(recoElectrons)):
-                recoTaus[pidx] = recoElectrons[e]; pidx += 1
-            for m in range(len(recoMuons)):
-                recoTaus[pidx] = recoMuons[m]; pidx += 1
+            recoTaus = merge_reco_candidates(recoTau_raw, recoElectrons, recoMuons)
+            if clean_reco_taus:
+                recoTaus = tauReco.cleanRecoTaus(recoTaus)
+            
             nRecoTaus = len(recoTaus)
 
             for v in all_vectors:
@@ -708,60 +995,32 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
             numGenExtraNeutrals[0] = n_extra_neutrals
             numGenNus[0] = n_neutrinos
 
-            # ── Fill reco tau branches ─────────────────────────────────────
-            for i in range(nRecoTaus):
-                recoTauP4      = recoTaus[i].getMomentum()
-                recoTauId      = recoTaus[i].getID()
-                recoTauNConsts = recoTaus[i].getnConst()
-                recoTauConsts  = recoTaus[i].getDaughters()
-
-                recoDM = recoTauId
-                if 0 <= recoTauId < 10:
-                    recoDM = math.ceil(recoTauId / 2)
-                elif recoTauId >= 10:
-                    recoDM = 10 + math.ceil((recoTauId - 10) / 2)
-
-                RecoTauPt.push_back(recoTauP4.Pt())
-                RecoTauP.push_back(recoTauP4.P())
-                RecoTauMass.push_back(recoTauP4.M())
-                RecoTauType.push_back(recoTauId)
-                RecoTauDM.push_back(recoDM)
-                RecoTauQ.push_back(recoTaus[i].getCharge())
-                RecoTauEta.push_back(recoTauP4.Eta())
-                RecoTauTheta.push_back(recoTauP4.Theta())
-                RecoTauPhi.push_back(recoTauP4.Phi())
-                RecoTauDR.push_back(recoTaus[i].getMaxCone())
-                RecoTauNConstKey.push_back(i)
-                RecoTauNConsts.push_back(recoTauNConsts)
-
-                for c in range(recoTauNConsts):
-                    const_c = recoTauConsts[c]
-                    constP4 = ROOT.TLorentzVector()
-                    try:
-                        constP4.SetXYZM(
-                            const_c.getMomentum().x, const_c.getMomentum().y,
-                            const_c.getMomentum().z, const_c.getMass(),
-                        )
-                    except AttributeError:
-                        constP4.SetXYZM(
-                            const_c.getMomentum().X(), const_c.getMomentum().Y(),
-                            const_c.getMomentum().Z(), const_c.getMass(),
-                        )
-                    RecoTauConstKey.push_back(i)
-                    RecoConstPDG.push_back(const_c.getPDG())
-                    RecoConstP.push_back(constP4.P())
-                    RecoConstTheta.push_back(constP4.Theta())
-                    RecoConstEta.push_back(constP4.Eta())
-                    RecoConstPhi.push_back(constP4.Phi())
-            # ── Gen–reco tau matching ──────────────────────────────────────
-            nTausType = 0
+            # ── Fill reco tau branches + gen–reco tau matching ─────────────
             for i in range(nGenTaus):
-                findMatch, nTausType = tauReco.MatchRecoGenTau(
-                    genTaus[i], recoTaus, nTausType,
-                    maxDRMatch=dRMatch, selectDecay=selectDecay,
-                )
                 GenMatchedKey.push_back(i)
-                RecoMatchedKey.push_back(findMatch)
+            fill_reco_block(reco_block, "", recoTaus, genTaus, dRMatch, selectDecay)
+
+            # ── Photon systematics: rebuild the taus with varied photons ───
+            # Electrones y muones no usan fotones: se reutilizan los nominales.
+            # RNG sembrado por (seed, id global del evento): reproducible e
+            # independiente del número de workers. Se recrea en cada variación
+            # para que todos los sigma_theta lean la misma secuencia: cada fotón
+            # conserva su eje y su gaussiana y solo cambia la escala del ángulo,
+            # sin depender de qué otros puntos haya en el YAML. Solo la dirección
+            # es aleatoria: las variaciones de energía no llevan semilla.
+            if syst_blocks:
+                for suffix, kind, cfg, seed, block, n_arr in syst_blocks:
+                    rng = (np.random.default_rng([seed, event_id_global])
+                           if seed is not None else None)
+                    varied_inputs = vary_photons(reco_inputs, kind, cfg, rng)
+                    recoTaus_v = merge_reco_candidates(
+                        find_taus(varied_inputs), recoElectrons, recoMuons,
+                    )
+                    if clean_reco_taus:
+                        recoTaus_v = tauReco.cleanRecoTaus(recoTaus_v)
+                    n_arr[0] = len(recoTaus_v)
+                    fill_reco_block(block, "_" + suffix, recoTaus_v, genTaus,
+                                    dRMatch, selectDecay)
 
             # ── RecoMCTruthLink photon matching ────────────────────────────
             truth_links = build_truth_links(
@@ -889,6 +1148,39 @@ def main():
             "--weight-mode", choices=["raw", "decoded"], default="decoded",
             help="How to interpret RecoMCTruthLink weights",
         )
+        parser.add_argument(
+            "--sys-err", type=str, default=None,
+            help="Systematics YAML (e.g. config/systematics/err_sys.yml). Its "
+                 "photon_config adds, next to the nominal reco-tau branches, one "
+                 "copy per photon variation: *_PhEnUp/*_PhEnDown (energy: "
+                 "{factor, const}) and *_PhDir (direction: {sigma_theta}). "
+                 "A section given as a list evaluates several values in one "
+                 "run, with suffixes *_PhEnUp_<tag>/*_PhEnDown_<tag>/*_PhDir_<tag> "
+                 "(tag: the point's 'name', or built from its values). "
+                 "Default: no systematics.",
+        )
+        parser.add_argument(
+            "--cone-axis", choices=tauReco.CONE_AXIS_MODES, default="running",
+            help="Axis of the dRMax cone in the tau reconstruction. 'running' "
+                 "(default, historical): the running sum pion + accepted "
+                 "constituents, which drifts towards hard constituents. 'lead': "
+                 "fixed on the seed pion. Changes the nominal reco: use a "
+                 "different --prefix to avoid overwriting 'running' outputs.",
+        )
+        parser.add_argument(
+            "--sys-seed", type=int, nargs="+", default=[12345],
+            help="Seed(s) of the photon direction smearing (combined with the "
+                 "global event id, so results do not depend on --n-workers). "
+                 "With several seeds every direction point is repeated once per "
+                 "seed, as *_PhDir..._seed<seed>. The energy variations are "
+                 "deterministic and do not use it.",
+        )
+        parser.add_argument(
+            "--clean-reco-taus", action="store_true", default=False,
+            help="Drop the non-hadronic candidates (e, mu) from hemispheres with "
+                 "<=3 candidates, at least one hadronic tau and one electron "
+                 "(tauReco.cleanRecoTaus). Applied to nominal and photon variations.",
+        )
 
     general_configs = myutils.setup_analysis_config(
         default_config, outputbasepath, parser_hook=_parser_hook
@@ -946,6 +1238,42 @@ def main():
     else:
         extra_correction = None
 
+    # Sistemáticos de fotones (solo si se pasa --sys-err; myutils carga el YAML
+    # en run_config["systematics_errors"]).
+    sys_errors = run_config.get("systematics_errors") or {}
+    ignored = sorted(set(sys_errors) - {"photon_config"})
+    if ignored:
+        logger_config.warning(
+            "Secciones de sistemáticos ignoradas por este script: %s", ignored,
+        )
+    try:
+        photon_syst = photon_variations(sys_errors.get("photon_config"), args.sys_seed)
+    except ValueError as exc:
+        logger_config.error("Invalid photon systematics (%s, --sys-seed %s): %s",
+                            args.sys_err, args.sys_seed, exc)
+        sys.exit(1)
+    if photon_syst:
+        logger_config.info(
+            "Photon systematics active (direction seed(s) %s): %s", args.sys_seed,
+            [(suffix, cfg) for suffix, _, cfg, _ in photon_syst],
+        )
+        run_config["systematics_seed"] = args.sys_seed
+    elif args.sys_err:
+        logger_config.warning(
+            "--sys-err %s has no active photon variation: only nominal branches.",
+            args.sys_err,
+        )
+
+    # Queda en el config.yaml de salida para saber con qué eje se hizo el árbol.
+    run_config["cone_axis"] = args.cone_axis
+    run_config["clean_reco_taus"] = args.clean_reco_taus
+    if args.cone_axis != "running":
+        logger_config.warning(
+            "cone_axis=%s: el cono del tau se centra en el pión semilla "
+            "(la reconstrucción nominal difiere de la histórica 'running').",
+            args.cone_axis,
+        )
+
     logger_config.info("Configuration loaded!")
     logger_config.info("Configuration:\n%s", pprint.pformat(general_configs, indent=4))
 
@@ -982,6 +1310,9 @@ def main():
         "max_gen_pdg":       args.max_gen_pdg,
         "weight_mode":       args.weight_mode,
         "extra_correction":  extra_correction,
+        "cone_axis":         args.cone_axis,
+        "photon_syst":       photon_syst,
+        "clean_reco_taus":   args.clean_reco_taus,
     }
 
     n_workers   = args.n_workers or min(len(filenames), os.cpu_count() or 1)

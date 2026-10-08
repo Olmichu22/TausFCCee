@@ -7,6 +7,13 @@ Uso típico:
     python HitAnalysis/replot_from_parquet.py <outputpath> --fake-bin-by-reco \
         --all-plot 22 211 13 11 --min-energy-cuts 10 20
 
+Ajustes de resolución del detector (solo pares gen = reco), p.ej. fotones y piones:
+    python HitAnalysis/replot_from_parquet.py <outputpath> --fit-particle photon 211
+
+Los mismos plots sin el ajuste, solo con los puntos medidos (points_<observable>.png):
+    python HitAnalysis/replot_from_parquet.py <outputpath> --fit-particle photon 211 \
+        --fit-points-only
+
 Comparación de dos (o más) directorios, p.ej. dos detectores:
     python HitAnalysis/replot_from_parquet.py <outCLD> <outILD> --labels CLD ILD \
         --min-energy-cuts 10
@@ -30,6 +37,8 @@ import argparse
 import os
 import sys
 
+import yaml
+
 import numpy as np
 import pandas as pd
 
@@ -49,7 +58,10 @@ from modules.ConfusionMatrixParticleLevel import (plot_confusion_matrices,
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from particle_level_analisis_parallel import (build_association_structures,
                                               apply_min_energy_cut,
-                                              energy_cut_label)
+                                              energy_cut_label,
+                                              add_fit_arguments,
+                                              run_resolution_fits,
+                                              _yaml_safe)
 
 # Mismos bins que el análisis (particle_level_analisis_parallel.py:820-830)
 BINS = [0, 1, 5, 10, 20, 30, 45, 100, np.inf]
@@ -97,6 +109,9 @@ def replot(full_df, tag, outdir, args, selection_note):
 
     plot_momentum_resolution(full_df, output_dir=d("momentum_resolution", tag))
     plot_theta_resolution(full_df, output_dir=d("theta_resolution", tag))
+
+    # Ajustes de resolución por partícula (--fit-particle), solo gen = reco
+    run_resolution_fits(full_df, tag, outdir, args)
 
     # ── Variantes con corte mínimo en energía (--min-energy-cuts) ────────────
     # Mismo tratamiento que el análisis: matriz integrada (un único bin
@@ -229,6 +244,7 @@ def main():
     p.add_argument("--selection-note", default="",
                    help="Nota de selección para los plots de fakes; por defecto se "
                         "reconstruye desde el config.yaml del directorio si existe")
+    add_fit_arguments(p)
     args = p.parse_args()
 
     branches = ["dR", "truthlink"] if args.branch == "both" else [args.branch]
@@ -271,6 +287,10 @@ def main():
         cfg_path = os.path.join(outputpath, "config.yaml")
         note = (f"replot desde parquet ({os.path.basename(os.path.normpath(outputpath))})"
                 + (f"  |  cfg: {cfg_path}" if os.path.exists(cfg_path) else ""))
+
+    # Opciones usadas en este replot, junto a los plots que produce
+    with open(os.path.join(outdir, "replot_config.yaml"), "w") as f:
+        yaml.dump(_yaml_safe(vars(args)), f)
 
     for tag in branches:
         df, path = load_df(outputpath, f"association_results_full_{tag}")

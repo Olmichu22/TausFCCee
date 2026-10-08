@@ -625,8 +625,8 @@ def setup_analysis_config(
     config = load_yaml_config(args.config, default_config)
     histograms_config = load_yaml_config(args.hist_config, None)
 
-    # systematics error (if exists)
-    if hasattr(args, "sys_err"):
+    # systematics error (if exists; None/"" = sin sistemáticos)
+    if getattr(args, "sys_err", None):
         sys_err_file = args.sys_err
         if os.path.exists(sys_err_file):
             with open(sys_err_file, "r") as file:

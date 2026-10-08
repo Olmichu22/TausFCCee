@@ -5,7 +5,6 @@ import warnings
 warnings.filterwarnings("once", category=UserWarning)
 from modules import myutils
 from modules import genDecayModes
-
 import logging
 try:
    logger = logging.getLogger("processing")
@@ -514,21 +513,26 @@ def electromagnetic_energy_error_p4_extremes(p4, cfg):
    return make_p4_from_E(Emax), make_p4_from_E(Emin)
 
  
-def electromagnetic_direction_error_p4_extremes(p4, cfg):
+def electromagnetic_direction_error_p4_extremes(p4, cfg, rng=None):
     """
     Return one TLorentzVector constructed with SetPxPyPzE:
       - p4_smeeared :  theta smeared (along the direction) and phi random (0, 2pi)
+
+    ``rng`` is any object with ``normal``/``uniform`` (a ``numpy.random.Generator``
+    for reproducible smearing); None falls back to the global ``np.random``.
     """
+    if rng is None:
+        rng = np.random
     # Get unitary vector of the original momentum
-    x = p4.x
-    y = p4.y
-    z = p4.z
+    x = p4.X()
+    y = p4.Y()
+    z = p4.Z()
     p = np.sqrt(x**2 + y**2 + z**2)
     v0 = np.array([x/(p + 1e-8), y/(p + 1e-8), z/(p + 1e-8)])
 
     # random theta with std from cfg
-    theta = np.random.normal(0, cfg.get("sigma_theta", 0.01))
-    phi   = np.random.uniform(0, 2 * np.pi)
+    theta = rng.normal(0, cfg.get("sigma_theta", 0.01))
+    phi   = rng.uniform(0, 2 * np.pi)
 
     # --- Rotate v0 inside a cone ---
     def get_orthogonal(v):
@@ -825,7 +829,10 @@ def extraTauRecoCorrection(tauP4, tauID, chargeTau, maxConeTau, nConsts, const, 
            state["nConst"], state["const"])
 
 
-def buildTauFromPion(lead, allPfs, DRCone=1, minP_photon=0, minP_pion=0, PNeutron=1, genminP = 0.5, charge_condition=True, extra_correction=None):
+CONE_AXIS_MODES = ("running", "lead")
+
+
+def buildTauFromPion(lead, allPfs, DRCone=1, minP_photon=0, minP_pion=0, PNeutron=1, genminP = 0.5, charge_condition=True, extra_correction=None, cone_axis="running"):
    """ Starting from a pion, find particles in a cone around it, and build the tau.
 
    Args:
@@ -838,10 +845,17 @@ def buildTauFromPion(lead, allPfs, DRCone=1, minP_photon=0, minP_pion=0, PNeutro
       genminP (int, optional): Minimum general level momentum. Defaults to 0.5.
       extra_correction (dict, optional): Configuracion de las correcciones extra
          aplicadas al tau ya construido (ver extraTauRecoCorrection). None = ninguna.
+      cone_axis (str, optional): Axis the DRCone cut (and maxCone) is measured from.
+         "running" (default, historical behaviour): the running sum of the tau, i.e.
+         the pion plus every constituent accepted so far, so the axis drifts towards
+         hard constituents and membership depends on the PFO order and on the
+         photon energies. "lead": the seed pion, fixed.
 
    Returns:
       Tuple: Tuple with the 4-momentum of the tau, the tau ID, the charge, the maximum angle between constituents, the number of constituents, and the constituents.
    """
+   if cone_axis not in CONE_AXIS_MODES:
+      raise ValueError(f"cone_axis must be one of {CONE_AXIS_MODES}, got {cone_axis!r}")
    countPions=1
    countPhotons=0
 
@@ -855,8 +869,13 @@ def buildTauFromPion(lead, allPfs, DRCone=1, minP_photon=0, minP_pion=0, PNeutro
       leadP4.SetXYZM(lead.getMomentum().x,lead.getMomentum().y,lead.getMomentum().z,lead.getMass())
    except AttributeError:
       leadP4.SetXYZM(lead.getMomentum().X(),lead.getMomentum().Y(),lead.getMomentum().Z(),lead.getMass())
-   tauP4=ROOT.TLorentzVector()
-   tauP4=leadP4
+   if cone_axis == "running":
+      # Histórico: tauP4 y leadP4 son el MISMO objeto, así que cada tauP4+=candP4
+      # mueve también el eje del cono (leadP4) hacia la suma acumulada.
+      tauP4=leadP4
+   else:
+      # Copia independiente: el eje del cono se queda fijo en el pión semilla.
+      tauP4=ROOT.TLorentzVector(leadP4)
 
    maxConeTau=0
    # Constituents of the tau
@@ -1099,7 +1118,8 @@ def findAllTaus(pfos,
                 PNeutron,
                 genminP,
                 charge_condition=True,
-                extra_correction=None,):
+                extra_correction=None,
+                cone_axis="running",):
    """ Find all tau candidates starting from PFO collection by recognizing the decay products.
 
    Args:
@@ -1111,6 +1131,7 @@ def findAllTaus(pfos,
       genminP (float): Minimum general level momentum.
       extra_correction (dict, optional): Configuracion de las correcciones extra
          (ver extraTauRecoCorrection). None = reconstruccion base sin tocar.
+      cone_axis (str, optional): "running" (default) or "lead"; see buildTauFromPion.
 
    Returns:
        taus (dict): Dictionary with the tau candidates containing tuples with the visible 4-momentum, the tau ID, and the charge.
@@ -1138,7 +1159,7 @@ def findAllTaus(pfos,
       if pionP4.P() < minP_pion or  pionP4.P() < genminP:
          continue
 
-      recoTau_data, pions_id = buildTauFromPion(pf, pfos, dRMax, minP_photon, minP_pion, PNeutron, genminP, charge_condition, extra_correction)
+      recoTau_data, pions_id = buildTauFromPion(pf, pfos, dRMax, minP_photon, minP_pion, PNeutron, genminP, charge_condition, extra_correction, cone_axis)
       recoTau = RecoParticle(recoTau_data[0], recoTau_data[1], recoTau_data[2], recoTau_data[3], recoTau_data[4], recoTau_data[5])
       # logger.debug(
       #    f"Id del RecoTau {recoTau.getID()}"
@@ -1171,6 +1192,44 @@ def findAllTaus(pfos,
       taus[nTaus]=recoTau
       nTaus+=1
       #print ("...",pf.getObjectID().index,candTauP4.Pt(),candTauP4.Phi(),candTauP4.Theta(),candTauId,candTauCharge)
-
+ 
    return taus
 
+def cleanRecoTaus(cands, maxHemi=3, dRmax=None):
+   """Drop non-hadronic candidates from hemispheres that also hold a hadronic tau.
+
+   Meant for the merged taus + electrons + muons collection (merge_reco_candidates).
+   A hemisphere is the sign of cos(angle) with the highest-P candidate. The cleaning
+   only acts on hemispheres with at most ``maxHemi`` candidates, at least one
+   hadronic tau (ID >= 0) and at least one electron (ID -11). There, every
+   non-hadronic candidate is removed; with ``dRmax`` set, only those within
+   ``dRmax`` of some hadronic tau are removed.
+
+   Returns:
+      dict: surviving candidates, re-indexed 0..n-1 in the original order.
+   """
+   # Los ID -1 salen con P4 = 0: sin dirección, no entran en ningún hemisferio y se conservan
+   valid = [k for k in sorted(cands) if cands[k].getMomentum().P() > 0]
+   drop = set()
+   if valid:
+      axis = max((cands[k].getMomentum() for k in valid), key=lambda p4: p4.P()).Vect().Unit()
+      hemis = {0: [], 1: []}
+      for k in valid:
+         hemis[0 if cands[k].getMomentum().Vect().Dot(axis) >= 0 else 1].append(k)
+
+      for keys in hemis.values():
+         if len(keys) > maxHemi:
+            continue
+         had = [k for k in keys if cands[k].getID() >= 0]
+         if not had or not any(cands[k].getID() == -11 for k in keys):
+            continue
+         for k in keys:
+            if k in had:
+               continue
+            if dRmax is not None and min(
+                  myutils.dRAngle(cands[k].getMomentum(), cands[h].getMomentum()) for h in had) > dRmax:
+               continue
+            drop.add(k)
+
+   kept = [cands[k] for k in sorted(cands) if k not in drop]
+   return {i: c for i, c in enumerate(kept)}

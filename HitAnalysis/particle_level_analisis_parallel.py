@@ -28,6 +28,8 @@ from modules.ConfusionMatrixParticleLevel import (plot_confusion_matrices, plot_
 from modules import (ParticleObjects, electronReco, muonReco, myutils, pi0Reco,
                      tauReco, particleMatch)
 from modules.ParticleObjects import RecoParticle
+from modules.ResolutionFits import (fit_detector_performance, parse_particle,
+                                    DEFAULT_FIT_E_BINS, DEFAULT_FIT_COS_BINS)
 
 
 # ── Helpers (module-level, usados tanto en main como en workers) ──────────────
@@ -713,6 +715,106 @@ def fill_particle_level_histograms(full_df, root_histograms, histogram_config):
     pass
 
 
+# ── Argumentos de los ajustes de resolución (compartidos con replot) ────────
+
+def add_fit_arguments(parser):
+    """Register the --fit-* options, shared with replot_from_parquet.py."""
+    parser.add_argument(
+        "--fit-particle",
+        type=parse_particle,
+        nargs="*",
+        default=[],
+        metavar="PDG|NAME",
+        help=(
+            "Particles (PDG code or name: photon, pion, electron, muon, ...) for which "
+            "the detector-performance parametrisation is fitted on the correctly "
+            "identified pairs (gen = reco): response E_reco/E_true and the resolution "
+            "of E (a/sqrt(E) + b, neutrals), p (a*pT + b, charged), theta and phi "
+            "(a/p + b), in bins of E and |cos theta|. Output in resolution_fits/<branch>/. "
+            "Default: none."
+        ),
+    )
+    parser.add_argument(
+        "--fit-e-bins", type=float, nargs="+", default=list(DEFAULT_FIT_E_BINS),
+        metavar="GEV",
+        help="Bin edges (GeV) of E / pT / |p| used by the resolution fits.",
+    )
+    parser.add_argument(
+        "--fit-cos-bins", type=float, nargs="+", default=list(DEFAULT_FIT_COS_BINS),
+        metavar="COS",
+        help=(
+            "|cos theta_gen| edges of the regions fitted separately (an inclusive "
+            "'all' region is always added). Default: 0 0.7 0.9 1."
+        ),
+    )
+    parser.add_argument(
+        "--fit-metric", choices=["std90", "std", "iqr"], default="std90",
+        help="Resolution estimator per bin used by the fits. Default: std90.",
+    )
+    parser.add_argument(
+        "--fit-min-entries", type=int, default=50,
+        help="Minimum entries for a bin to enter the fit. Default: 50.",
+    )
+    parser.add_argument(
+        "--fit-points-only", action="store_true", default=False,
+        help=(
+            "Do not fit: draw only the measured points of the --fit-particle plots "
+            "(written as points_<observable>.png; fit_summary.* is not produced)."
+        ),
+    )
+
+
+def run_resolution_fits(full_df, tag, outputpath, args):
+    """Run the --fit-particle fits for one matching branch, if any were requested."""
+    if not args.fit_particle:
+        return
+    fit_detector_performance(
+        full_df, args.fit_particle,
+        output_dir=os.path.join(outputpath, "resolution_fits", tag),
+        e_bins=args.fit_e_bins, cos_bins=args.fit_cos_bins,
+        metric=args.fit_metric, min_entries=args.fit_min_entries,
+        title_suffix=f" [{tag}]", points_only=args.fit_points_only,
+    )
+
+    # Extra solo para fotones: mismos ajustes sin los fotones fusionados, es
+    # decir, sin los PFOs asociados a más de un gen en el mismo evento.  Solo
+    # existen reco repetidos con --dedup-mode gen; con 'reco' no hay nada que
+    # quitar y el extra se omite.
+    if 22 not in args.fit_particle or full_df.empty:
+        return
+    has_reco = full_df["reco"] != -999
+    shared = has_reco & full_df.duplicated(subset=["event_id", "reco"], keep=False)
+    if not shared.any():
+        print(f"[resolution_fits] [{tag}] sin PFOs compartidos por varios gen "
+              f"(¿dedup reco?): se omite el extra de fotones no fusionados")
+        return
+    is_photon = (full_df["Gen_pid"].abs() == 22) & (full_df["Reco_pid"].abs() == 22)
+    print(f"[resolution_fits] [{tag}] fotones gen=reco fusionados descartados: "
+          f"{int((shared & is_photon).sum()):,} de {int(is_photon.sum()):,}")
+    fit_detector_performance(
+        full_df.loc[~shared], [22],
+        output_dir=os.path.join(outputpath, "resolution_fits", tag, "no_merged"),
+        e_bins=args.fit_e_bins, cos_bins=args.fit_cos_bins,
+        metric=args.fit_metric, min_entries=args.fit_min_entries,
+        title_suffix=f" [{tag}, no merged]", points_only=args.fit_points_only,
+    )
+
+
+def _yaml_safe(value):
+    """Convert argparse/numpy values to plain types that yaml.dump writes cleanly."""
+    if isinstance(value, dict):
+        return {str(k): _yaml_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple, np.ndarray)):
+        return [_yaml_safe(v) for v in value]
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, float) and math.isinf(value):
+        return "inf"
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    return str(value)
+
+
 # ── main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -828,6 +930,7 @@ def main():
                 "plots are generated (e.g. --all-plot 22 211 13). Default: 22 (photons)."
             ),
         )
+        add_fit_arguments(parser)
 
     general_configs = myutils.setup_analysis_config(
         default_config, outputbasepath, parser_hook=my_hook
@@ -1171,6 +1274,11 @@ def main():
                     title_suffix=cut_note,
                 )
 
+    # ── Ajustes de resolución por partícula (--fit-particle) ─────────────────
+    for tag, df_all in (("dR", full_df_dr), ("truthlink", full_df_truth)):
+        with stage(logger_io, f"Ajustes de resolución ({tag})"):
+            run_resolution_fits(df_all, tag, outputpath, args)
+
     # Fichero ROOT con histogramas (descomentar cuando fill_particle_level_histograms
     # esté implementado con las secciones histograms_config del YAML)
     # outfile = ROOT.TFile(fileOutName, "RECREATE")
@@ -1185,6 +1293,35 @@ def main():
             run_config["output"]["outputlabels"] = []
         else:
             run_config["output"]["outputlabels"] = [run_config["output"]["outputlabels"]]
+
+    # Opciones de línea de comandos y parámetros efectivos del análisis, que
+    # no estaban en el YAML de entrada (dedup, weight, filtros gen, bins...)
+    run_config["cli_args"] = _yaml_safe(vars(args))
+    run_config["particle_level"] = _yaml_safe({
+        "dedup_mode":        args.dedup_mode,
+        "weight_mode":       args.weight_mode,
+        "filter_gen_status": not args.skip_gen_status_filter,
+        "max_gen_pdg":       args.max_gen_pdg,
+        "assoc_max_dR":      assocMaxDR,
+        "fake_bin_by_reco":  args.fake_bin_by_reco,
+        "min_energy_cuts":   args.min_energy_cuts,
+        "min_energy_var":    args.min_energy_var,
+        "all_plot":          args.all_plot,
+        "fit_particle":      args.fit_particle,
+        "fit_e_bins":        args.fit_e_bins,
+        "fit_cos_bins":      args.fit_cos_bins,
+        "fit_metric":        args.fit_metric,
+        "fit_min_entries":   args.fit_min_entries,
+        "fit_points_only":   args.fit_points_only,
+        "genparts":          config_bundle["genparts"],
+        "pfobjects":         config_bundle["pfobjects"],
+        "gatr_results_path": gatr_results_path,
+        "n_workers":         n_workers,
+        "n_files":           len(filenames),
+        "association_bins":  bins,
+        "energy_dist_bins":  e_bins,
+        "neutral_recover":   neutral_recover_cfg,
+    })
 
     output_config_file = os.path.join(outputpath, "config.yaml")
     with open(output_config_file, "w") as f:

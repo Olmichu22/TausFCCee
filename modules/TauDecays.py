@@ -3,6 +3,27 @@ import ROOT
 import edm4hep
 from typing import Optional
 
+_warned_multi_point = set()
+
+
+def _single_syst_point(foton_config, section, logger_process):
+  """Return the one photon-systematics point of ``section`` used by test_extremes.
+
+  ``photon_config`` sections are either a dict (one point) or a list of points
+  (the scan format read by TTreesTausLong). The extremes tested here hold a
+  single variation per section, so a list contributes its first point only.
+  """
+  points = foton_config.get(section) or {}
+  if isinstance(points, dict):
+    return points
+  if len(points) > 1 and section not in _warned_multi_point:
+    _warned_multi_point.add(section)
+    logger_process.warning(
+        "photon_config.%s tiene %d puntos; test_extremes solo usa el primero: %s",
+        section, len(points), points[0])
+  return points[0] if points else {}
+
+
 def extractTauDecays(gatr_results_path,
                      mlpf_results,
                      eventid,
@@ -173,12 +194,14 @@ def extractTauDecays(gatr_results_path,
   #     recoTau_max = None
   #     recoTau_min = None
   tau_extremes = {"energy": {"max": None, "min": None}, "direction": {"max": None, "min": None}}
-  if foton_config.get("energy", {}) and test_extremes:
-      recoTau_max, recoTau_min = test_extremes_for_photons(particles, test_pfo, gatr_results_path, foton_config["energy"], syst_type="energy")
+  energy_point = _single_syst_point(foton_config, "energy", logger_process) if test_extremes else {}
+  direction_point = _single_syst_point(foton_config, "direction", logger_process) if test_extremes else {}
+  if energy_point:
+      recoTau_max, recoTau_min = test_extremes_for_photons(particles, test_pfo, gatr_results_path, energy_point, syst_type="energy")
       tau_extremes["energy"]["max"] = recoTau_max
       tau_extremes["energy"]["min"] = recoTau_min
-  if foton_config.get("direction", {}) and test_extremes:
-      recoTau_max, recoTau_min = test_extremes_for_photons(particles, test_pfo, gatr_results_path, foton_config["direction"], syst_type="direction")
+  if direction_point:
+      recoTau_max, recoTau_min = test_extremes_for_photons(particles, test_pfo, gatr_results_path, direction_point, syst_type="direction")
       tau_extremes["direction"]["max"] = recoTau_max
       tau_extremes["direction"]["min"] = recoTau_min
     
