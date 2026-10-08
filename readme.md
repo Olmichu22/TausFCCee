@@ -242,7 +242,14 @@ to run over more than a handful of files.
 The matching is done **two independent ways**, and every output is produced for
 both:
 
-- **`dR`** — geometric matching by angular distance between gen and reco.
+- **`dR`** — geometric matching by angular distance between gen and reco. Only
+  gen particles that left a signal in the detector enter the matching: those
+  with no directly linked calorimeter hit (`CalohitMCTruthLink`) or track
+  (`SiTracksMCTruthLink`) are dropped, which removes mostly soft and
+  out-of-acceptance photons from the efficiency denominator. The links are
+  followed to the depositing particle itself, not to its status-1 ancestor, so
+  a gen particle seen only through secondaries (e.g. a converted photon) is
+  dropped too.
 - **`truthlink`** — matching via the `RecoMCTruthLink` collection (MC-truth
   energy-deposit weights). This branch is empty if the input files do not carry
   a readable `RecoMCTruthLink` (depends on the podio version that wrote them).
@@ -696,7 +703,7 @@ variable extraction, `make_p4`, histogram filling) and
 The pipeline runs on the standard Key4hep stack (all commands from the repo root):
 
 ```bash
-source setupKey4Hep.sh          # = source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2024-10-03
+source setupKey4Hep.sh          # = source /cvmfs/sw.hsf.org/key4hep/setup.sh -r 2026-04-08
 ```
 
 This release already provides ROOT, podio, edm4hep, numpy/pandas, `uproot` and

@@ -665,6 +665,17 @@ def build_hit_type_map(event):
 #     return particles
 
 
+def _link_ends(link):
+    """Return (rec_obj, sim_obj) of a link, whatever the EDM4hep version.
+
+    Old associations expose getRec()/getSim(); the podio LinkCollection that
+    replaced them only has getFrom()/getTo() (from = reco side, to = sim side).
+    """
+    if hasattr(link, "getFrom") and hasattr(link, "getTo"):
+        return link.getFrom(), link.getTo()
+    return link.getRec(), link.getSim()
+
+
 def get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=None,
                             max_dR=DEFAULT_ASSOC_MAX_DR, dedup_mode="gen"):
     """
@@ -710,8 +721,7 @@ def get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=
     
     for link in calo_truth_links:
         try:
-            hit_obj = link.getRec()
-            mc_obj = link.getSim()
+            hit_obj, mc_obj = _link_ends(link)
             mc_idx = mc_obj.getObjectID().index
             hit_obj_id = hit_obj.getObjectID()
             key = (hit_obj_id.collectionID, hit_obj_id.index)
@@ -728,7 +738,7 @@ def get_reco_mc_links_by_dR(event, hit_type_map, hit_energy_map, logger_process=
     
     for link in track_truth_links:
         try:
-            mc_obj = link.getSim()
+            _, mc_obj = _link_ends(link)
             mc_idx = mc_obj.getObjectID().index
             mc_stats[mc_idx]['n_track'] += 1
         except Exception:
