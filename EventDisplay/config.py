@@ -37,7 +37,12 @@ _CLD_PROFILE = {
     "pfo_collection":      "PandoraPFOs",
     "track_collection":    "SiTracks_Refitted",
     "calo_link_collection": "CalohitMCTruthLink",
+    # Los SimTrackerHit se llaman *Collection (ddsim) o *Hits según la muestra;
+    # las colecciones que no existan en el archivo se saltan.
     "sim_tracker_collections": [
+        "VertexBarrelCollection", "VertexEndcapCollection",
+        "InnerTrackerBarrelCollection", "InnerTrackerEndcapCollection",
+        "OuterTrackerBarrelCollection", "OuterTrackerEndcapCollection",
         "VertexBarrelHits", "VertexEndcapHits",
         "InnerTrackerBarrelHits", "InnerTrackerEndcapHits",
         "OuterTrackerBarrelHits", "OuterTrackerEndcapHits",

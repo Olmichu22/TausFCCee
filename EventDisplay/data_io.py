@@ -121,6 +121,17 @@ def _safe_index(obj, default=-999):
         return default
 
 
+def _link_ends(link):
+    """Return (rec_obj, sim_obj) of a link, whatever the EDM4hep version.
+
+    Old associations expose getRec()/getSim(); the podio LinkCollection that
+    replaced them only has getFrom()/getTo() (from = reco side, to = sim side).
+    """
+    if hasattr(link, "getFrom") and hasattr(link, "getTo"):
+        return link.getFrom(), link.getTo()
+    return link.getRec(), link.getSim()
+
+
 # ── Per-event extraction ──────────────────────────────────────────────────────
 
 def _extract_gen(event, collections_cfg: dict) -> list:
@@ -208,8 +219,7 @@ def _build_hit_to_gen(event, type_map: dict) -> dict:
         return out
     for link in links:
         try:
-            hit_obj = link.getRec()
-            gen_obj = link.getSim()
+            hit_obj, gen_obj = _link_ends(link)
             oid = hit_obj.getObjectID()
             key = (oid.collectionID, oid.index)
             if key in type_map:
@@ -343,12 +353,7 @@ def _extract_truth_links(event) -> list:
 
     for link in links_raw:
         try:
-            if hasattr(link, "getSim") and hasattr(link, "getRec"):
-                sim_obj = link.getSim()
-                rec_obj = link.getRec()
-            else:
-                sim_obj = link.getTo()
-                rec_obj = link.getFrom()
+            rec_obj, sim_obj = _link_ends(link)
 
             gen_status = _safe(sim_obj, "getGeneratorStatus", -1)
             if gen_status not in VALID_GEN_STATUS:
