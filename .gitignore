@@ -28,3 +28,6 @@ logs/
 # Tablas intermedias pesadas de los estudios en docs/ (se regeneran con sus scripts)
 docs/**/*.npz
 docs/**/records.json
+
+TauTool/build/
+.vscode/

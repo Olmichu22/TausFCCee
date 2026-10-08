@@ -48,6 +48,7 @@ samples:
     # file_prefix: out_reco_edm4hep
     has_gen_taus: true
     file_glob: out_reco_edm4hep_*.root
+    aliases: [ztt_sm_2M]
     
   ztt_2M:
     folders:
