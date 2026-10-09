@@ -220,9 +220,25 @@ _RECO_TAU_FIELDS = (
 )
 
 
-def make_reco_block(suffix=""):
-    """Return {branch name: std::vector} for one reco-tau block."""
-    return {name + suffix: ROOT.std.vector(vtype)() for name, vtype in _RECO_TAU_FIELDS}
+# ParTauDETR only (--mltau-predictions): -1 / -999 for the e / mu entries.
+_MLTAU_FIELDS = (
+    ("RecoTauTag",          "float"),  # tau-ID score p(tau)
+    ("RecoTauJetIdx",       "int"),
+    ("RecoTauJetPt",        "float"),
+    ("RecoTauJetEta",       "float"),
+    ("RecoTauJetPhi",       "float"),
+    ("RecoTauJetE",         "float"),
+    ("RecoTauJetNConsts",   "int"),    # PFOs in the jet
+    ("RecoConstCharge",     "int"),    # per predicted daughter
+    ("RecoConstObjectness", "float"),  # per predicted daughter
+)
+
+
+def make_reco_block(suffix="", mltau=False):
+    """Return {branch name: std::vector} for one reco-tau block (with the
+    ParTauDETR branches if *mltau*)."""
+    fields = _RECO_TAU_FIELDS + (_MLTAU_FIELDS if mltau else ())
+    return {name + suffix: ROOT.std.vector(vtype)() for name, vtype in fields}
 
 
 def merge_reco_candidates(taus, electrons, muons):
@@ -242,6 +258,8 @@ def fill_reco_block(block, suffix, recoTaus, genTaus, dRMatch, selectDecay):
     """
     def vec(name):
         return block[name + suffix]
+
+    mltau = "RecoTauTag" + suffix in block
 
     for i in range(len(recoTaus)):
         recoTauP4      = recoTaus[i].getMomentum()
@@ -267,6 +285,17 @@ def fill_reco_block(block, suffix, recoTaus, genTaus, dRMatch, selectDecay):
         vec("RecoTauDR").push_back(recoTaus[i].getMaxCone())
         vec("RecoTauNConstKey").push_back(i)
         vec("RecoTauNConsts").push_back(recoTauNConsts)
+        if mltau:
+            jet_p4 = getattr(recoTaus[i], "jet_p4", None)
+            vec("RecoTauTag").push_back(getattr(recoTaus[i], "tau_score", -1.0))
+            vec("RecoTauJetIdx").push_back(getattr(recoTaus[i], "jet_idx", -1))
+            vec("RecoTauJetPt").push_back(jet_p4.Pt() if jet_p4 is not None else -1.0)
+            vec("RecoTauJetEta").push_back(jet_p4.Eta() if jet_p4 is not None else -999.0)
+            vec("RecoTauJetPhi").push_back(jet_p4.Phi() if jet_p4 is not None else -999.0)
+            vec("RecoTauJetE").push_back(jet_p4.E() if jet_p4 is not None else -1.0)
+            vec("RecoTauJetNConsts").push_back(
+                len(recoTaus[i].cand_pfo_idx) if jet_p4 is not None else -1
+            )
 
         for c in range(recoTauNConsts):
             const_c = recoTauConsts[c]
@@ -287,6 +316,9 @@ def fill_reco_block(block, suffix, recoTaus, genTaus, dRMatch, selectDecay):
             vec("RecoConstTheta").push_back(constP4.Theta())
             vec("RecoConstEta").push_back(constP4.Eta())
             vec("RecoConstPhi").push_back(constP4.Phi())
+            if mltau:
+                vec("RecoConstCharge").push_back(const_c.getCharge())
+                vec("RecoConstObjectness").push_back(const_c.objectness)
 
     # ── Gen–reco tau matching ──────────────────────────────────────────────
     nTausType = 0
@@ -542,6 +574,20 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
     cone_axis         = config_bundle.get("cone_axis", "running")
     photon_syst       = config_bundle.get("photon_syst") or []
     clean_reco_taus   = config_bundle.get("clean_reco_taus", False)
+    mltau_predictions = config_bundle.get("mltau_predictions")
+
+    # ParTauDETR taus (modules/mlTauReco) in place of tauReco's cone taus,
+    # read from the predictions MLTauReco/process_edm4hep.py wrote.
+    mltau_reader = None
+    if mltau_predictions:
+        from modules import mlTauReco
+        mltau_reader = mlTauReco.MLTauReader(
+            mltau_predictions,
+            tau_score_cut=config_bundle.get("mltau_tau_score_cut"),
+            veto_lepton_jets=config_bundle.get("mltau_veto_lepton_jets", True),
+        )
+        logger.info("Worker %d: ParTauDETR taus from %s, tau score cut %.4f",
+                    worker_id, mltau_predictions, mltau_reader.tau_score_cut)
     # Temporary output file — created inside the worker after fork
     tmp_path = os.path.join(outputpath, f"tmp_chunk_{worker_id}.root")
     outfile_tmp = TFile(tmp_path, "RECREATE")
@@ -627,7 +673,7 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
     GenNuPhi       = ROOT.std.vector("float")()
 
     # Reco tau (RecoTau*, RecoMatchedKey, RecoConst*)
-    reco_block = make_reco_block()
+    reco_block = make_reco_block(mltau=mltau_reader is not None)
 
     # Photon systematics: one full reco-tau block per variation, suffixed
     # "_<suffix>" (e.g. RecoTauP_PhEnUp, RecoTauP_PhDir_s0p001). Same entry as the nominal, so
@@ -837,7 +883,10 @@ def process_chunk(filenames_chunk, mlpf_chunk, global_file_offset,
                 reco_inputs = particles
             else:
                 reco_inputs = pfos
-            recoTau_raw = find_taus(reco_inputs)
+            if mltau_reader is not None:
+                recoTau_raw = mltau_reader.findAllTaus(filename, local_event)
+            else:
+                recoTau_raw = find_taus(reco_inputs)
             recoElectrons = electronReco.findAllElectrons(reco_inputs, generalPCut)
             recoMuons = muonReco.findAllMuons(reco_inputs, generalPCut)
 
@@ -1181,6 +1230,20 @@ def main():
                  "<=3 candidates, at least one hadronic tau and one electron "
                  "(tauReco.cleanRecoTaus). Applied to nominal and photon variations.",
         )
+        parser.add_argument(
+            "--mltau-predictions", default=None, metavar="DIR",
+            help="Use ParTauDETR taus instead of tauReco's: the directory with "
+                 "the *_mltaus.parquet files from MLTauReco/process_edm4hep.py",
+        )
+        parser.add_argument(
+            "--mltau-tau-score-cut", type=float, default=None,
+            help="ParTauDETR tau-ID score cut (default: the 90%%-efficiency "
+                 "working point, see modules/mlTauReco.py)",
+        )
+        parser.add_argument(
+            "--mltau-keep-lepton-jets", action="store_true", default=False,
+            help="Also return ParTauDETR taus for jets with a reco e/mu",
+        )
 
     general_configs = myutils.setup_analysis_config(
         default_config, outputbasepath, parser_hook=_parser_hook
@@ -1313,7 +1376,23 @@ def main():
         "cone_axis":         args.cone_axis,
         "photon_syst":       photon_syst,
         "clean_reco_taus":   args.clean_reco_taus,
+        "mltau_predictions": args.mltau_predictions,
+        "mltau_tau_score_cut": args.mltau_tau_score_cut,
+        "mltau_veto_lepton_jets": not args.mltau_keep_lepton_jets,
     }
+    if args.mltau_predictions:
+        # The cone options and the photon variations act on tauReco; the
+        # ParTauDETR predictions are fixed, so they would silently do nothing.
+        if gatr_path:
+            logger_config.error("--mltau-predictions cannot be combined with --gatr-result.")
+            sys.exit(1)
+        if photon_syst:
+            logger_config.error("--mltau-predictions cannot be combined with photon "
+                                "systematics (--sys-err): they vary the cone reconstruction.")
+            sys.exit(1)
+        if args.cone_axis != "running":
+            logger_config.error("--cone-axis has no effect with --mltau-predictions.")
+            sys.exit(1)
 
     n_workers   = args.n_workers or min(len(filenames), os.cpu_count() or 1)
     n_workers   = max(1, n_workers)

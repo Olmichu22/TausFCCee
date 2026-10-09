@@ -1,0 +1,41 @@
+{
+  "name": "ParTauDETR U1-log",
+  "recipe": "TauTr_upgrades U1 (consistency 1.0, charge_count 0.0), significance_transform=log, input scaling on, lr 2e-4, 20k steps, batch 12288; epoch 17 / step 19692",
+  "training_data": "CLD v1.2.5_key4hep_2025-05-29 p8_ee_Z_tautau_ecm91 / p8_ee_Z_qq_ecm91, ee_genkt R=0.4 jets, gen-matched, no reco e/mu in jet",
+  "mass_from_class": true,
+  "objectness_threshold": 0.5,
+  "eval_z_test": {
+    "pt_resolution_iqr_over_median": 0.03425535029632406,
+    "pt_response_median": 1.0081177353858948,
+    "dR_median": 0.0022025532089173794,
+    "decay_mode_accuracy": 0.91456,
+    "charge_accuracy": 0.9534660398119436,
+    "tau_id_auc": 0.9913684511125
+  },
+  "tau_id_working_points": {
+    "0.50": {
+      "tau_score_threshold": 0.9964684844017029,
+      "qq_jet_misid": 0.000275
+    },
+    "0.60": {
+      "tau_score_threshold": 0.9942620992660522,
+      "qq_jet_misid": 0.00045
+    },
+    "0.70": {
+      "tau_score_threshold": 0.9888338506221771,
+      "qq_jet_misid": 0.000785
+    },
+    "0.80": {
+      "tau_score_threshold": 0.9736461162567138,
+      "qq_jet_misid": 0.0017975
+    },
+    "0.90": {
+      "tau_score_threshold": 0.9085325360298155,
+      "qq_jet_misid": 0.0062125
+    },
+    "0.95": {
+      "tau_score_threshold": 0.725661137700081,
+      "qq_jet_misid": 0.021095
+    }
+  }
+}
