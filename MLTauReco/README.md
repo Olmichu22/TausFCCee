@@ -77,6 +77,12 @@ python3 -m TauAnalysis.TTreesTausLong -c config/default/taurecolong_CLD.yaml \
     # optional: --mltau-tau-score-cut 0.9736 (80% eff.)  --mltau-keep-lepton-jets
 ```
 
+The tree is written to
+`Results/TauReco/<prefix><outfile><cuts>/Tree_<outfile>decayAll_<cuts>.root`
+(relative to the working directory), e.g.
+`Results/TauReco/MLTau_effis0.4_tph0.0_tpi0.0_n0.0_g0.0/`. The prefix only names
+the directory: the ParTauDETR taus fill the usual `RecoTau*` branches.
+
 The cone-reconstruction options `--cone-axis` and the photon systematics
 (`--sys-err`) do not apply to ParTauDETR taus and are refused together with
 `--mltau-predictions`. `--clean-reco-taus` works as for the cone taus.
@@ -85,7 +91,8 @@ Only jets passing the tau-score cut (by default the 90%-efficiency working
 point, 0.9085) become reco taus in the tree. **To study the effect of the
 score on the taus** (ROC curves, other working points, efficiency vs. score),
 run with `--mltau-tau-score-cut 0` so that every jet with a predicted daughter
-is written, and cut on `RecoTauTag` afterwards.
+is written, and cut on `RecoTauTag` afterwards. Jets with a reco e/mu are still
+dropped unless `--mltau-keep-lepton-jets` is also given.
 
 In your own event loop, use `modules/mlTauReco.py`:
 
@@ -106,6 +113,10 @@ How these taus differ from the cone taus:
   (PDG +-211 / 111), not PFOs. That means no `RecoPhotonTauKey` links, and
   `extra_reco_correction` does not apply. The jet's PFOs are in
   `tau.cand_pfo_idx`.
+- **Cone size:** `getMaxCone()` (`RecoTauDR`) is the largest 3D angle between
+  a predicted daughter and the visible tau, not the theta-phi distance
+  (`myutils.dRAngle`) to the seed pion that the cone taus use. Do not compare
+  the two directly.
 - **Default selection:**
   - `tau_score` >= the 90%-efficiency working point (0.9085).
   - Jets with a reco e/mu are dropped (`veto_lepton_jets`).
@@ -157,7 +168,14 @@ events (`reco_p8_ee_Z_tautau_ecm91_700000` - `700249`) and 25k Z->qq events
 (`reco_p8_ee_Z_qq_ecm91_600000` - `600249`), ParTauDETR at the default 90%
 working point. Gen taus, gen-reco matching, decay mode and charge are this
 repo's definitions, evaluated with `compare_with_cone.py` over all 32,619
-hadronic gen taus:
+hadronic gen taus. To redo it on other trees (in the ml-tau container, since it
+uses ml-tau-model's evaluation tools):
+
+```bash
+MLTauReco/run_mltau.sh python3 MLTauReco/compare_with_cone.py \
+    --trees Cone:z=<dir> Cone:qq=<dir> ParTauDETR:z=<dir> ParTauDETR:qq=<dir> \
+    --out-dir <plots dir>
+```
 
 | | ParTauDETR | cone (`tauReco`) |
 |---|---|---|

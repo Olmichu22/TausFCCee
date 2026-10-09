@@ -16,7 +16,9 @@ ml-tau-model's tools (mltau/tools/evaluation):
 The Z->qq trees give the rate of reco hadronic taus per event (fakes).
 
   MLTauReco/run_mltau.sh python3 MLTauReco/compare_with_cone.py \
-      --trees cone=<dir with cone z/qq trees> ... (see --help)
+      --trees Cone:z=<cone Z->tautau tree dir> Cone:qq=<cone Z->qq tree dir> \
+              ParTauDETR:z=<ML Z->tautau tree dir> ParTauDETR:qq=<ML Z->qq tree dir> \
+      --out-dir <plots dir>
 """
 
 import argparse
