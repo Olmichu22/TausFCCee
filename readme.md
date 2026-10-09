@@ -11,6 +11,16 @@ The main tools included are:
   See *Physics of Tau Polarization at the Z Pole* below for the theory, formulas
   and their mapping to the code.
 
+# ParTauDETR (machine-learned) taus
+
+`MLTauReco/` reconstructs taus with the ParTauDETR transformer from
+[ml-tau-model](https://github.com/HEP-KBFI/ml-tau-model) (submodule in
+`external/ml-tau-model`; `git submodule update --init --recursive`) and feeds
+them to the analysis in place of `tauReco.findAllTaus`: run the model on the
+EDM4hep files first, then pass `--mltau-predictions <dir>` to
+`TauAnalysis/TTreesTausLong.py`, or use `modules/mlTauReco.MLTauReader` in your
+own event loop. See [MLTauReco/README.md](MLTauReco/README.md).
+
 # Simple Tau Reconstruction Test
 
 This script (`test/simple_taureco_test.py`) provides a **basic example** for reconstructing **tau leptons** and related decay products from ROOT event data using the **EDM4hep** format.

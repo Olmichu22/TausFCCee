@@ -1,0 +1,4 @@
+[submodule "external/ml-tau-model"]
+	path = external/ml-tau-model
+	url = https://github.com/HEP-KBFI/ml-tau-model.git
+	branch = TauTr_upgrades
