@@ -1,0 +1,1079 @@
+# CLD, ztt_2M_smearing: reco de cono (TauTool) frente a ParTauDETR (MLTau).
+# Mismo esquema que compare_CLD_ILD.yaml: cada fichero se declara varias veces,
+# una entrada por "rol", para dar color/estilo propio a cada curva via per_dataset.
+#
+#   python TauAnalysis/CompareAlgs.py -c config/plots/compare_CLD_MLTau.yaml -o <outdir>
+TauTool: &ttpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+MLTau: &mlpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_MLTau_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+
+# Graficos ToLost y Theta*Correct: los produce TauAnalysis/mergeMigrationCategories.py
+# a partir del fichero principal (hay que regenerarlos cada vez que se rehace la reco).
+TauToolmerged: &ttmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
+MLTaumerged: &mlmerged /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_MLTau_tau_trained0.4_tph0.35_tpi0_n3_g0.0/migration_merged.root
+
+datasets:
+  # --- comparacion directa TauTool vs MLTau (una curva por algoritmo) ---
+  - path: *ttpath
+    label: "TauTool"
+    color: ROOT.kAzure+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlpath
+    label: "MLTau"
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  # --- idem para los graficos de migration_merged.root (legend_label: texto de la leyenda) ---
+  - path: *ttmerged
+    label: "TauTool merged"
+    legend_label: "TauTool"
+    color: ROOT.kAzure+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlmerged
+    label: "MLTau merged"
+    legend_label: "MLTau"
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  # --- TauTool: desglose por categoria reconstruida ---
+  - path: *ttpath
+    label: "TauTool Correct"
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow h"
+    color: ROOT.kAzure+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow h #gamma"
+    color: ROOT.kGreen+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow h 2#gamma"
+    color: ROOT.kOrange+7
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow h 3#gamma"
+    color: ROOT.kMagenta+1
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow h 4#gamma"
+    color: ROOT.kCyan+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow h #geq5#gamma"
+    color: ROOT.kYellow+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow 3h"
+    color: ROOT.kViolet+1
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow 3h #gamma"
+    color: ROOT.kSpring+4
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow 3h 2#gamma"
+    color: ROOT.kPink+7
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow e"
+    color: ROOT.kGray+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow #mu"
+    color: ROOT.kBlue+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #rightarrow 3h + n"
+    color: ROOT.kOrange-3
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttmerged
+    label: "TauTool Correct (merged)"
+    legend_label: "TauTool Correct"
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttmerged
+    label: "TauTool Not reconstructed"
+    color: ROOT.kTeal+3
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  # --- MLTau: desglose por categoria reconstruida ---
+  - path: *mlpath
+    label: "MLTau Correct"
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlpath
+    label: "MLTau #rightarrow h"
+    color: ROOT.kAzure+2
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlpath
+    label: "MLTau #rightarrow h #pi^{0}"
+    color: ROOT.kOrange+7
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlpath
+    label: "MLTau #rightarrow h 2#pi^{0}"
+    color: ROOT.kCyan+2
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlpath
+    label: "MLTau #rightarrow h #geq3#pi^{0}"
+    color: ROOT.kYellow+2
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlpath
+    label: "MLTau #rightarrow 3h"
+    color: ROOT.kViolet+1
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlpath
+    label: "MLTau #rightarrow 3h #pi^{0}"
+    color: ROOT.kPink+7
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlpath
+    label: "MLTau #rightarrow e"
+    color: ROOT.kGray+2
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlpath
+    label: "MLTau #rightarrow #mu"
+    color: ROOT.kBlue+2
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlmerged
+    label: "MLTau Correct (merged)"
+    legend_label: "MLTau Correct"
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  - path: *mlmerged
+    label: "MLTau Not reconstructed"
+    color: ROOT.kTeal+3
+    linestyle: 1
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+
+  # --- masa visible del Z ---
+  - path: *mlpath
+    label: "MLTau m_{Z}"
+    color: ROOT.kRed
+    linestyle: 2
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+    fill: true
+    fillstyle: 3006
+    fillalpha: 1.0
+
+  - path: *ttpath
+    label: "TauTool m_{Z}"
+    color: ROOT.kAzure+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+# "Correct" es el modo gen bien identificado; en TauTool un pi0 vale como 1 o 2
+# fotones (pi pi0 = h1g + h2g, pi 2pi0 = h3g + h4g), asi que esas categorias no
+# se pintan aparte como migracion. En MLTau cada pi0 predicho cuenta como dos
+# fotones (h2g = h pi0, h4g = h 2pi0, 3h2g = 3h pi0) y las impares estan vacias.
+plots:
+  TauTool_EffP_Dec0:
+    per_dataset:
+      "TauTool Correct": hEffiGenTauP0Correct
+      "TauTool #rightarrow h #gamma": hEffiGenTauP0Toh1g
+      "TauTool #rightarrow h 2#gamma": hEffiGenTauP0Toh2g
+      "TauTool Not reconstructed": hEffiGenTauP0ToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \pi \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffP_Dec0:
+    per_dataset:
+      "MLTau Correct": hEffiGenTauP0Correct
+      "MLTau #rightarrow h #pi^{0}": hEffiGenTauP0Toh2g
+      "MLTau #rightarrow e": hEffiGenTauP0ToElec
+      "MLTau Not reconstructed": hEffiGenTauP0ToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \pi \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffP_Dec1:
+    per_dataset:
+      "TauTool Correct": hEffiGenTauP1Correct
+      "TauTool #rightarrow h": hEffiGenTauP1Toh
+      "TauTool #rightarrow h 3#gamma": hEffiGenTauP1Toh3g
+      "TauTool #rightarrow e": hEffiGenTauP1ToElec
+      "TauTool Not reconstructed": hEffiGenTauP1ToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \pi \pi^0 \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffP_Dec1:
+    per_dataset:
+      "MLTau Correct": hEffiGenTauP1Correct
+      "MLTau #rightarrow h": hEffiGenTauP1Toh
+      "MLTau #rightarrow h 2#pi^{0}": hEffiGenTauP1Toh4g
+      "MLTau #rightarrow e": hEffiGenTauP1ToElec
+      "MLTau Not reconstructed": hEffiGenTauP1ToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \pi \pi^0 \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffP_Dec2:
+    per_dataset:
+      "TauTool Correct": hEffiGenTauP2Correct
+      "TauTool #rightarrow h": hEffiGenTauP2Toh
+      "TauTool #rightarrow h #gamma": hEffiGenTauP2Toh1g
+      "TauTool #rightarrow h 2#gamma": hEffiGenTauP2Toh2g
+      "TauTool #rightarrow h #geq5#gamma": hEffiGenTauP2Toh5gPlus
+      "TauTool #rightarrow e": hEffiGenTauP2ToElec
+      "TauTool Not reconstructed": hEffiGenTauP2ToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.6]
+    legend: [0.38, 0.62, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffP_Dec2:
+    per_dataset:
+      "MLTau Correct": hEffiGenTauP2Correct
+      "MLTau #rightarrow h #pi^{0}": hEffiGenTauP2Toh2g
+      "MLTau #rightarrow h #geq3#pi^{0}": hEffiGenTauP2Toh5gPlus
+      "MLTau #rightarrow e": hEffiGenTauP2ToElec
+      "MLTau Not reconstructed": hEffiGenTauP2ToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffP_Dec10:
+    per_dataset:
+      "TauTool Correct": hEffiGenTauP10Correct
+      "TauTool #rightarrow h": hEffiGenTauP10Toh
+      "TauTool #rightarrow 3h #gamma": hEffiGenTauP10To3h1g
+      "TauTool #rightarrow 3h 2#gamma": hEffiGenTauP10To3h2g
+      "TauTool #rightarrow 3h + n": hEffiGenTauP10To3hNeutron
+      "TauTool Not reconstructed": hEffiGenTauP10ToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \pi \pi \pi \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffP_Dec10:
+    per_dataset:
+      "MLTau Correct": hEffiGenTauP10Correct
+      "MLTau #rightarrow h": hEffiGenTauP10Toh
+      "MLTau #rightarrow 3h #pi^{0}": hEffiGenTauP10To3h2g
+      "MLTau #rightarrow e": hEffiGenTauP10ToElec
+      "MLTau Not reconstructed": hEffiGenTauP10ToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \pi \pi \pi \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffP_Elec:
+    per_dataset:
+      "TauTool Correct": hEffiGenTauPElecToElec
+      "TauTool #rightarrow h": hEffiGenTauPElecToh
+      "TauTool #rightarrow h #gamma": hEffiGenTauPElecToh1g
+      "TauTool #rightarrow h 2#gamma": hEffiGenTauPElecToh2g
+      "TauTool Not reconstructed": hEffiGenTauPElecToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow e \nu \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffP_Elec:
+    per_dataset:
+      "MLTau Correct": hEffiGenTauPElecToElec
+      "MLTau #rightarrow h": hEffiGenTauPElecToh
+      "MLTau #rightarrow h #pi^{0}": hEffiGenTauPElecToh2g
+      "MLTau Not reconstructed": hEffiGenTauPElecToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow e \nu \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffP_Muon:
+    per_dataset:
+      "TauTool Correct": hEffiGenTauPMuonToMuon
+      "TauTool #rightarrow h": hEffiGenTauPMuonToh
+      "TauTool #rightarrow h #gamma": hEffiGenTauPMuonToh1g
+      "TauTool Not reconstructed": hEffiGenTauPMuonToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \mu \nu \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffP_Muon:
+    per_dataset:
+      "MLTau Correct": hEffiGenTauPMuonToMuon
+      "MLTau #rightarrow h": hEffiGenTauPMuonToh
+      "MLTau #rightarrow h #pi^{0}": hEffiGenTauPMuonToh2g
+      "MLTau Not reconstructed": hEffiGenTauPMuonToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \mu \nu \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffTheta_Dec0:
+    per_dataset:
+      "TauTool Correct (merged)": hEffiGenTauTheta0Correct
+      "TauTool #rightarrow h #gamma": hEffiGenTauTheta0Toh1g
+      "TauTool #rightarrow h 2#gamma": hEffiGenTauTheta0Toh2g
+      "TauTool Not reconstructed": hEffiGenTauTheta0ToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \pi \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffTheta_Dec0:
+    per_dataset:
+      "MLTau Correct (merged)": hEffiGenTauTheta0Correct
+      "MLTau #rightarrow h #pi^{0}": hEffiGenTauTheta0Toh2g
+      "MLTau #rightarrow e": hEffiGenTauTheta0ToElec
+      "MLTau Not reconstructed": hEffiGenTauTheta0ToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \pi \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffTheta_Dec1:
+    per_dataset:
+      "TauTool Correct (merged)": hEffiGenTauTheta1Correct
+      "TauTool #rightarrow h": hEffiGenTauTheta1Toh
+      "TauTool #rightarrow h 3#gamma": hEffiGenTauTheta1Toh3g
+      "TauTool #rightarrow e": hEffiGenTauTheta1ToElec
+      "TauTool Not reconstructed": hEffiGenTauTheta1ToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \pi \pi^0 \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffTheta_Dec1:
+    per_dataset:
+      "MLTau Correct (merged)": hEffiGenTauTheta1Correct
+      "MLTau #rightarrow h": hEffiGenTauTheta1Toh
+      "MLTau #rightarrow h 2#pi^{0}": hEffiGenTauTheta1Toh4g
+      "MLTau #rightarrow e": hEffiGenTauTheta1ToElec
+      "MLTau Not reconstructed": hEffiGenTauTheta1ToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \pi \pi^0 \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffTheta_Dec2:
+    per_dataset:
+      "TauTool Correct (merged)": hEffiGenTauTheta2Correct
+      "TauTool #rightarrow h": hEffiGenTauTheta2Toh
+      "TauTool #rightarrow h #gamma": hEffiGenTauTheta2Toh1g
+      "TauTool #rightarrow h 2#gamma": hEffiGenTauTheta2Toh2g
+      "TauTool #rightarrow h #geq5#gamma": hEffiGenTauTheta2Toh5gPlus
+      "TauTool #rightarrow e": hEffiGenTauTheta2ToElec
+      "TauTool Not reconstructed": hEffiGenTauTheta2ToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.6]
+    legend: [0.38, 0.62, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffTheta_Dec2:
+    per_dataset:
+      "MLTau Correct (merged)": hEffiGenTauTheta2Correct
+      "MLTau #rightarrow h #pi^{0}": hEffiGenTauTheta2Toh2g
+      "MLTau #rightarrow h #geq3#pi^{0}": hEffiGenTauTheta2Toh5gPlus
+      "MLTau #rightarrow e": hEffiGenTauTheta2ToElec
+      "MLTau Not reconstructed": hEffiGenTauTheta2ToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffTheta_Dec10:
+    per_dataset:
+      "TauTool Correct (merged)": hEffiGenTauTheta10Correct
+      "TauTool #rightarrow h": hEffiGenTauTheta10Toh
+      "TauTool #rightarrow 3h #gamma": hEffiGenTauTheta10To3h1g
+      "TauTool #rightarrow 3h 2#gamma": hEffiGenTauTheta10To3h2g
+      "TauTool #rightarrow 3h + n": hEffiGenTauTheta10To3hNeutron
+      "TauTool Not reconstructed": hEffiGenTauTheta10ToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \pi \pi \pi \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffTheta_Dec10:
+    per_dataset:
+      "MLTau Correct (merged)": hEffiGenTauTheta10Correct
+      "MLTau #rightarrow h": hEffiGenTauTheta10Toh
+      "MLTau #rightarrow 3h #pi^{0}": hEffiGenTauTheta10To3h2g
+      "MLTau #rightarrow e": hEffiGenTauTheta10ToElec
+      "MLTau Not reconstructed": hEffiGenTauTheta10ToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \pi \pi \pi \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffTheta_Elec:
+    per_dataset:
+      "TauTool Correct (merged)": hEffiGenTauThetaElecCorrect
+      "TauTool #rightarrow h": hEffiGenTauThetaElecToh
+      "TauTool #rightarrow h #gamma": hEffiGenTauThetaElecToh1g
+      "TauTool #rightarrow h 2#gamma": hEffiGenTauThetaElecToh2g
+      "TauTool Not reconstructed": hEffiGenTauThetaElecToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow e \nu \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffTheta_Elec:
+    per_dataset:
+      "MLTau Correct (merged)": hEffiGenTauThetaElecCorrect
+      "MLTau #rightarrow h": hEffiGenTauThetaElecToh
+      "MLTau #rightarrow h #pi^{0}": hEffiGenTauThetaElecToh2g
+      "MLTau Not reconstructed": hEffiGenTauThetaElecToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow e \nu \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauTool_EffTheta_Muon:
+    per_dataset:
+      "TauTool Correct (merged)": hEffiGenTauThetaMuonCorrect
+      "TauTool #rightarrow h": hEffiGenTauThetaMuonToh
+      "TauTool #rightarrow h #gamma": hEffiGenTauThetaMuonToh1g
+      "TauTool Not reconstructed": hEffiGenTauThetaMuonToLost
+    title: '\text{TauTool efficiency: }\tau \rightarrow \mu \nu \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  MLTau_EffTheta_Muon:
+    per_dataset:
+      "MLTau Correct (merged)": hEffiGenTauThetaMuonCorrect
+      "MLTau #rightarrow h": hEffiGenTauThetaMuonToh
+      "MLTau #rightarrow h #pi^{0}": hEffiGenTauThetaMuonToh2g
+      "MLTau Not reconstructed": hEffiGenTauThetaMuonToLost
+    title: '\text{MLTau efficiency: }\tau \rightarrow \mu \nu \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.45]
+    legend: [0.38, 0.655, 0.94, 0.915]
+    legend_ncolumns: 2
+    legend_txt_size: 0.038
+    gridy: true
+
+  TauToolvsMLTau_EffP_Dec0:
+    per_dataset:
+      "TauTool": hEffiGenTauP0Correct
+      "MLTau": hEffiGenTauP0Correct
+    title: '\text{Efficiency }\tau \rightarrow \pi \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffP_Dec1:
+    per_dataset:
+      "TauTool": hEffiGenTauP1Correct
+      "MLTau": hEffiGenTauP1Correct
+    title: '\text{Efficiency }\tau \rightarrow \pi \pi^0 \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffP_Dec2:
+    per_dataset:
+      "TauTool": hEffiGenTauP2Correct
+      "MLTau": hEffiGenTauP2Correct
+    title: '\text{Efficiency }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffP_Dec10:
+    per_dataset:
+      "TauTool": hEffiGenTauP10Correct
+      "MLTau": hEffiGenTauP10Correct
+    title: '\text{Efficiency }\tau \rightarrow \pi \pi \pi \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffP_Elec:
+    per_dataset:
+      "TauTool": hEffiGenTauPElecToElec
+      "MLTau": hEffiGenTauPElecToElec
+    title: '\text{Efficiency }\tau \rightarrow e \nu \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffP_Muon:
+    per_dataset:
+      "TauTool": hEffiGenTauPMuonToMuon
+      "MLTau": hEffiGenTauPMuonToMuon
+    title: '\text{Efficiency }\tau \rightarrow \mu \nu \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffTheta_Dec0:
+    per_dataset:
+      "TauTool merged": hEffiGenTauTheta0Correct
+      "MLTau merged": hEffiGenTauTheta0Correct
+    title: '\text{Efficiency }\tau \rightarrow \pi \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffTheta_Dec1:
+    per_dataset:
+      "TauTool merged": hEffiGenTauTheta1Correct
+      "MLTau merged": hEffiGenTauTheta1Correct
+    title: '\text{Efficiency }\tau \rightarrow \pi \pi^0 \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffTheta_Dec2:
+    per_dataset:
+      "TauTool merged": hEffiGenTauTheta2Correct
+      "MLTau merged": hEffiGenTauTheta2Correct
+    title: '\text{Efficiency }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffTheta_Dec10:
+    per_dataset:
+      "TauTool merged": hEffiGenTauTheta10Correct
+      "MLTau merged": hEffiGenTauTheta10Correct
+    title: '\text{Efficiency }\tau \rightarrow \pi \pi \pi \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffTheta_Elec:
+    per_dataset:
+      "TauTool merged": hEffiGenTauThetaElecCorrect
+      "MLTau merged": hEffiGenTauThetaElecCorrect
+    title: '\text{Efficiency }\tau \rightarrow e \nu \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_EffTheta_Muon:
+    per_dataset:
+      "TauTool merged": hEffiGenTauThetaMuonCorrect
+      "MLTau merged": hEffiGenTauThetaMuonCorrect
+    title: '\text{Efficiency }\tau \rightarrow \mu \nu \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostP_Dec0:
+    per_dataset:
+      "TauTool merged": hEffiGenTauP0ToLost
+      "MLTau merged": hEffiGenTauP0ToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \pi \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostP_Dec1:
+    per_dataset:
+      "TauTool merged": hEffiGenTauP1ToLost
+      "MLTau merged": hEffiGenTauP1ToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \pi \pi^0 \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostP_Dec2:
+    per_dataset:
+      "TauTool merged": hEffiGenTauP2ToLost
+      "MLTau merged": hEffiGenTauP2ToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostP_Dec10:
+    per_dataset:
+      "TauTool merged": hEffiGenTauP10ToLost
+      "MLTau merged": hEffiGenTauP10ToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \pi \pi \pi \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostP_Elec:
+    per_dataset:
+      "TauTool merged": hEffiGenTauPElecToLost
+      "MLTau merged": hEffiGenTauPElecToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow e \nu \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostP_Muon:
+    per_dataset:
+      "TauTool merged": hEffiGenTauPMuonToLost
+      "MLTau merged": hEffiGenTauPMuonToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \mu \nu \nu'
+    x: "P [GeV/c]"
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostTheta_Dec0:
+    per_dataset:
+      "TauTool merged": hEffiGenTauTheta0ToLost
+      "MLTau merged": hEffiGenTauTheta0ToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \pi \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostTheta_Dec1:
+    per_dataset:
+      "TauTool merged": hEffiGenTauTheta1ToLost
+      "MLTau merged": hEffiGenTauTheta1ToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \pi \pi^0 \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostTheta_Dec2:
+    per_dataset:
+      "TauTool merged": hEffiGenTauTheta2ToLost
+      "MLTau merged": hEffiGenTauTheta2ToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostTheta_Dec10:
+    per_dataset:
+      "TauTool merged": hEffiGenTauTheta10ToLost
+      "MLTau merged": hEffiGenTauTheta10ToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \pi \pi \pi \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostTheta_Elec:
+    per_dataset:
+      "TauTool merged": hEffiGenTauThetaElecToLost
+      "MLTau merged": hEffiGenTauThetaElecToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow e \nu \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  TauToolvsMLTau_LostTheta_Muon:
+    per_dataset:
+      "TauTool merged": hEffiGenTauThetaMuonToLost
+      "MLTau merged": hEffiGenTauThetaMuonToLost
+    title: '\text{Not reconstructed: }\tau \rightarrow \mu \nu \nu'
+    x: '\theta \text{ [rad]}'
+    y: "Efficiency"
+    y_range: [0.0, 1.25]
+    legend: [0.60, 0.755, 0.93, 0.905]
+    legend_txt_size: 0.042
+    gridy: true
+
+  Res_P_Dec0:
+    per_dataset:
+      "TauTool": TauP0ResMatched
+      "MLTau": TauP0ResMatched
+    title: '\text{P resolution }\tau \rightarrow \pi \nu'
+    x: '(P_{reco}-P_{gen})/P_{gen}'
+    y: "Norm. events"
+    normalize: "integral"
+    logy: true
+    x_range: [-0.5, 0.5]
+    legend: [0.65, 0.78, 0.92, 0.90]
+    rebin: 2
+
+  Res_Theta_Dec0:
+    per_dataset:
+      "TauTool": TauTheta0ResMatched
+      "MLTau": TauTheta0ResMatched
+    title: '\theta \text{ resolution }\tau \rightarrow \pi \nu'
+    x: '(\theta_{reco}-\theta_{gen})/\theta_{gen}'
+    y: "Norm. events"
+    normalize: "integral"
+    logy: true
+    x_range: [-0.1, 0.1]
+    legend: [0.65, 0.78, 0.92, 0.90]
+    rebin: 2
+
+  Res_P_Dec1:
+    per_dataset:
+      "TauTool": TauP1ResMatched
+      "MLTau": TauP1ResMatched
+    title: '\text{P resolution }\tau \rightarrow \pi \pi^0 \nu'
+    x: '(P_{reco}-P_{gen})/P_{gen}'
+    y: "Norm. events"
+    normalize: "integral"
+    logy: true
+    x_range: [-0.5, 0.5]
+    legend: [0.65, 0.78, 0.92, 0.90]
+    rebin: 2
+
+  Res_Theta_Dec1:
+    per_dataset:
+      "TauTool": TauTheta1ResMatched
+      "MLTau": TauTheta1ResMatched
+    title: '\theta \text{ resolution }\tau \rightarrow \pi \pi^0 \nu'
+    x: '(\theta_{reco}-\theta_{gen})/\theta_{gen}'
+    y: "Norm. events"
+    normalize: "integral"
+    logy: true
+    x_range: [-0.1, 0.1]
+    legend: [0.65, 0.78, 0.92, 0.90]
+    rebin: 2
+
+  Res_P_Dec2:
+    per_dataset:
+      "TauTool": TauP2ResMatched
+      "MLTau": TauP2ResMatched
+    title: '\text{P resolution }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: '(P_{reco}-P_{gen})/P_{gen}'
+    y: "Norm. events"
+    normalize: "integral"
+    logy: true
+    x_range: [-0.5, 0.5]
+    legend: [0.65, 0.78, 0.92, 0.90]
+    rebin: 2
+
+  Res_Theta_Dec2:
+    per_dataset:
+      "TauTool": TauTheta2ResMatched
+      "MLTau": TauTheta2ResMatched
+    title: '\theta \text{ resolution }\tau \rightarrow \pi \pi^0 \pi^0 \nu'
+    x: '(\theta_{reco}-\theta_{gen})/\theta_{gen}'
+    y: "Norm. events"
+    normalize: "integral"
+    logy: true
+    x_range: [-0.1, 0.1]
+    legend: [0.65, 0.78, 0.92, 0.90]
+    rebin: 2
+
+  Res_P_Dec10:
+    per_dataset:
+      "TauTool": TauP10ResMatched
+      "MLTau": TauP10ResMatched
+    title: '\text{P resolution }\tau \rightarrow \pi \pi \pi \nu'
+    x: '(P_{reco}-P_{gen})/P_{gen}'
+    y: "Norm. events"
+    normalize: "integral"
+    logy: true
+    x_range: [-0.5, 0.5]
+    legend: [0.65, 0.78, 0.92, 0.90]
+    rebin: 2
+
+  Res_Theta_Dec10:
+    per_dataset:
+      "TauTool": TauTheta10ResMatched
+      "MLTau": TauTheta10ResMatched
+    title: '\theta \text{ resolution }\tau \rightarrow \pi \pi \pi \nu'
+    x: '(\theta_{reco}-\theta_{gen})/\theta_{gen}'
+    y: "Norm. events"
+    normalize: "integral"
+    logy: true
+    x_range: [-0.1, 0.1]
+    legend: [0.65, 0.78, 0.92, 0.90]
+    rebin: 2
+
+  ZMass_Visible:
+    per_dataset:
+      "TauTool m_{Z}": ZMassReco
+      "MLTau m_{Z}": ZMassReco
+    title: '\text{Visible } m_{Z} \text{ from reconstructed taus}'
+    x: 'm_{Z} \text{ [GeV/}c^{2}\text{]}'
+    y: "Norm. events (max = 1)"
+    normalize: "max"
+    legend: [0.18, 0.70, 0.55, 0.90]
+    common_list:
+      ZGen:
+        name: "ZMassGen"
+        from: "TauTool m_{Z}"
+        label: "Gen m_{Z}"
+        color: ROOT.kBlack
+        linestyle: 2
+        linewidth: 3
+        markerstyle: 24
+        normalize: "max"
+        draw: "HIST"

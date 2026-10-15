@@ -1,0 +1,18 @@
+# Predicciones ParTauDETR en el nodo de GPU (ver run_predictions.sh).
+# Ficheros 1-2000 de ztt_2M_smearing; los ya predichos (1-1000) se saltan.
+#   condor_submit MLTauReco/condor/submit_predictions_2M.sub
++CieRunInGpu3 = True
++CieMediumJob = True
+requirements   = TARGET.Machine == "gaew0120.ciemat.es"
+request_gpus   = 1
+request_cpus   = 32
+request_memory = 64000
+
+executable = /nfs/cms/arqolmo/TausFCCee/MLTauReco/condor/run_predictions.sh
+arguments  = /nfs/cms/arqolmo/TausFCCee/MLTauReco/condor/ztt_2M_smearing_files_1-2000.txt /pnfs/ciemat.es/data/calice/local/arqolmo/CLDFCCFullSim/Ztt_SM_2M_SigmaZ_mltaus 16 2
+
+output = /nfs/cms/arqolmo/TausFCCee/MLTauReco/condor/logs/job.out
+error  = /nfs/cms/arqolmo/TausFCCee/MLTauReco/condor/logs/job.err
+log    = /nfs/cms/arqolmo/TausFCCee/MLTauReco/condor/logs/job.log
+
+queue

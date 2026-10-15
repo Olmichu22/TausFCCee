@@ -40,7 +40,12 @@ def extractTauDecays(gatr_results_path,
                      neutral_recover_cfg: dict=dict(),
                      event=None,
                      only_association=False,
-                     extra_correction: Optional[dict]=None):
+                     extra_correction: Optional[dict]=None,
+                     mltau_reader = None,
+                     filename = None,
+                     local_event = None):
+  if mltau_reader is not None and test_extremes:
+    raise ValueError("test_extremes varies the cone reconstruction: not available with ParTauDETR taus")
   if gatr_results_path is not None and not test_pfo:
     logger_process.debug("Using GATr results for event %d", eventid)
     particles = mlpf_results.get(eventid, {})
@@ -59,18 +64,21 @@ def extractTauDecays(gatr_results_path,
       else:
         _, recover_extra_info, extra_info_dict = NeutralRecover.recover_pion_from_neutrals(particles, event, eventid, logger_process, neutral_recover_cfg)
 
-        
-  recoTau = tauReco.findAllTaus(particles,
-                                dRMax,
-                                minPTauPhoton,
-                                minPTauPion,
-                                PNeutron,
-                                generalPCut,
-                                charge_condition=charge_condition,
-                                extra_correction=extra_correction)
+  if mltau_reader is None:
+    recoTau = tauReco.findAllTaus(particles,
+                                  dRMax,
+                                  minPTauPhoton,
+                                  minPTauPion,
+                                  PNeutron,
+                                  generalPCut,
+                                  charge_condition=charge_condition,
+                                  extra_correction=extra_correction)
+  else:
+    # Taus ParTauDETR; local_event = entrada del suceso dentro de filename
+    recoTau = mltau_reader.findAllTaus(filename, local_event)
+  # Electrones y muones salen siempre de los PFOs, con cono o con ParTauDETR
   recoElectrons = electronReco.findAllElectrons(particles, generalPCut)
   recoMuons = muonReco.findAllMuons(particles, generalPCut)
-  
   
   def test_extremes_for_photons(particles, test_pfo, gatr_results_path, foton_config, syst_type="energy"):
     if test_pfo or gatr_results_path is None:

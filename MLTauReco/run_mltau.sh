@@ -8,7 +8,8 @@
 # The model needs torch, lightning, omegaconf and fastjet's Python bindings,
 # which the key4hep stack does not provide, hence the container. Set the image
 # with MLTAU_CONTAINER and any extra bind mounts (e.g. the data directories)
-# with MLTAU_BINDS, a comma-separated apptainer -B list.
+# with MLTAU_BINDS, a comma-separated apptainer -B list. MLTAU_APPTAINER_ARGS
+# adds options to apptainer exec, e.g. --nv to expose the host GPUs.
 #
 # Needs the submodules: git submodule update --init --recursive
 set -euo pipefail
@@ -26,4 +27,6 @@ binds=()
 [[ -n "${MLTAU_BINDS:-}" ]] && binds=(-B "$MLTAU_BINDS")
 pythonpath="$here:$model_repo:$model_repo/mltau:$model_repo/ml-tau-data"
 # keras is not used, but something imports it and it crashes without a backend
-exec apptainer exec "${binds[@]}" --env PYTHONPATH="$pythonpath" --env KERAS_BACKEND=torch "$MLTAU_CONTAINER" "$@"
+# shellcheck disable=SC2206  # se separa por palabras a propósito
+extra=(${MLTAU_APPTAINER_ARGS:-})
+exec apptainer exec "${extra[@]}" "${binds[@]}" --env PYTHONPATH="$pythonpath" --env KERAS_BACKEND=torch "$MLTAU_CONTAINER" "$@"

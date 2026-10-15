@@ -25,7 +25,9 @@ number in the input file, i.e. the position podio's root_io.Reader yields the
 event at, so the rows join back onto an event loop over the same file (see
 modules/mlTauReco.py).
 
-Runs on CPU, in the ml-tau container:
+Runs in the ml-tau container, on a GPU if one is visible (--device), else on CPU.
+Only the model forward pass uses the GPU; reading, jet clustering and the
+impact parameters stay on CPU and take most of the time:
   MLTauReco/run_mltau.sh python3 MLTauReco/process_edm4hep.py \
       <EDM4hep .root files> --out-dir <output dir>
 """
@@ -103,8 +105,9 @@ def load_model(model_dir: str):
     scaler path at `model_dir` makes the bundle relocatable. The dataset refuses a scaler fitted on
     differently defined features, so a mismatched bundle fails loudly here.
     """
+    # weights_only=False: el checkpoint guarda el cfg (DictConfig), que torch>=2.6 no deserializa por defecto
     model = ParTauDETRModule.load_from_checkpoint(
-        os.path.join(model_dir, "model.ckpt"), map_location="cpu"
+        os.path.join(model_dir, "model.ckpt"), map_location="cpu", weights_only=False
     )
     model.eval()
     cfg = model.cfg
@@ -206,6 +209,17 @@ def build_jets(events: ak.Array, entry_offset: int = 0) -> ak.Array:
     return data
 
 
+def _to_device(obj, device):
+    """Move every tensor in a nested tuple / list / dict to `device`."""
+    if torch.is_tensor(obj):
+        return obj.to(device)
+    if isinstance(obj, dict):
+        return {k: _to_device(v, device) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return type(obj)(_to_device(v, device) for v in obj)
+    return obj
+
+
 def predict(model, ds, jets: ak.Array, threshold: float, mass_from_class: bool) -> dict:
     """
     Model outputs per jet: p(tau), and the predicted daughters (queries whose
@@ -217,7 +231,8 @@ def predict(model, ds, jets: ak.Array, threshold: float, mass_from_class: bool) 
     """
     with torch.no_grad():
         batch = ds.build_tensors(jets)
-        outputs = model.forward(batch)[0]
+        # Solo el forward va a la GPU: la decodificación pasa por awkward, en CPU
+        outputs = _to_device(model.forward(_to_device(batch, model.device))[0], "cpu")
         reco_jet_p4s = batch[6]
         score = tau_scores(outputs)
         obj, p4, charge, meson_class = _predicted_components(
@@ -293,7 +308,10 @@ def process_file(path, out_path, model, ds, info, events_per_chunk, threshold):
         parts.append(ak.Array(out))
     data = ak.concatenate(parts) if parts else ak.Array([])
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
-    ak.to_parquet(data, out_path, compression="zstd")
+    # Escritura atómica: un job matado a medias no deja un parquet truncado que luego se salte
+    tmp_path = out_path + ".tmp"
+    ak.to_parquet(data, tmp_path, compression="zstd")
+    os.replace(tmp_path, out_path)
     print(
         f"{os.path.basename(path)}: {n_events} events, {len(data)} jets "
         f"-> {out_path} ({time.time() - t0:.0f} s)",
@@ -312,25 +330,44 @@ def main():
         help="daughter objectness threshold; default: the checkpoint's calibrated value",
     )
     ap.add_argument("--threads", type=int, default=0, help="torch CPU threads; 0 = all")
+    ap.add_argument(
+        "--device", default="auto",
+        help="torch device for the model: auto (cuda if available, else cpu), cpu, cuda, cuda:N",
+    )
     ap.add_argument("--overwrite", action="store_true")
     args = ap.parse_args()
 
     torch.set_num_threads(args.threads or max(1, os.cpu_count() or 1))
     model, ds, info = load_model(args.model_dir)
+    device = args.device
+    if device == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.to(device)
     threshold = (
         args.threshold
         if args.threshold is not None
         else float(getattr(model, "score_threshold_calibrated", 0.5))
     )
     paths = sorted({p for pat in args.inputs for p in (glob.glob(pat) or [pat])})
-    print(f"model {info['name']}, {len(paths)} input file(s), objectness threshold {threshold}")
+    print(
+        f"model {info['name']} on {device}, {len(paths)} input file(s), "
+        f"objectness threshold {threshold}",
+        flush=True,
+    )
+    failed = []
     for path in paths:
         name = os.path.splitext(os.path.basename(path))[0]
         out_path = os.path.join(args.out_dir, f"{name}_mltaus.parquet")
         if os.path.exists(out_path) and not args.overwrite:
             print(f"{out_path} exists, skipped")
             continue
-        process_file(path, out_path, model, ds, info, args.events_per_chunk, threshold)
+        try:
+            process_file(path, out_path, model, ds, info, args.events_per_chunk, threshold)
+        except Exception as exc:  # un fichero ilegible no debe parar el resto
+            failed.append(path)
+            print(f"FAILED {path}: {type(exc).__name__}: {exc}", flush=True)
+    if failed:
+        raise SystemExit(f"{len(failed)} of {len(paths)} file(s) failed")
 
 
 if __name__ == "__main__":

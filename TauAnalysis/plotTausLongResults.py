@@ -124,6 +124,20 @@ def fill_migration_denominators(root_histograms, genTauId, genTauP, genTauTheta)
 def my_hook(parser):
     parser.add_argument("--sys-err", type=str, default="config/systematics/err_sys.yml", help="YAML file with systematics errors to apply")
     parser.add_argument("--test-extremes", action="store_true", help="Test the extremes of the photon energy resolution")
+    parser.add_argument(
+        "--mltau-predictions", default=None, metavar="DIR",
+        help="Use ParTauDETR taus instead of tauReco's: the directory with "
+             "the *_mltaus.parquet files from MLTauReco/process_edm4hep.py",
+    )
+    parser.add_argument(
+        "--mltau-tau-score-cut", type=float, default=None,
+        help="ParTauDETR tau-ID score cut (default: the 90%%-efficiency "
+             "working point, see modules/mlTauReco.py)",
+    )
+    parser.add_argument(
+        "--mltau-keep-lepton-jets", action="store_true", default=False,
+        help="Also return ParTauDETR taus for jets with a reco e/mu",
+    )
 
 
 # filenames = ['/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_0.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_1.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_10.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_11.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_12.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_13.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_14.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_15.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_16.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_17.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_18.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_19.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_2.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_20.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_21.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_22.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_23.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_24.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_26.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_27.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_28.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_29.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_3.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_30.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_31.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_32.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_33.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_35.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_36.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_37.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_38.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_39.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_4.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_40.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_41.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_44.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_45.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_46.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_47.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_48.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_49.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_5.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_50.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_52.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_53.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_54.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_55.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_56.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_58.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_59.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_6.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_60.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_61.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_62.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_64.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_65.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_66.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_67.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_68.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_69.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_7.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_70.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_72.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_73.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_74.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_75.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_76.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_77.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_78.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_79.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_8.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_80.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_81.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_82.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_83.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_85.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_86.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_87.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_88.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_89.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_9.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_90.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_91.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_92.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_93.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_94.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_95.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_96.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_97.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_98.root', '/pnfs/ciemat.es/data/calice/local/arqolmo/ILDFCCFullSim/Ztautau/out_reco_edm4hep_99.root']
@@ -199,6 +213,30 @@ logger_config.info("Configuration:\n%s", pprint.pformat(general_configs, indent=
 # ------------------------------------------------------------------------
 gatr_results_path = general_configs["args"].gatr_result
 
+# Taus de ParTauDETR (modules/mlTauReco) en lugar de los del cono de tauReco,
+# leidos de las predicciones de MLTauReco/process_edm4hep.py.
+mltau_reader = None
+if args.mltau_predictions:
+    if gatr_results_path:
+        logger_config.error("--mltau-predictions cannot be combined with --gatr-result.")
+        sys.exit(1)
+    if test_extremes:
+        logger_config.error("--mltau-predictions cannot be combined with --test-extremes: "
+                            "it varies the cone reconstruction.")
+        sys.exit(1)
+    from modules import mlTauReco
+    mltau_reader = mlTauReco.MLTauReader(
+        args.mltau_predictions,
+        tau_score_cut=args.mltau_tau_score_cut,
+        veto_lepton_jets=not args.mltau_keep_lepton_jets,
+    )
+    logger_config.info("Using ParTauDETR taus from %s (tau score > %.4f)",
+                       args.mltau_predictions, mltau_reader.tau_score_cut)
+    if extra_correction is not None:
+        # Las hijas son pi+- / pi0 predichos, no PFOs: no hay fotones que corregir
+        logger_config.info("Correcciones extra desactivadas: no se aplican a los taus de ParTauDETR.")
+        extra_correction = None
+
 filenames, mlpf_results = myutils.get_root_trees_path(sample,
                                                       gatr_results_path,
                                                       loggers,
@@ -209,7 +247,6 @@ filenames, mlpf_results = myutils.get_root_trees_path(sample,
 # for file in filenames:
     # check_existence = Path(file).is_file()
     # print(f"Checking file: {file}, exists: {check_existence}")
-reader = root_io.Reader(filenames)
 # for i, event in enumerate(reader.get("events")):
     # print("Event %d: %s", i, event)
 # print("Fuera del bucle")
@@ -282,7 +319,21 @@ countEvents = 0
 # unmatched_gen_pions_theta_per_miss = dict()
 
     
-for eventid, event in enumerate(reader.get("events")):
+def iter_events(filenames):
+    """
+    Yield (eventid, filename, local_event, event) over all the input files.
+
+    ``eventid`` runs over the whole sample; ``local_event`` is the entry within
+    ``filename``, which is how the ParTauDETR predictions are indexed.
+    """
+    eventid = 0
+    for filename in filenames:
+        for local_event, event in enumerate(root_io.Reader([filename]).get("events")):
+            yield eventid, filename, local_event, event
+            eventid += 1
+
+
+for eventid, filename, local_event, event in iter_events(filenames):
     # if gatr_results_path is not None and eventid > len(gatr_results) - 1:
     #     logger_process.info("Reached the end of GATr results, stopping processing.")
     #     break
@@ -318,7 +369,10 @@ for eventid, event in enumerate(reader.get("events")):
                                                                                    logger_process,
                                                                                    neutral_recover_cfg=neutral_recover_cfg,
                                                                                    event=event,
-                                                                                   extra_correction=extra_correction)
+                                                                                   extra_correction=extra_correction,
+                                                                                   mltau_reader=mltau_reader,
+                                                                                   filename=filename,
+                                                                                   local_event=local_event)
 
     recoTaus_extremes = {
         "original": recoTau,
@@ -768,7 +822,8 @@ for eventid, event in enumerate(reader.get("events")):
                 # This may be an error as we are confusing photons with neutrons
 
                 logger_pi0mass.debug(f"Evaluating const to get photon with PDGID {const.getPDG()} and charge {const.getCharge()}")
-                if const.getCharge() == 0 and const.getPDG() != 22:
+                # Los pi0 (hijas de los taus de ParTauDETR) no son hadrones neutros
+                if const.getCharge() == 0 and const.getPDG() not in (22, 111):
                     root_histograms["Reco"]["Events"]["NeutralHadronTauP"].Fill(constP4.P())
                 if const.getPDG() == 22:
                     photonCumulativeP4 += constP4

@@ -1,0 +1,240 @@
+# CLD, ztt_2M_smearing: reco de cono (TauTool) frente a ParTauDETR (MLTau).
+# Mismo esquema que compare_CLD_ILD.yaml: cada fichero se declara varias veces,
+# una entrada por "rol", para dar color/estilo propio a cada curva via per_dataset.
+#
+#   python TauAnalysis/CompareAlgs.py -c config/plots/compare_CLD_MLTau_masses.yaml -o <outdir>
+TauTool: &ttpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_OptCutsCLD_smearingChanged_fsrCorrection_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+MLTau: &mlpath /nfs/cms/arqolmo/TausFCCee/Results/TauReco/merged_CLD_FCC_2M_MLTau_tau_trained0.4_tph0.35_tpi0_n3_g0.0/tau_traineddecayAll_0.4_tph0.35_tpi0_n3_g0.0.root
+
+# Masas: masa visible del tau reconstruido en cada modo (RhoMassReco: 1 prong +
+# 1 pi0; a1OnePionMassReco: 1 prong + 2 pi0; a1ThreePionMassReco: 3 prong).
+# El pi0 solo tiene masa reconstruida en TauTool (par de fotones). ParTauDETR
+# predice el pi0 con masa fija (0.135 GeV), asi que no hay curva de MLTau.
+
+datasets:
+  # --- una curva por algoritmo (un grafico por resonancia) ---
+  - path: *mlpath
+    label: "MLTau"
+    color: ROOT.kRed
+    linestyle: 2
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+    fill: true
+    fillstyle: 3006
+    fillalpha: 1.0
+
+  - path: *ttpath
+    label: "TauTool"
+    color: ROOT.kAzure+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  # --- una curva por resonancia y algoritmo: MLTau con relleno, TauTool solo linea ---
+  - path: *mlpath
+    label: "MLTau #rho #rightarrow #pi#pi^{0}"
+    color: ROOT.kRed
+    linestyle: 2
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+    fill: true
+    fillstyle: 3006
+    fillalpha: 1.0
+
+  - path: *mlpath
+    label: "MLTau a_{1} #rightarrow #pi#pi^{0}#pi^{0}"
+    color: ROOT.kAzure+2
+    linestyle: 2
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+    fill: true
+    fillstyle: 3006
+    fillalpha: 1.0
+
+  - path: *mlpath
+    label: "MLTau a_{1} #rightarrow #pi#pi#pi"
+    color: ROOT.kGreen+2
+    linestyle: 2
+    markerstyle: 21
+    markersize: 1.
+    linewidth: 3
+    fill: true
+    fillstyle: 3006
+    fillalpha: 1.0
+
+  - path: *ttpath
+    label: "TauTool #rho #rightarrow #pi#pi^{0}"
+    color: ROOT.kRed
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool a_{1} #rightarrow #pi#pi^{0}#pi^{0}"
+    color: ROOT.kAzure+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool a_{1} #rightarrow #pi#pi#pi"
+    color: ROOT.kGreen+2
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+  - path: *ttpath
+    label: "TauTool #pi^{0}"
+    color: ROOT.kViolet+1
+    linestyle: 1
+    markerstyle: 20
+    markersize: 1.
+    linewidth: 3
+
+# gaus_fit: ajuste gaussiano del nucleo del pico (iterado a mu +- 1 sigma); la
+# leyenda da mu y sigma en GeV. Opciones: gaus_fit: {range: [lo, hi], nsigma: 1.0},
+# con range tambien por curva ({"MLTau": [lo, hi], ...}).
+plots:
+  RhoMass:
+    per_dataset:
+      "MLTau": RhoMassReco
+      "TauTool": RhoMassReco
+    title: '\text{Reconstructed } \rho \rightarrow \pi\pi^0 \text{ mass}'
+    x: 'm_{vis} \text{ [GeV/}c^{2}\text{]}'
+    y: "Norm. events"
+    normalize: "integral"
+    x_range: [0.0, 2.0]
+    legend: [0.58, 0.62, 0.93, 0.90]
+    legend_txt_size: 0.036
+    gaus_fit: true
+
+  a1OnePionMass:
+    per_dataset:
+      "MLTau": a1OnePionMassReco
+      "TauTool": a1OnePionMassReco
+    title: '\text{Reconstructed } a_1 \rightarrow \pi\pi^0\pi^0 \text{ mass}'
+    x: 'm_{vis} \text{ [GeV/}c^{2}\text{]}'
+    y: "Norm. events"
+    normalize: "integral"
+    x_range: [0.0, 2.5]
+    legend: [0.58, 0.62, 0.93, 0.90]
+    legend_txt_size: 0.036
+    gaus_fit: true
+
+  a1ThreePionMass:
+    per_dataset:
+      "MLTau": a1ThreePionMassReco
+      "TauTool": a1ThreePionMassReco
+    title: '\text{Reconstructed } a_1 \rightarrow \pi\pi\pi \text{ mass}'
+    x: 'm_{vis} \text{ [GeV/}c^{2}\text{]}'
+    y: "Norm. events"
+    normalize: "integral"
+    x_range: [0.0, 2.5]
+    legend: [0.58, 0.62, 0.93, 0.90]
+    legend_txt_size: 0.036
+    gaus_fit: true
+
+  ResonanceMasses:
+    per_dataset:
+      "MLTau #rho #rightarrow #pi#pi^{0}": RhoMassReco
+      "MLTau a_{1} #rightarrow #pi#pi^{0}#pi^{0}": a1OnePionMassReco
+      "MLTau a_{1} #rightarrow #pi#pi#pi": a1ThreePionMassReco
+      "TauTool #rho #rightarrow #pi#pi^{0}": RhoMassReco
+      "TauTool a_{1} #rightarrow #pi#pi^{0}#pi^{0}": a1OnePionMassReco
+      "TauTool a_{1} #rightarrow #pi#pi#pi": a1ThreePionMassReco
+    title: '\text{Reconstructed visible mass per decay mode}'
+    x: 'm_{vis} \text{ [GeV/}c^{2}\text{]}'
+    y: "Norm. events"
+    normalize: "integral"
+    x_range: [0.0, 2.5]
+    legend: [0.52, 0.60, 0.93, 0.90]
+    legend_txt_size: 0.030
+
+  Pi0Mass:
+    per_dataset:
+      "TauTool #pi^{0}": ConstPi0MassRhoRecoReco
+    title: '\text{Reconstructed } \pi^0 \text{ mass (TauTool only)}'
+    x: 'm_{\pi^{0}} \text{ [GeV/}c^{2}\text{]}'
+    y: "Norm. events"
+    normalize: "integral"
+    x_range: [0.0, 0.5]
+    legend: [0.60, 0.80, 0.93, 0.90]
+    gaus_fit: true
+
+  # --- Mismas masas sin normalizar: la altura refleja la eficiencia y la anchura
+  # la resolucion. Cuentas brutas a la luminosidad equivalente de la muestra,
+  # L = N_gen / sigma(Z->tautau) = 1999941 / 1476.58 pb = 1.35 fb^-1 (peso 1 por
+  # evento; N_gen = entradas de ZMassGen, igual en ambos ficheros).
+  RhoMass_Events:
+    per_dataset:
+      "MLTau": RhoMassReco
+      "TauTool": RhoMassReco
+    title: '\text{Reconstructed } \rho \rightarrow \pi\pi^0 \text{ mass}'
+    x: 'm_{vis} \text{ [GeV/}c^{2}\text{]}'
+    y: "Events / 0.025 GeV"
+    normalize: "none"
+    x_range: [0.0, 2.0]
+    legend: [0.58, 0.62, 0.93, 0.90]
+    legend_txt_size: 0.036
+    label: 'CLD, Z #rightarrow #tau#tau,  L_{eq} = 1.35 fb^{-1}'
+    label_pos: [0.15, 0.85]
+    label_size: 0.035
+    gaus_fit: true
+
+  a1OnePionMass_Events:
+    per_dataset:
+      "MLTau": a1OnePionMassReco
+      "TauTool": a1OnePionMassReco
+    title: '\text{Reconstructed } a_1 \rightarrow \pi\pi^0\pi^0 \text{ mass}'
+    x: 'm_{vis} \text{ [GeV/}c^{2}\text{]}'
+    y: "Events / 0.025 GeV"
+    normalize: "none"
+    x_range: [0.0, 2.5]
+    legend: [0.58, 0.62, 0.93, 0.90]
+    legend_txt_size: 0.036
+    label: 'CLD, Z #rightarrow #tau#tau,  L_{eq} = 1.35 fb^{-1}'
+    label_pos: [0.15, 0.85]
+    label_size: 0.035
+    gaus_fit: true
+
+  a1ThreePionMass_Events:
+    per_dataset:
+      "MLTau": a1ThreePionMassReco
+      "TauTool": a1ThreePionMassReco
+    title: '\text{Reconstructed } a_1 \rightarrow \pi\pi\pi \text{ mass}'
+    x: 'm_{vis} \text{ [GeV/}c^{2}\text{]}'
+    y: "Events / 0.025 GeV"
+    normalize: "none"
+    x_range: [0.0, 2.5]
+    legend: [0.58, 0.62, 0.93, 0.90]
+    legend_txt_size: 0.036
+    label: 'CLD, Z #rightarrow #tau#tau,  L_{eq} = 1.35 fb^{-1}'
+    label_pos: [0.15, 0.85]
+    label_size: 0.035
+    gaus_fit: true
+
+  ResonanceMasses_Events:
+    per_dataset:
+      "MLTau #rho #rightarrow #pi#pi^{0}": RhoMassReco
+      "MLTau a_{1} #rightarrow #pi#pi^{0}#pi^{0}": a1OnePionMassReco
+      "MLTau a_{1} #rightarrow #pi#pi#pi": a1ThreePionMassReco
+      "TauTool #rho #rightarrow #pi#pi^{0}": RhoMassReco
+      "TauTool a_{1} #rightarrow #pi#pi^{0}#pi^{0}": a1OnePionMassReco
+      "TauTool a_{1} #rightarrow #pi#pi#pi": a1ThreePionMassReco
+    title: '\text{Reconstructed visible mass per decay mode}'
+    x: 'm_{vis} \text{ [GeV/}c^{2}\text{]}'
+    y: "Events / 0.025 GeV"
+    normalize: "none"
+    x_range: [0.0, 2.5]
+    legend: [0.52, 0.60, 0.93, 0.90]
+    legend_txt_size: 0.03
+    label: 'CLD, Z #rightarrow #tau#tau,  L_{eq} = 1.35 fb^{-1}'
+    label_pos: [0.15, 0.85]
+    label_size: 0.035

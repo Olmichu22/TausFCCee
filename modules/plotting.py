@@ -1771,11 +1771,61 @@ def _apply_style_1d(obj, color, linestyle, markerstyle, markersize, linewidth,
             obj.SetFillColor(line_color)
         obj.SetFillStyle(fillstyle)
 
+def _fit_gaus_core(histo, label, fit_cfg):
+    """Fit a gaussian to the peak of a 1D histogram.
+
+    Args:
+        histo (ROOT.TH1): Histogram to fit, as drawn (it is not modified).
+        label (str): Dataset label of the histogram, used to look up its range.
+        fit_cfg (bool | dict): ``True``, or a dict with the optional keys
+            ``range`` (``[lo, hi]`` for every curve, or ``{label: [lo, hi]}``)
+            and ``nsigma`` (default 1.0). Without a range the fit is done
+            around the highest bin and iterated to mean +- nsigma * sigma, so
+            that non-gaussian tails stay out of it.
+
+    Returns:
+        ROOT.TF1: The fitted function, styled like the histogram but dashed,
+        or None if the fit failed.
+    """
+    fit_cfg = fit_cfg if isinstance(fit_cfg, dict) else {}
+    fit_range = fit_cfg.get("range", None)
+    if isinstance(fit_range, dict):
+        fit_range = fit_range.get(label, None)
+    nsigma = float(fit_cfg.get("nsigma", 1.0))
+
+    func = ROOT.TF1(f"gausfit_{histo.GetName()}", "gaus")
+    if fit_range:
+        lo, hi = float(fit_range[0]), float(fit_range[1])
+        status = int(histo.Fit(func, "QN0S", "", lo, hi))
+    else:
+        # Semilla: bin más alto +- la mitad del RMS; luego se itera sobre el núcleo
+        peak = histo.GetBinCenter(histo.GetMaximumBin())
+        width = 0.5 * histo.GetRMS()
+        lo, hi = peak - width, peak + width
+        status = int(histo.Fit(func, "QN0S", "", lo, hi))
+        for _ in range(5):
+            if status != 0:
+                break
+            lo = func.GetParameter(1) - nsigma * abs(func.GetParameter(2))
+            hi = func.GetParameter(1) + nsigma * abs(func.GetParameter(2))
+            status = int(histo.Fit(func, "QN0S", "", lo, hi))
+    if status != 0:
+        print(f"[WARN] gaussian fit failed for '{label}' (status {status}).")
+        return None
+    func.SetParameter(2, abs(func.GetParameter(2)))
+    func.SetRange(lo, hi)
+    func.SetLineColor(histo.GetLineColor())
+    func.SetLineStyle(7)
+    func.SetLineWidth(3)
+    return func
+
+
 def plot_compare_1D_across_files(files_info, plots, outdir):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     
     for fig_name, cfg in plots.items():
+        _keep_alive = []  # TF1 de los ajustes: deben vivir hasta el SaveAs
         # Tamaño del título del plot (TPaveText). Se aplica vía gStyle antes de dibujar
         # y se restaura al final para no afectar a otros plots.
         _orig_title_fs = ROOT.gStyle.GetTitleFontSize()
@@ -2051,7 +2101,8 @@ def plot_compare_1D_across_files(files_info, plots, outdir):
                         mn = min(ys)
                         global_min = mn if global_min is None else min(global_min, mn)
 
-            objs.append((o, label, "main", main_draw_mode))
+            # legend_label: texto de la leyenda distinto de la clave del dataset
+            objs.append((o, ds.get("legend_label", label), "main", main_draw_mode))
         total_entries = sum(entries_per_dataset.values()) if entries_per_dataset else 0
 
         percentages = {}
@@ -2497,6 +2548,19 @@ def plot_compare_1D_across_files(files_info, plots, outdir):
                   label_ext = label
 
               legend.AddEntry(o, label_ext, legopt)
+              # Ajuste gaussiano del pico (opción `gaus_fit` del plot)
+              if cfg.get("gaus_fit", False) and kind == "main" and isinstance(o, ROOT.TH1):
+                  fit_func = _fit_gaus_core(o, label, cfg["gaus_fit"])
+                  if fit_func:
+                      fit_func.Draw("same")
+                      _keep_alive.append(fit_func)
+                      legend.AddEntry(
+                          fit_func,
+                          "#mu = %.3f, #sigma = %.3f" % (fit_func.GetParameter(1), fit_func.GetParameter(2)),
+                          "l")
+                      print(f"[FIT] {fig_name} | {label}: mu = {fit_func.GetParameter(1):.4f} +- {fit_func.GetParError(1):.4f}, "
+                            f"sigma = {fit_func.GetParameter(2):.4f} +- {fit_func.GetParError(2):.4f}, "
+                            f"range = [{fit_func.GetXmin():.3f}, {fit_func.GetXmax():.3f}]")
 
         # --- Añadir entradas extra a la leyenda (solo texto, sin marca ni línea) ---
         # extra_legend = cfg.get("extra_legend", [])

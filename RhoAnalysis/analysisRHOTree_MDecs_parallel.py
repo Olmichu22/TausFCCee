@@ -481,10 +481,20 @@ def process_chunk_mdecs(filenames_chunk, mlpf_chunk, global_event_offset,
     gatr_results_path = config_bundle["gatr_results_path"]
     test_pfo         = config_bundle["test_pfo"]
     fileOutName_base  = config_bundle["fileOutName_base"]
-
+    mltau_predictions = config_bundle.get("mltau_predictions")
     loggers        = _setup_worker_logging(outputpath, worker_id, _LOG_SOURCE)
     logger_process = loggers["processing"]
     logger_io      = loggers["io"]
+    
+    mltau_reader = None
+    if mltau_predictions:
+        from modules import mlTauReco
+        mltau_reader = mlTauReco.MLTauReader(
+            mltau_predictions,
+            tau_score_cut=config_bundle.get("mltau_tau_score_cut"),
+        )
+        logger_process.info("Worker %d: ParTauDETR taus from %s, tau score cut %.4f",
+                    worker_id, mltau_predictions, mltau_reader.tau_score_cut)
 
     # Salida parcial
     partial_path = os.path.join(outputpath,
@@ -517,7 +527,7 @@ def process_chunk_mdecs(filenames_chunk, mlpf_chunk, global_event_offset,
             skipped_files.append(filename)
             continue
 
-        for event in file_reader.get("events"):
+        for local_event, event in enumerate(file_reader.get("events")):
             if totalEvents % 500 == 0:
                 logger_process.info("Worker %d: processed %d events", worker_id, totalEvents)
             totalEvents += 1
@@ -547,6 +557,7 @@ def process_chunk_mdecs(filenames_chunk, mlpf_chunk, global_event_offset,
                 gatr_results_path, mlpf_chunk, eventid, pfos,
                 dRMax, minPTauPhoton, minPTauPion, PNeutron,
                 generalPCut, photon_config, False, test_pfo, logger_process,
+                mltau_reader=mltau_reader, filename=filename, local_event=local_event,
             )
             recoTaus = myutils.sort_by_P(recoTau_raw)
 
@@ -646,6 +657,14 @@ def my_hook(parser):
                         default="config/systematics/err_sys.yml")
     parser.add_argument("--test-extremes", action="store_true",
                         help="Test photon energy resolution extremes (unused in MDecs)")
+    parser.add_argument("--mltau-predictions", default=None, metavar="DIR",
+                        help="Use ParTauDETR taus instead of tauReco's: the directory with "
+                             "the *_mltaus.parquet files from MLTauReco/process_edm4hep.py. "
+                             "Jets with a reco e/mu are dropped; electrons and muons "
+                             "always come from electronReco / muonReco.")
+    parser.add_argument("--mltau-tau-score-cut", type=float, default=None,
+                        help="ParTauDETR tau-ID score cut (default: the 90%%-efficiency "
+                             "working point, see modules/mlTauReco.py)")
 
 
 def main():
@@ -681,6 +700,9 @@ def main():
     gen_taus_sample = general_configs.get("has_gen_taus", True)
 
     gatr_results_path = args.gatr_result
+    if args.mltau_predictions and gatr_results_path:
+        loggers["config"].error("--mltau-predictions cannot be combined with --gatr-result.")
+        sys.exit(1)
 
     decay_tag        = "All" if not decay_modes else "_".join(str(d) for d in decay_modes)
     raw_fileOutName  = os.path.join(outputpath, general_configs["fileOutName"])
@@ -718,6 +740,8 @@ def main():
         "gen_taus_sample":  gen_taus_sample,
         "gatr_results_path": gatr_results_path,
         "test_pfo":         args.test_pfo,
+        "mltau_predictions":   args.mltau_predictions,
+        "mltau_tau_score_cut": args.mltau_tau_score_cut,
         "outputpath":       outputpath,
         "fileOutName_base": fileOutName_base,
     }

@@ -49,6 +49,8 @@ for ds in cfg.get("datasets", []):
     files_info.append({
         "file": rf,
         "label": ds.get("label", os.path.basename(ds["path"])),
+        # Texto de la leyenda; por defecto, el propio label
+        "legend_label": ds.get("legend_label", ds.get("label", os.path.basename(ds["path"]))),
         "color": ds.get("color", 1),
         "linestyle": ds.get("linestyle", 1),
         "markerstyle": ds.get("markerstyle", 20),

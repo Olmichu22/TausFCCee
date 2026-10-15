@@ -69,6 +69,8 @@ _TREE_RECO_SPEC = {
     "muon_cut":     ("--muon-cut",     "scalar"),
     "lepton_xor_p": ("--lepton-xor-p", "scalar"),
     "sys_err":      ("--sys-err",      "scalar"),
+    "mltau_predictions":   ("--mltau-predictions",   "scalar"),
+    "mltau_tau_score_cut": ("--mltau-tau-score-cut", "scalar"),
 }
 
 _HIST_SPEC = {

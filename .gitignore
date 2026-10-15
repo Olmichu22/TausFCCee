@@ -16,7 +16,8 @@ __pycache__/
 CompareCLDILD/
 CompareCLDILD_tauRecoFix/
 Cases_more_mesons.csv
-
+Compare_CLD_TauTool_vs_MLTau/
+MLPredictions
 # Salidas del pipeline CLD/ILD (histogramas binned y plots)
 Binned_histograms_MDecs/
 TauPolOutputs/

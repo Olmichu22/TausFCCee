@@ -76,6 +76,77 @@ hRecoTauMass = TH1F("histoRecoTauMass", "", 500, 0, 10)
 # Resolution
 hResTauP     = TH1F("histoResTauP",     "", 500, -1, 1)
 
+# Efficiency, purity and migrations, per decay mode and inclusive.
+# GenTauType and RecoTauDM share the convention: -11 e, -13 mu, n_pi0 for one
+# prong, 10 + n_pi0 for three prongs, anything else (-1, -20) is "other".
+DM_LABELS = ["e", "#mu", "#pi", "#pi#pi^{0}", "#pi2#pi^{0}", "#pi#geq3#pi^{0}",
+             "3#pi", "3#pi#pi^{0}", "3#pi#geq2#pi^{0}", "other"]
+DM_TAGS = ["Elec", "Muon", "0", "1", "2", "3", "10", "11", "12", "Other"]
+N_DM = len(DM_LABELS)
+HAD_BINS = range(2, 9)             # hadronic modes within DM_LABELS
+I_ALL, I_HAD = N_DM, N_DM + 1      # inclusive bins appended after the modes
+I_NONE = N_DM                      # "unmatched" / "fake" bin of the migration matrix
+
+
+def dm_bin(dm):
+    """Return the DM_LABELS index of a GenTauType / RecoTauDM value."""
+    if dm == -11:
+        return 0
+    if dm == -13:
+        return 1
+    if 0 <= dm <= 2:
+        return 2 + dm
+    if 3 <= dm < 10:
+        return 5
+    if dm in (10, 11):
+        return dm - 4
+    if dm >= 12:
+        return 8
+    return 9
+
+
+def labelled_th1(name, labels):
+    hist = TH1F(name, "", len(labels), 0, len(labels))
+    for b, label in enumerate(labels):
+        hist.GetXaxis().SetBinLabel(b + 1, label)
+    hist.Sumw2()
+    return hist
+
+
+summary_labels = DM_LABELS + ["all", "hadronic"]
+# Efficiency denominators / numerators, binned in the gen decay mode
+hGenDM          = labelled_th1("histoGenDM",          summary_labels)
+hGenDMMatched   = labelled_th1("histoGenDMMatched",   summary_labels)  # any reco tau
+hGenDMCorrect   = labelled_th1("histoGenDMCorrect",   summary_labels)  # same decay mode
+# Purity denominators / numerators, binned in the reco decay mode
+hRecoDM         = labelled_th1("histoRecoDM",         summary_labels)
+hRecoDMMatched  = labelled_th1("histoRecoDMMatched",  summary_labels)  # any gen tau
+hRecoDMCorrect  = labelled_th1("histoRecoDMCorrect",  summary_labels)  # same decay mode
+
+# Migration counts: gen mode (x) vs reco mode (y). The last y bin holds the
+# unmatched gen taus, the last x bin the reco taus without a gen tau (fakes).
+hMigration = ROOT.TH2F("histoMigration", ";Gen decay mode;Reco decay mode",
+                       N_DM + 1, 0, N_DM + 1, N_DM + 1, 0, N_DM + 1)
+for b, label in enumerate(DM_LABELS):
+    hMigration.GetXaxis().SetBinLabel(b + 1, label)
+    hMigration.GetYaxis().SetBinLabel(b + 1, label)
+hMigration.GetXaxis().SetBinLabel(N_DM + 1, "fake")
+hMigration.GetYaxis().SetBinLabel(N_DM + 1, "unmatched")
+
+# Same quantities against the momentum: tags as in DM_TAGS, plus All and Had
+P_BINS = (25, 0, 50)
+p_tags = DM_TAGS + ["All", "Had"]
+hGenVisP_den     = [TH1F("histoGenVisP%sGen" % t,      "", *P_BINS) for t in p_tags]
+hGenVisP_matched = [TH1F("histoGenVisP%sMatched" % t,  "", *P_BINS) for t in p_tags]
+hGenVisP_correct = [TH1F("histoGenVisP%sCorrect" % t,  "", *P_BINS) for t in p_tags]
+hRecoP_den       = [TH1F("histoRecoP%sReco" % t,       "", *P_BINS) for t in p_tags]
+hRecoP_correct   = [TH1F("histoRecoP%sCorrect" % t,    "", *P_BINS) for t in p_tags]
+
+
+def summary_bins(b):
+    """Bins a tau of mode bin *b* enters: its own, "all" and, if so, "hadronic"."""
+    return [b, I_ALL] + ([I_HAD] if b in HAD_BINS else [])
+
 # ----------------------------------------------------------------------------
 # Loop over TTree entries
 
@@ -116,11 +187,50 @@ for entry in Tau_tree:
         if gen_vis_p > 0:
             hResTauP.Fill((reco_p - gen_vis_p) / gen_vis_p)
 
+    # ---- Efficiency and migrations: one entry per gen tau ----
+    reco_to_gen = {}  # reco index -> first gen tau matched to it
+    for i in range(nGenTaus):
+        gen_bin = dm_bin(entry.GenTauType[i])
+        matched_reco_idx = entry.RecoMatchedKey[i]
+        matched = matched_reco_idx != -1
+        reco_bin = dm_bin(entry.RecoTauDM[matched_reco_idx]) if matched else I_NONE
+        correct = matched and reco_bin == gen_bin
+        if matched:
+            reco_to_gen.setdefault(matched_reco_idx, i)
+
+        hMigration.Fill(gen_bin + 0.5, reco_bin + 0.5)
+        for b in summary_bins(gen_bin):
+            hGenDM.Fill(b + 0.5)
+            hGenVisP_den[b].Fill(entry.GenVisTauP[i])
+            if matched:
+                hGenDMMatched.Fill(b + 0.5)
+                hGenVisP_matched[b].Fill(entry.GenVisTauP[i])
+            if correct:
+                hGenDMCorrect.Fill(b + 0.5)
+                hGenVisP_correct[b].Fill(entry.GenVisTauP[i])
+
+    # ---- Purity: one entry per reco tau ----
+    for j in range(nRecoTaus):
+        reco_bin = dm_bin(entry.RecoTauDM[j])
+        gen_idx = reco_to_gen.get(j, -1)
+        matched = gen_idx != -1
+        correct = matched and dm_bin(entry.GenTauType[gen_idx]) == reco_bin
+        if not matched:
+            hMigration.Fill(I_NONE + 0.5, reco_bin + 0.5)
+        for b in summary_bins(reco_bin):
+            hRecoDM.Fill(b + 0.5)
+            hRecoP_den[b].Fill(entry.RecoTauP[j])
+            if matched:
+                hRecoDMMatched.Fill(b + 0.5)
+            if correct:
+                hRecoDMCorrect.Fill(b + 0.5)
+                hRecoP_correct[b].Fill(entry.RecoTauP[j])
+
 logger_process.info("Processed %d events", countEvents)
 
 # ----------------------------------------------------------------------------
 # Write output
-
+print(hist_filepath)
 outfile = TFile(hist_filepath, "RECREATE")
 
 hGenTauPt.Write()
@@ -137,6 +247,132 @@ hRecoTauType.Write()
 hRecoTauMass.Write()
 
 hResTauP.Write()
+
+# ---- Efficiency, purity and migrations ----
+DIVIDE_OPTS = "cl=0.683 b(1,1) mode"  # same interval as plotTausLongResults
+
+
+def ratio_graph(name, numerator, denominator):
+    graph = ROOT.TGraphAsymmErrors()
+    graph.Divide(numerator, denominator, DIVIDE_OPTS)
+    graph.SetName(name)
+    return graph
+
+
+def normalised_migration(name, by_gen):
+    """Migration matrix as fractions of each gen mode (*by_gen*) or reco mode."""
+    hist = hMigration.Clone(name)
+    hist.Reset()
+    for outer in range(1, N_DM + 2):
+        cell = (lambda inner: (outer, inner)) if by_gen else (lambda inner: (inner, outer))
+        total = sum(hMigration.GetBinContent(*cell(inner)) for inner in range(1, N_DM + 2))
+        if total <= 0:
+            continue
+        for inner in range(1, N_DM + 2):
+            hist.SetBinContent(*cell(inner), hMigration.GetBinContent(*cell(inner)) / total)
+    return hist
+
+
+gEffMatched    = ratio_graph("hEffiGenDMMatched",  hGenDMMatched,  hGenDM)
+gEffCorrect    = ratio_graph("hEffiGenDMCorrect",  hGenDMCorrect,  hGenDM)
+gPurityMatched = ratio_graph("hPurityRecoDMMatched", hRecoDMMatched, hRecoDM)
+gPurityCorrect = ratio_graph("hPurityRecoDMCorrect", hRecoDMCorrect, hRecoDM)
+# Fractions of each gen mode (columns add up to 1): the diagonal is the efficiency
+hMigrationEff = normalised_migration("histoMigrationEff", by_gen=True)
+# Fractions of each reco mode (rows add up to 1): the diagonal is the purity
+hMigrationPur = normalised_migration("histoMigrationPurity", by_gen=False)
+
+for hist in (hGenDM, hGenDMMatched, hGenDMCorrect, hRecoDM, hRecoDMMatched, hRecoDMCorrect,
+             hMigration, hMigrationEff, hMigrationPur,
+             gEffMatched, gEffCorrect, gPurityMatched, gPurityCorrect):
+    hist.Write()
+
+gEffVsP, gPurityVsP = [], []
+for b, tag in enumerate(p_tags):
+    for hist in (hGenVisP_den[b], hGenVisP_matched[b], hGenVisP_correct[b],
+                 hRecoP_den[b], hRecoP_correct[b]):
+        hist.Write()
+    ratio_graph("hEffiGenVisP%sMatched" % tag, hGenVisP_matched[b], hGenVisP_den[b]).Write()
+    gEffVsP.append(ratio_graph("hEffiGenVisP%sCorrect" % tag, hGenVisP_correct[b], hGenVisP_den[b]))
+    gPurityVsP.append(ratio_graph("hPurityRecoP%sCorrect" % tag, hRecoP_correct[b], hRecoP_den[b]))
+    gEffVsP[-1].Write()
+    gPurityVsP[-1].Write()
+
+# ---- Plots: canvases stored in the "plots" directory of the output file ----
+ROOT.gROOT.SetBatch(True)
+ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetPaintTextFormat(".2f")
+plot_dir = outfile.mkdir("plots")
+
+
+def save(canvas, name):
+    canvas.Update()
+    plot_dir.WriteObject(canvas, name)
+
+
+def draw_graphs(name, frame, graphs, ytitle, legend_pos=(0.15, 0.15, 0.6, 0.32)):
+    """Draw [(graph, legend text, colour, marker)] on *frame* and save the canvas."""
+    canvas = ROOT.TCanvas(name, "", 900, 600)
+    canvas.SetGridy()
+    frame.GetYaxis().SetTitle(ytitle)
+    frame.GetYaxis().SetRangeUser(0, 1.05)
+    frame.Draw("AXIS")
+    legend = ROOT.TLegend(*legend_pos)
+    legend.SetBorderSize(0)
+    for graph, text, colour, marker in graphs:
+        graph.SetMarkerStyle(marker)
+        graph.SetMarkerColor(colour)
+        graph.SetLineColor(colour)
+        graph.Draw("P SAME")
+        legend.AddEntry(graph, text, "lp")
+    legend.Draw()
+    save(canvas, name)
+
+
+# Efficiency and purity per decay mode, with the inclusive bins at the end
+frame_dm = labelled_th1("frameDM", summary_labels)
+frame_dm.GetXaxis().SetLabelSize(0.045)
+frame_dm.GetXaxis().LabelsOption("h")
+draw_graphs("efficiency_per_decay_mode", frame_dm, [
+    (gEffMatched, "Matched to a reco tau", ROOT.kBlue + 1, 24),
+    (gEffCorrect, "Matched, same decay mode", ROOT.kRed + 1, 20),
+], "Efficiency")
+draw_graphs("purity_per_decay_mode", frame_dm, [
+    (gPurityMatched, "Matched to a gen tau", ROOT.kBlue + 1, 24),
+    (gPurityCorrect, "Matched, same decay mode", ROOT.kRed + 1, 20),
+], "Purity")
+
+# Inclusive efficiency and purity against the momentum
+frame_p = TH1F("frameP", ";Gen visible tau P [GeV];", *P_BINS)
+draw_graphs("efficiency_vs_P", frame_p, [
+    (gEffVsP[I_ALL], "All taus", ROOT.kBlack, 20),
+    (gEffVsP[I_HAD], "Hadronic taus", ROOT.kRed + 1, 21),
+], "Efficiency (matched, same decay mode)")
+frame_p.GetXaxis().SetTitle("Reco tau P [GeV]")
+draw_graphs("purity_vs_P", frame_p, [
+    (gPurityVsP[I_ALL], "All taus", ROOT.kBlack, 20),
+    (gPurityVsP[I_HAD], "Hadronic taus", ROOT.kRed + 1, 21),
+], "Purity (matched, same decay mode)")
+
+# Migration matrices
+for hist, name, ztitle in (
+    (hMigrationEff, "migration_efficiency", "Fraction of the gen decay mode"),
+    (hMigrationPur, "migration_purity", "Fraction of the reco decay mode"),
+):
+    canvas = ROOT.TCanvas(name, "", 950, 800)
+    canvas.SetRightMargin(0.15)
+    canvas.SetLeftMargin(0.2)
+    canvas.SetBottomMargin(0.12)
+    hist.GetZaxis().SetTitle(ztitle)
+    hist.GetZaxis().SetRangeUser(0, 1)
+    hist.GetXaxis().SetLabelSize(0.035)
+    hist.GetXaxis().LabelsOption("h")
+    hist.GetXaxis().SetTitleOffset(1.3)
+    hist.GetYaxis().SetLabelSize(0.04)
+    hist.GetYaxis().SetTitleOffset(2.5)
+    hist.SetMarkerSize(1.1)
+    hist.Draw("COLZ TEXT")
+    save(canvas, name)
 
 outfile.Close()
 infile.Close()
